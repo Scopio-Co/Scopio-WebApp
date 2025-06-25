@@ -7,9 +7,9 @@ Scopio is a small startup project focused on creating an online course platform 
 We’re a group of 4 students building this from scratch:
 
 - Vishal – Backend, DB, Git, Firebase
-- Falin – Frontend, Backend, Firebase, API
+- Falin – Frontend(Design), Backend, Firebase, API
 - Ashva – Payments, Auth, API, Project Management
-- Ashif – Frontend, Deployment, Auth
+- Ashif – Frontend(Development), Deployment, Auth
 
 ## 💡 What We're Building
 
