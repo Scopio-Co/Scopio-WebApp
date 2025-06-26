@@ -32,7 +32,7 @@ git commit -m "Short message"      # Save with a message
 git push -u origin feature/your-task-name # Pull request have made
 ```
 ## 5. Again do the 2nd step to make your local workspace updated
-
+> Before doing this make sure your pull request have merged
 ## 6. After merging your temp branch yu can delete is locally
 
 ```bash
