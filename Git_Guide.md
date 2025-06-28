@@ -8,7 +8,7 @@ Follow this every time you work on the project.
 To copy the full project to your PC:
 
 ```bash
-git clone https://github.com/Quatrapod/Scopio.git
+git clone https://github.com/Vishal-46/Scopio.git
 cd Scopio
 ```
 ## 2. Keep your project Sync (When someone updated the project you can update your local workspace too, using -> )
