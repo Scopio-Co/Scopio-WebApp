@@ -9,7 +9,7 @@ We’re a group of 4 students building this from scratch:
 - Vishal – Backend, DB, Git, Firebase
 - Falin – Frontend(Design), Backend, Firebase, API
 - Ashva – Payments, Auth, API, Project Management
-- Ashif – Frontend(Development), Deployment, Auth
+- Rishi – Frontend(Development), Deployment, Auth
 
 ## 💡 What We're Building
 
@@ -22,8 +22,8 @@ We’re a group of 4 students building this from scratch:
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React (Vite)
-- **Backend**: Python (FastAPI)
+- **Frontend**: React 
+- **Backend**: Python (Django)
 - **Database**: PostgreSQL
 - **Cloud**: Firebase (for video, auth, etc.)
 - **Payments**: Razorpay
