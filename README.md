@@ -1,3 +1,7 @@
+# Scopio-WebApp
+
+A web platform for Scopio, our IoT-powered EdTech startup. Built to blend smart IoT technology with education, enabling seamless interaction, real-time insights, and an engaging learning experience.
+
 # Scopio - A Startup
 
 Scopio is a small startup project focused on creating an online course platform tailored for Tamil-English (Tanglish) learners. We're starting with content made for our own department, but plan to grow from there.
@@ -31,3 +35,4 @@ We’re a group of 4 students building this from scratch:
 ## 🚧 Status
 
 This is the early development phase. We’re currently setting up the structure and splitting tasks. Updates coming soon.
+
