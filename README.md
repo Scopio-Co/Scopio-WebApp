@@ -26,7 +26,7 @@ We’re a group of 4 students building this from scratch:
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 
+- **Frontend**: React JS
 - **Backend**: Python (Django)
 - **Database**: PostgreSQL
 - **Cloud**: Firebase (for video, auth, etc.)
