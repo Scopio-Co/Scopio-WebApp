@@ -13,7 +13,7 @@ We’re a group of 4 students building this from scratch:
 - Vishal – Backend, DB, Git, Firebase
 - Falin – Frontend(Design), Backend, Firebase, API
 - Ashva – Payments, Auth, API, Project Management
-- Rishi – Frontend(Development), Deployment, Auth
+- Ashif,Andrea,Rishi – Frontend(Development), Deployment, Auth
 
 ## 💡 What We're Building
 
