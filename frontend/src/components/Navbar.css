@@ -1,0 +1,254 @@
+/* Navbar.css */
+@import url("../assets/fonts.css");
+
+.navbar {
+  position: sticky;
+  top:0;
+  left: 0;
+  width: 301px;
+  height: 1067px;
+  border-radius: 0 30px 30px 0;
+  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  background: rgba(255, 255, 255, 0.27);
+  color: white;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: "Arial", sans-serif;
+}
+
+/* Profile Section */
+.profile-section {
+  padding: 20px;
+  border-bottom: 3px solid #dae1e4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 20px 20px 0 0;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-text h3 {
+  margin: 0;
+  color: #000;
+  font: normal 400 24px "Coolvetica", "Arial Black", "Helvetica Neue", Arial,
+    sans-serif;
+}
+
+.profile-text p {
+  margin: 2px 0 0 0;
+  color: #000;
+  font: normal 400 16px "Century Gothic";
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e0;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background: linear-gradient(135deg, #7bdff2 0%, #8a7ffb 50%, #b388ff 100%);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Navigation Section */
+.navigation-section {
+  margin: 15px 20px;
+  border-radius: 20px;
+  background: #ffffff;
+  width: 265px;
+}
+
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 30px 20px;
+  gap: 12px;
+}
+
+.nav-item {
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #efefef;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #000;
+  font: normal 400 20px "Segoe UI";
+  transition: 
+    color 0.3s ease,
+    font-size 0.1s ease,
+}
+
+.nav-link:hover {
+   color: #222020;
+  font-size: 22px;
+}
+
+/* Favorites Section */
+.favorites-section {
+  margin: 15px 20px;
+  border-radius: 20px;
+  background: #ffffff;
+  width: 265px;
+}
+
+.favorites-header {
+  width: 97px;
+  height: 30px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #c163ff, #006fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorites-badge {
+  color: #fff;
+  font: normal 600 16px "Segoe UI";
+}
+
+.favorites-list {
+  list-style: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  gap: 15px;
+}
+
+.favorite-item {
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #efefef;
+}
+
+.favorite-link {
+  text-decoration: none;
+  color: #000;
+  font: normal 400 20px "Segoe UI";
+  transition: 
+    color 0.3s ease,
+    font-size 0.1s ease,
+}
+
+.favorite-link:hover {
+  color: #222020;
+  font-size: 22px; 
+}
+
+
+.show-more {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.show-more-link {
+  color: #0034b7;
+  text-align: center;
+  font: normal 400 20px "Segoe UI";
+
+  transition: color 0.3s ease;
+}
+
+.show-more-link:hover {
+  color: rgb(100, 1, 199);
+}
+
+/* Logout Section */
+.logout-section {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 253px;
+}
+
+.logout-button {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 20px;
+  color: #000;
+  font: normal 400 24px "Kumbh Sans";
+   padding: 5px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.logout-button:hover {
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+}
+
+
