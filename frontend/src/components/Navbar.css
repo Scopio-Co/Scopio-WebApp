@@ -262,7 +262,7 @@ input:checked + .slider:before {
 }
 
 .logout-button {
-  width: 80%;
+  width: 100%;
   border-radius: 20px;
 border: none;
 background: rgb(255, 255, 255);
