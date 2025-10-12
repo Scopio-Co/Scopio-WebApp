@@ -9,7 +9,6 @@
   height: 100vh;
   overflow-x: hidden;
   overflow-y: scroll;
-  border-radius: 0 30px 30px 0;
   border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
   background: rgba(255, 255, 255, 0.27);
   color: white;
@@ -21,7 +20,7 @@
 
 /* Custom Scrollbar Styling */
 .navbar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .navbar::-webkit-scrollbar-track {
@@ -31,13 +30,13 @@
 }
 
 .navbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #C163FF, #006FFF);
+  background: rgba(109, 109, 109, 0.767);
   border-radius: 10px;
   transition: all 0.3s ease;
 }
 
 .navbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #A855F7, #0056CC);
+  background: rgb(77, 77, 77);
   box-shadow: 0 2px 10px rgba(193, 99, 255, 0.3);
 }
 
@@ -242,17 +241,30 @@ input:checked + .slider:before {
 /* Logout Section */
 .logout-section {
   position: sticky;
-  bottom: 20px;
+  padding: 20px;
+  bottom: 0px;
+  box-sizing: border-box;
+  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
   margin: 0 auto;
-  width: 253px;
+  width: 300px;
   display: flex;
   justify-content: center;
+  background: linear-gradient(
+      135deg, /* ≈ -45° */
+      rgba(255, 255, 255, 0.35), /* bright side */
+      rgba(255, 255, 255, 0.10)  /* shadow side */
+  );
+  backdrop-filter: blur(12px) saturate(160%) contrast(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%) contrast(120%);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.15), /* depth */
+    inset 0 0 40px rgba(255, 255, 255, 0.05); /* inner refraction effect */
 }
 
 .logout-button {
-  width: 100%;
-  border-radius: 15px;
-border: 2px solid var(--Glass-Stroke, rgb(0, 0, 0));
+  width: 80%;
+  border-radius: 20px;
+border: none;
 background: rgb(255, 255, 255);
   color: #000;
   font: normal 400 24px "Kumbh Sans";
@@ -263,7 +275,7 @@ background: rgb(255, 255, 255);
   justify-content: center;
   gap: 10px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
 }
 
 .logout-button:hover {
