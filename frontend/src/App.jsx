@@ -5,6 +5,7 @@ import './App.css'
 import Navbar from './components/Navbar'
 import Signup from './components/Signup'
 import Login from './components/Login'
+import HeroCard from './components/HeroCard'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -12,7 +13,7 @@ function App() {
   return (
     <>
       <Navbar />
-      <Signup />
+      <HeroCard />
     </>
   )
 }

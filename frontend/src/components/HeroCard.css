@@ -1,0 +1,142 @@
+/* HeroCard.css */
+.hero-card {
+  display: flex;
+  background: none;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 850px;
+height: 420px;
+  margin: 0 auto;
+}
+
+/* Visual Section */
+.hero-visual {
+  flex: 0 0 45%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+
+
+/* Content Section */
+.hero-content {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: white;
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin: 0 0 20px 0;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.hero-description {
+  font-size: 1rem;
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0 0 30px 0;
+  text-align: justify;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.explore-btn {
+  border-radius: 15px;
+background: linear-gradient(93deg, #9A7CFF 27.04%, #59AAFF 91.17%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: capitalize;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.explore-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.reviews-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.reviews-text {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.star.filled {
+  filter: brightness(1);
+}
+
+.star.empty {
+  filter: brightness(0.3);
+}
+
+/* Animations */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-card {
+    flex-direction: column;
+    max-width: 100%;
+  }
+  
+  .hero-visual {
+    flex: none;
+    min-height: 300px;
+  }
+  
+  .hero-content {
+    padding: 30px 20px;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+}
