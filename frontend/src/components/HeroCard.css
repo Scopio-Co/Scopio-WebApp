@@ -1,18 +1,19 @@
 /* HeroCard.css */
 .hero-card {
   display: flex;
-  background: none;
-  border-radius: 20px;
+  border-radius: 30px;
+border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+background: rgba(255, 255, 255, 0.58);
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  width: 850px;
+  width: 60%;
 height: 420px;
   margin: 0 auto;
 }
 
 /* Visual Section */
 .hero-visual {
-  flex: 0 0 45%;
+  flex:1;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -37,7 +38,6 @@ height: 420px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: white;
 }
 
 .hero-title {
@@ -52,7 +52,6 @@ height: 420px;
 .hero-description {
   font-size: 1rem;
   color: #4a5568;
-  line-height: 1.6;
   margin: 0 0 30px 0;
   text-align: justify;
 }
@@ -68,7 +67,7 @@ height: 420px;
 background: linear-gradient(93deg, #9A7CFF 27.04%, #59AAFF 91.17%);
   color: white;
   border: none;
-  padding: 12px 28px;
+  padding: 10px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -84,59 +83,39 @@ background: linear-gradient(93deg, #9A7CFF 27.04%, #59AAFF 91.17%);
 
 .reviews-section {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  box-sizing: border-box;
+  border-radius: 25px;
+background: #EDEDED;
+padding: 5px 13px;
+height: 43px;
+align-items: center;
+  gap: 10px;
 }
 
 .reviews-text {
-  font-size: 0.9rem;
-  color: #6b7280;
-  font-weight: 500;
+  font: normal 500 0.9rem "Kumbh Sans";
+  color: #000000;
 }
 
 .rating-stars {
   display: flex;
-  gap: 2px;
+  gap: 6px;
 }
 
 .star {
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
 }
 
-.star.filled {
-  filter: brightness(1);
+.star svg {
+  width: 18px;
+  height: 18px;
+  transition: all 0.2s ease;
 }
 
-.star.empty {
-  filter: brightness(0.3);
+.star:hover svg {
+  transform: scale(1.1);
 }
 
-/* Animations */
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .hero-card {
-    flex-direction: column;
-    max-width: 100%;
-  }
-  
-  .hero-visual {
-    flex: none;
-    min-height: 300px;
-  }
-  
-  .hero-content {
-    padding: 30px 20px;
-  }
-  
-  .hero-title {
-    font-size: 2rem;
-  }
-  
-  .hero-actions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-  }
-}

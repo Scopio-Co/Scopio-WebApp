@@ -2,8 +2,9 @@
 @import url("../assets/fonts.css");
 
 .navbar {
+  font-size: 1rem; /* 18px */
   position: sticky;
-  top:0;
+  top: 0;
   left: 0;
   width: 300px;
   height: 100vh;
@@ -72,14 +73,14 @@
 .profile-text h3 {
   margin: 0;
   color: #000;
-  font: normal 400 24px "Coolvetica", "Arial Black", "Helvetica Neue", Arial,
-    sans-serif;
+  font: normal 400 1.33rem "Coolvetica", "Arial Black", "Helvetica Neue", Arial,
+    sans-serif; /* 24px ÷ 18 = 1.33rem */
 }
 
 .profile-text p {
   margin: 2px 0 0 0;
   color: #000;
-  font: normal 400 16px "Century Gothic";
+  font: normal 400 0.89rem "Century Gothic"; /* 16px ÷ 18 = 0.89rem */
 }
 
 /* Toggle Switch */
@@ -157,7 +158,7 @@ input:checked + .slider:before {
 .nav-link {
   text-decoration: none;
   color: #000;
-  font: normal 400 20px "Segoe UI";
+  font: normal 400 1.11rem "Segoe UI"; /* 20px ÷ 18 = 1.11rem */
   transition: 
     color 0.3s ease,
     font-size 0.1s ease,
@@ -165,7 +166,7 @@ input:checked + .slider:before {
 
 .nav-link:hover {
    color: #222020;
-  font-size: 22px;
+  font-size: 1.22rem; /* 22px ÷ 18 = 1.22rem */
 }
 
 /* Favorites Section */
@@ -188,7 +189,7 @@ input:checked + .slider:before {
 
 .favorites-badge {
   color: #fff;
-  font: normal 600 16px "Segoe UI";
+  font: normal 600 0.89rem "Segoe UI"; /* 16px ÷ 18 = 0.89rem */
 }
 
 .favorites-list {
@@ -209,7 +210,7 @@ input:checked + .slider:before {
 .favorite-link {
   text-decoration: none;
   color: #000;
-  font: normal 400 20px "Segoe UI";
+  font: normal 400 1.11rem "Segoe UI"; /* 20px ÷ 18 = 1.11rem */
   transition: 
     color 0.3s ease,
     font-size 0.1s ease,
@@ -217,7 +218,7 @@ input:checked + .slider:before {
 
 .favorite-link:hover {
   color: #222020;
-  font-size: 22px; 
+  font-size: 1.22rem; /* 22px ÷ 18 = 1.22rem */
 }
 
 
@@ -229,7 +230,7 @@ input:checked + .slider:before {
 .show-more-link {
   color: #0034b7;
   text-align: center;
-  font: normal 400 20px "Segoe UI";
+  font: normal 400 1.11rem "Segoe UI"; /* 20px ÷ 18 = 1.11rem */
 
   transition: color 0.3s ease;
 }
@@ -245,8 +246,6 @@ input:checked + .slider:before {
   bottom: 0px;
   box-sizing: border-box;
   border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  margin: 0 auto;
-  width: 300px;
   display: flex;
   justify-content: center;
   background: linear-gradient(
@@ -267,7 +266,7 @@ input:checked + .slider:before {
 border: none;
 background: rgb(255, 255, 255);
   color: #000;
-  font: normal 400 24px "Kumbh Sans";
+  font: normal 400 1.33rem "Kumbh Sans"; /* 24px ÷ 18 = 1.33rem */
    padding: 5px 0;
   cursor: pointer;
   display: flex;
@@ -287,4 +286,15 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   transform: translateY(0);
 }
 
-
+@media (max-width: 1024px) {
+  .navbar{
+    width:250px;
+  }
+  .navigation-section,.favorites-section{
+    width:auto;
+    border-radius: 15px;
+  }
+  .profile-text p{
+    width:60px;
+  }
+}
