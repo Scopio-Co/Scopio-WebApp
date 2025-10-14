@@ -1,42 +1,45 @@
-#root {
-  max-width: 1280px;
+/* Global reset to prevent scroll issues */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* Remove horizontal scroll globally */
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Remove horizontal scroll */
+}
+
+.app-layout {
   display: flex;
-  justify-content: space-between;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* Prevent any overflow from the container */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.navbar-section {
+  flex-shrink: 0;
+  width: 300px; /* Fixed width to match navbar */
+  height: 100vh;
+  overflow: hidden; /* Let navbar handle its own scrolling */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto; /* Only allow vertical scroll for main content */
+  overflow-x: hidden; /* Remove horizontal scroll */
+}
+@media (max-width: 1024px) {
+  .navbar-section{
+    width:250px;
   }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }
