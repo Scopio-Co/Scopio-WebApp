@@ -38,7 +38,7 @@ const Navbar = () => {
         <div className="profile-info">
           <div className="profile-avatar">
             <img
-              src="../../../src/assets/Ellipse 8.png"
+              src="../../../src/assets/img/Ellipse 8.png"
               alt="Profile"
               className="avatar-image"
             />

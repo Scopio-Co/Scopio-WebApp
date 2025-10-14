@@ -185,21 +185,21 @@ const Signup = ({ onSwitchToLogin }) => {
                 className="social-button linkedin"
                 onClick={() => handleSocialLogin('LinkedIn')}
               >
-                <img src="../../../src/assets/Linkedin.svg" alt="LinkedIn" className='social-icon'/>
+                <img src="../../../src/assets/img/Linkedin.svg" alt="LinkedIn" className='social-icon'/>
               </button>
               <button
                 type="button"
                 className="social-button google"
                 onClick={() => handleSocialLogin('Google')}
               >
-                <img src="../../../src/assets/Google.svg" alt="Google" className='social-icon'/>
+                <img src="../../../src/assets/img/Google.svg" alt="Google" className='social-icon'/>
               </button>
               <button
                 type="button"
                 className="social-button github"
                 onClick={() => handleSocialLogin('GitHub')}
               >
-                <img src="../../../src/assets/Github.svg" alt="GitHub" className="social-icon" />
+                <img src="../../../src/assets/img/Github.svg" alt="GitHub" className="social-icon" />
               </button>
               </div>
               <button

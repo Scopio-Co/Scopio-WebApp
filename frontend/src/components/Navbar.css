@@ -165,8 +165,8 @@ input:checked + .slider:before {
 }
 
 .nav-link:hover {
-   color: #222020;
-  font-size: 1.22rem; /* 22px ÷ 18 = 1.22rem */
+   color: #2e2e2e;
+   font-weight: 500;
 }
 
 /* Favorites Section */
@@ -217,8 +217,8 @@ input:checked + .slider:before {
 }
 
 .favorite-link:hover {
-  color: #222020;
-  font-size: 1.22rem; /* 22px ÷ 18 = 1.22rem */
+  color: #2e2e2e;
+   font-weight: 500;
 }
 
 

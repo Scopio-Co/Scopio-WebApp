@@ -6,6 +6,8 @@ import Navbar from './components/Navbar'
 import Signup from './components/Signup'
 import Login from './components/Login'
 import HeroCard from './components/HeroCard'
+import HeroSlider from './components/HeroSlider'
+import Footer from './components/Footer'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -17,6 +19,8 @@ function App() {
       </div>
       <div className="main-content">
         <Signup />
+        <HeroSlider />
+        <Footer />
       </div>
     </div>
   )
