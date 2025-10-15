@@ -54,7 +54,7 @@ const Footer = () => {
               </button>
               </div>
             </div>
-          
+          <div className="footer-section-combined">
           {/* Quick Links */}
           <div className="footer-section">
             <h3 className="footer-heading">Quick Links</h3>
@@ -78,7 +78,7 @@ const Footer = () => {
               <li><a href="#settings">Settings</a></li>
             </ul>
           </div>
-          
+          </div>
           {/* Contact */}
           <div className="footer-section">
             <h3 className="footer-heading">Contact</h3>
@@ -111,25 +111,49 @@ const Footer = () => {
         {/* Powered By Section */}
         <div className="powered-by-section">
           <h4 className="powered-by-title">Powered By</h4>
-          <div className="tech-logos">
-            <div className="tech-logo">
-              <img src="../../../src/assets/img/FreeCodeCamp_logo 1.png" alt="FreeCodeCamp" />
+          <div className="tech-logos-container">
+            <div className="tech-logos-track">
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/FreeCodeCamp_logo 1.png" alt="FreeCodeCamp" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/brototype.png" alt="Brototype" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/arduino.svg" alt="Arduino" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/Linkedin (1).svg" alt="LinkedIn" /> 
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/FreeCodeCamp_logo 1.png" alt="FreeCodeCamp" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/brototype.png" alt="Brototype" />
+              </div>
+              
+              {/* Duplicate set for seamless loop */}
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/FreeCodeCamp_logo 1.png" alt="FreeCodeCamp" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/brototype.png" alt="Brototype" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/arduino.svg" alt="Arduino" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/Linkedin (1).svg" alt="LinkedIn" /> 
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/FreeCodeCamp_logo 1.png" alt="FreeCodeCamp" />
+              </div>
+              <div className="tech-logo">
+                <img src="../../../src/assets/img/brototype.png" alt="Brototype" />
+              </div>
             </div>
-            <div className="tech-logo">
-              <img src="../../../src/assets/img/brototype.png" alt="Brototype" />
-            </div>
-            <div className="tech-logo">
-              <img src="../../../src/assets/img/arduino.svg" alt="Arduino" />
-            </div>
-            <div className="tech-logo">
-              <img src="../../../src/assets/img/brototype.png" alt="Brototype" />
-            </div>
-            <div className="tech-logo">
-              <img src="../../../src/assets/img/Linkedin (1).svg" alt="LinkedIn" /> 
-            </div>
-            <div className="tech-logo">
-              <img src="../../../src/assets/img/arduino.svg" alt="Arduino" />
-            </div>
+            <div className="fade-left"></div>
+            <div className="fade-right"></div>
           </div>
         </div>
         <div className="border-line"></div>
