@@ -7,6 +7,7 @@ import Signup from './components/Signup'
 import Login from './components/Login'
 import HeroCard from './components/HeroCard'
 import HeroSlider from './components/HeroSlider'
+import TopPicks from './components/TopPicks'
 import Footer from './components/Footer'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
       <div className="main-content">
         <Signup />
         <HeroSlider />
+        <TopPicks />
         <Footer />
       </div>
     </div>

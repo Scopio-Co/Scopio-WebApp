@@ -14,3 +14,7 @@
   font-family: 'Eina03';
   src: url('./fonts/Eina03-SemiBold.ttf') format('truetype');
 }
+@font-face {
+  font-family: 'Eina03-Regular';
+  src: url('./fonts/Eina03-Regular.ttf') format('truetype');
+}

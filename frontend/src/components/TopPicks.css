@@ -1,0 +1,399 @@
+/* Top Picks Section Styles */
+.top-picks-section {
+  padding: 3rem 0;
+  background: rgba(255, 255, 255, 0.05);
+  font-family: "eina03", sans-serif;
+}
+
+.top-picks-container {
+  max-width: 1400px;
+  width:95%;
+  border-radius: 15px;
+  border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  background: rgba(255, 255, 255, 0.3);
+  margin: 0 auto;
+  padding: 0px;
+}
+
+.top-picks-heading {
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0px 0px 20px 50px;
+  font-family: "eina03", sans-serif;
+}
+
+/* Grid System - Updated implementation */
+.parent-toppicks-grid {
+  display: grid;
+  height: 1395px;
+  padding: 50px 60px;
+  row-gap: 15px;
+  column-gap: 20px;
+  align-self: stretch;
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin-bottom: 2rem;
+}
+
+.child1-toppicks {
+  grid-column: span 5 / span 5;
+  grid-row: span 2 / span 2;
+}
+
+.child2-toppicks {
+  grid-column: span 2 / span 2;
+  grid-row: span 2 / span 2;
+  grid-column-start: 6;
+}
+
+.child3-toppicks {
+  grid-column: span 2 / span 2;
+  grid-row-start: 3;
+}
+
+.child4-toppicks {
+  grid-column: span 2 / span 2;
+  grid-row: span 2 / span 2;
+  grid-column-start: 3;
+  grid-row-start: 3;
+}
+
+.child5-toppicks {
+  grid-column: span 3 / span 3;
+  grid-row: span 2 / span 2;
+  grid-column-start: 5;
+  grid-row-start: 3;
+}
+
+.child6-toppicks {
+  grid-column: span 2 / span 2;
+  grid-row-start: 4;
+}
+
+.child7-toppicks {
+  grid-column: span 2 / span 2;
+  grid-row: span 2 / span 2;
+  grid-row-start: 5;
+}
+
+.child8-toppicks {
+  grid-column: span 4 / span 4;
+  grid-row: span 2 / span 2;
+  grid-column-start: 3;
+  grid-row-start: 5;
+}
+
+.child9-toppicks {
+  grid-column-start: 7;
+  grid-row-start: 5;
+}
+
+.child10-toppicks {
+  grid-column-start: 7;
+  grid-row-start: 6;
+}
+
+.child11-toppicks {
+  grid-column: span 3 / span 3;
+  grid-row: span 2 / span 2;
+  grid-row-start: 7;
+}
+
+.child12-toppicks {
+  grid-column: span 4 / span 4;
+  grid-row: span 2 / span 2;
+  grid-column-start: 4;
+  grid-row-start: 7;
+}
+
+/* Grid Item Styling */
+.grid-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grid-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Course Card Styles */
+.course-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.course-card:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.course-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.course-card:hover .course-image {
+  transform: scale(1.05);
+}
+
+.course-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    transparent 100%
+  );
+  color: white;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.course-card:hover .course-content {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.course-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.course-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
+}
+
+.course-content p {
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem 0;
+  opacity: 0.9;
+  line-height: 1.3;
+}
+
+.course-meta {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.course-meta span {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+}
+
+.course-tag {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border-radius: 20px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+.course-card:hover .course-overlay {
+  opacity: 1;
+}
+
+/* Compact content for smaller cards */
+.course-content.compact {
+  padding: 0.75rem;
+}
+
+.course-content.compact h4 {
+  font-size: 0.875rem;
+}
+
+/* Card size variations */
+.small-card .course-content {
+  padding: 0.5rem;
+}
+
+.small-card .course-content h4 {
+  font-size: 0.75rem;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .parent-toppicks-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    height: 800px;
+    padding: 40px 30px;
+    row-gap: 10px;
+    column-gap: 15px;
+  }
+
+  .child1-toppicks {
+    grid-column: span 3 / span 2;
+    grid-row: span 2 / span 2;
+  }
+
+  .child2-toppicks {
+    grid-column: span 2 / span 2;
+    grid-row: span 2 / span 2;
+    grid-column-start: 4;
+  }
+
+  .child3-toppicks {
+    grid-column: span 1 / span 1;
+    grid-row-start: 3;
+  }
+
+  .child4-toppicks {
+    grid-column: span 2 / span 2;
+    grid-row: span 1 / span 1;
+    grid-column-start: 2;
+    grid-row-start: 3;
+  }
+
+  .child5-toppicks {
+    grid-column: span 2 / span 2;
+    grid-row: span 1 / span 1;
+    grid-column-start: 4;
+    grid-row-start: 3;
+  }
+
+  .child6-toppicks {
+    grid-column: span 2 / span 2;
+    grid-row: span 1 / span 1;
+    grid-column-start: 1;
+    grid-row-start: 4;
+  }
+
+  .child7-toppicks {
+    grid-column: span 2 / span 2;
+    grid-row: span 1 / span 1;
+    grid-column-start: 3;
+    grid-row-start: 4;
+  }
+
+  .child8-toppicks {
+    grid-column: span 1 / span 1;
+    grid-row: span 1 / span 1;
+    grid-column-start: 5;
+    grid-row-start: 4;
+  }
+
+  .child9-toppicks {
+    grid-column: span 2 / span 2;
+    grid-row-start: 5;
+  }
+
+  .child10-toppicks {
+    grid-column: span 2 / span 3;
+    grid-row-start: 5;
+    grid-column-start: 3;
+  }
+
+  .child11-toppicks {
+    grid-column: span 2 / span 2;
+    grid-row: span 1 / span 1;
+    grid-row-start: 6;
+  }
+
+  .child12-toppicks {
+    grid-column: span 2 / span 3;
+    grid-row: span 1 / span 1;
+    grid-column-start: 3;
+    grid-row-start: 6;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-picks-container {
+    padding: 0 1rem;
+  }
+
+  .parent-toppicks-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    height: 800px;
+    padding: 10px 20px;
+  }
+
+  .child1-toppicks,
+  .child2-toppicks,
+  .child3-toppicks,
+  .child4-toppicks,
+  .child5-toppicks,
+  .child6-toppicks,
+  .child7-toppicks,
+  .child8-toppicks,
+  .child9-toppicks,
+  .child10-toppicks,
+  .child11-toppicks,
+  .child12-toppicks {
+    grid-column: span 1 / span 1;
+    grid-row: span 1 / span 1;
+    grid-column-start: auto;
+    grid-row-start: auto;
+  }
+
+  .div1 {
+    grid-column: span 2 / span 2;
+    grid-row: span 2 / span 2;
+  }
+
+  .top-picks-heading {
+    font-size: 1.75rem;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .parent-toppicks-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(12, 120px);
+    height: auto;
+    row-gap: 10px;
+    column-gap: 15px;
+    padding: 20px 30px;
+  }
+
+  .child1-toppicks,
+  .child2-toppicks,
+  .child3-toppicks,
+  .child4-toppicks,
+  .child5-toppicks,
+  .child6-toppicks,
+  .child7-toppicks,
+  .child8-toppicks,
+  .child9-toppicks,
+  .child10-toppicks,
+  .child11-toppicks,
+  .child12-toppicks {
+    grid-column: 1;
+    grid-row: span 1;
+  }
+}

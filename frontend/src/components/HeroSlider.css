@@ -35,9 +35,9 @@ background: rgba(255, 255, 255, 0.20);
 }
 
 .slider-item {
-  flex: 0 0 auto;
+  flex: 1 0 auto;
+  display: flex; 
   width: 85%;
-  height: max-content;
   scroll-snap-align: center;
 }
 
@@ -74,9 +74,25 @@ background: rgba(255, 255, 255, 0.20);
 .nav-arrow.right {
   right: 20px;
 }
-@media (max-width: 768px) {
+@media (max-width:1024px){
+  .hero-content{
+    padding:15px;
+  }
+  .hero-actions{
+    flex-direction: column;
+    gap:15px;
+  }
+}
+@media (max-width: 900px) {
+  .hero-card{
+    height:auto;
+    flex-direction: column;
+  }
+   .hero-actions{
+    flex-direction: row;
+  }
     .slider-item{
-        width:100%;
+        width:70%;
     }
   .slider-content {
     padding: 20px;
@@ -92,10 +108,10 @@ background: rgba(255, 255, 255, 0.20);
   }
 
   .nav-arrow.left {
-    left: 10px;
+    left: 14px;
   }
 
   .nav-arrow.right {
-    right: 10px;
+    right: 14px;
   }
 }
