@@ -49,8 +49,8 @@
 
 .footer-social-media {
   justify-content: space-evenly;
-  max-width: 70%;
-  min-width: 90%;
+  max-width: 80%;
+  min-width: 95%;
   gap: clamp(2px, 0.4vw, 15px);
 }
 
