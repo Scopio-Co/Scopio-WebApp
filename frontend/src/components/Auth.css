@@ -40,7 +40,7 @@
 
 .auth-form {
   width: 100%;
-  max-width: 400px;
+  padding: 10px 20px;
 }
 
 /* Login Modal Styling */
@@ -363,7 +363,7 @@ background: #0017ad;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .auth-content {
     flex-direction: column-reverse;
     max-width: 500px;

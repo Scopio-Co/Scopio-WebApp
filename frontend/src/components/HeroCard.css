@@ -43,7 +43,7 @@
 }
 
 .hero-title {
-  font-size: clamp(1.5rem, 2vw + 1rem, 2.5rem);
+  font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
   font-family: "Inter", sans-serif;
   font-weight: 600;
   color: #1a202c;
@@ -55,7 +55,7 @@
 .hero-description {
   font-family: "Inter", sans-serif;
   align-self: stretch;
-  font-size: clamp(0.875rem, 0.5vw + 0.75rem, 1rem);
+  font-size: clamp(0.75rem, 0.5vw + 0.75rem, 1rem);
   color: #4a5568;
   margin: 0 0 30px 0;
   text-align: justify;
@@ -124,4 +124,29 @@
 
 .star:hover svg {
   transform: scale(1.1);
+}
+
+
+@media (max-width:1024px){
+  .hero-description {
+  font-family: "Inter", sans-serif;
+  align-self: stretch;
+  font-size: clamp(0.6rem, 0.5vw + 0.75rem, 0.6rem);
+  color: #4a5568;
+  margin: 0 0 30px 0;
+  text-align: justify;
+}
+
+.hero-title {
+  font-size: clamp(1.2rem, 2vw + 1rem, 1.2rem);
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 20px 0;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+.explore-btn{
+  font-size: 0.5rem;
+}
 }

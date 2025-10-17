@@ -7,7 +7,7 @@
 
 .slider-heading {
 font-family: "eina03", sans-serif;
-  font-size: 2.3rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #1a202c;
   margin: 0px 0px 20px 60px;
@@ -21,6 +21,7 @@ font-family: "eina03", sans-serif;
 
 .slider-content {
   display: flex;
+  height: 40vh;
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
@@ -82,6 +83,9 @@ background: rgba(255, 255, 255, 0.20);
     flex-direction: column;
     gap:15px;
   }
+  .slider-content {
+  height: 55vh;
+}
 }
 @media (max-width: 900px) {
   .hero-card{
