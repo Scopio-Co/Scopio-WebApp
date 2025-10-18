@@ -35,10 +35,11 @@
 .hero-content {
   flex: 0 0 60%;
   min-width: 60%;
-  padding: 40px;
+  padding: 30px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 0;
   align-items: stretch;
 }
 
@@ -65,8 +66,9 @@
   display: flex;
   align-items: center;
   gap: 30px;
-  width:100%;
+  width:90%;
   margin-bottom: 20px;
+    container-type: inline-size;
 }
 
 .explore-btn {
@@ -104,9 +106,31 @@
   color: #000000;
 }
 
+.rating-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .rating-stars {
   display: flex;
   gap: 6px;
+}
+
+.rating-compact {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-number {
+  font: normal 600 0.9rem "Kumbh Sans";
+  color: #000000;
+}
+
+.single-star {
+  width: 18px;
+  height: 18px;
 }
 
 .star {
@@ -126,27 +150,31 @@
   transform: scale(1.1);
 }
 
-
-@media (max-width:1024px){
-  .hero-description {
-  font-family: "Inter", sans-serif;
-  align-self: stretch;
-  font-size: clamp(0.6rem, 0.5vw + 0.75rem, 0.6rem);
-  color: #4a5568;
-  margin: 0 0 30px 0;
-  text-align: justify;
-}
-
-.hero-title {
-  font-size: clamp(1.2rem, 2vw + 1rem, 1.2rem);
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  color: #1a202c;
-  margin: 0 0 20px 0;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-}
-.explore-btn{
-  font-size: 0.5rem;
-}
+/* Container Query: When hero-card width is less than 275px */
+@container (max-width: 275px) {
+  .rating-stars.full-stars {
+    display: none;
+  }
+  
+  .rating-compact {
+    display: flex;
+  }
+  
+  .reviews-section {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+  
+  .reviews-text {
+    font-size: 0.8rem;
+  }
+  
+  .rating-number {
+    font-size: 0.8rem;
+  }
+  
+  .single-star {
+    width: 16px;
+    height: 16px;
+  }
 }

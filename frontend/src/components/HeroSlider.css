@@ -21,7 +21,6 @@ font-family: "eina03", sans-serif;
 
 .slider-content {
   display: flex;
-  height: 40vh;
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
@@ -38,7 +37,7 @@ background: rgba(255, 255, 255, 0.20);
 .slider-item {
   flex: 1 0 auto;
   display: flex; 
-  width: 85%;
+  max-width: 85%;
   scroll-snap-align: center;
 }
 
@@ -79,21 +78,11 @@ background: rgba(255, 255, 255, 0.20);
   .hero-content{
     padding:15px;
   }
-  .hero-actions{
-    flex-direction: column;
-    gap:15px;
-  }
-  .slider-content {
-  height: 55vh;
-}
 }
 @media (max-width: 900px) {
   .hero-card{
     height:auto;
-    flex-direction: column;
-  }
-   .hero-actions{
-    flex-direction: row;
+    display: block; 
   }
     .slider-item{
         width:70%;
