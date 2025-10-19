@@ -57,8 +57,19 @@ const HeroCard = ({
           
           <div className="reviews-section">
             <span className="reviews-text">Reviews</span>
-            <div className="rating-stars">
-              {renderStars(rating, maxRating)}
+            <div className="rating-display">
+              {/* Full star display for larger containers */}
+              <div className="rating-stars full-stars">
+                {renderStars(rating, maxRating)}
+              </div>
+              
+              {/* Compact display for smaller containers */}
+              <div className="rating-compact">
+                <span className="rating-number">{rating}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 19" fill="none" className="single-star">
+                  <path d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z" fill="#FFD900"/>
+                </svg>
+              </div>
             </div>
           </div>
         </div>
