@@ -152,9 +152,11 @@ input:checked + .slider:before {
 .nav-item {
   width: 100%;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--border-tertiary);
+  border-bottom: 3px solid var(--border-tertiary);
 }
-
+.nav-item:last-child {
+  border-bottom: none;
+}
 .nav-link {
   text-decoration: none;
   color: var(--text-tertiary);
@@ -204,9 +206,12 @@ input:checked + .slider:before {
 .favorite-item {
   width: 100%;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--border-tertiary);
+  border-bottom: 3px solid var(--border-tertiary);
 }
 
+.favorite-item:nth-last-child(2) {
+  border-bottom: none;
+}
 .favorite-link {
   text-decoration: none;
   color: var(--text-tertiary);
@@ -231,7 +236,6 @@ input:checked + .slider:before {
   color: #0034b7;
   text-align: center;
   font: normal 400 1.11rem "Segoe UI"; /* 20px ÷ 18 = 1.11rem */
-
   transition: color 0.3s ease;
 }
 
