@@ -112,6 +112,18 @@ input[type="password"]:focus {
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
   background: rgb(202, 198, 198);
 }
+/* Chrome, Edge, Safari */
+input:-webkit-autofill {
+  -webkit-text-fill-color: #414141 !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.11) inset !important;
+  caret-color: #000000 !important;
+}
+/* Firefox */
+input:autofill {
+  background-color: #fff !important;
+  color: #414141 !important;
+  caret-color: #000000 !important;
+}
 
 input.error {
   border-color: #ef4444;

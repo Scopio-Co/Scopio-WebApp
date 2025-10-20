@@ -20,7 +20,7 @@ const HeroSlider = () => {
       title: "Kick Like Benz",
       description:
         "The 34-year-old Carlsen made the revelation on X as he shared the screenshots of his conversation with ChatGPT. He captioned the post: \"I sometimes get bored while travelling.\" In the first screenshot, ChatGPT can be seen conceding defeat as it surrendered to Carlsen with the message: \"All my pawns are gone. You haven't lost a single piece. You fulfilled your win condition perfectly... As agreed, I resign.\"",
-      rating: 4,
+      rating: 4.6,
       maxRating: 5,
       image: heroImage,
     },
@@ -28,7 +28,7 @@ const HeroSlider = () => {
       title: "Advanced React Development",
       description:
         "Master the latest React features and build scalable applications with hooks, context, and modern patterns. Learn from industry experts and work on real-world projects that will enhance your portfolio and prepare you for senior developer roles.",
-      rating: 5,
+      rating: 3,
       maxRating: 5,
       image: heroImage,
     },
@@ -36,7 +36,7 @@ const HeroSlider = () => {
       title: "Python Data Science Mastery",
       description:
         "Dive deep into data analysis, visualization, and machine learning with Python. Learn pandas, numpy, matplotlib, and scikit-learn to become a data science expert. Work on real datasets and build predictive models.",
-      rating: 4,
+      rating: 4.3,
       maxRating: 5,
       image: heroImage,
     },
