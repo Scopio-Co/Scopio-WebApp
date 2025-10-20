@@ -2,10 +2,10 @@
 .hero-card {
   display: flex;
   border-radius: 30px;
-  border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.58);
+  border: 2px solid var(--border-primary);
+  background: var(--bg-secondary);
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-light);
   width: 100%;
   margin: 0 auto;
 }
@@ -47,7 +47,7 @@
   font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
   font-family: "Inter", sans-serif;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
   margin: 0 0 20px 0;
   line-height: 1.2;
   letter-spacing: -0.5px;
@@ -57,7 +57,7 @@
   font-family: "Inter", sans-serif;
   align-self: stretch;
   font-size: clamp(0.75rem, 0.5vw + 0.75rem, 1rem);
-  color: #4a5568;
+  color: var(--text-secondary);
   margin: 0 0 30px 0;
   text-align: justify;
 }
@@ -94,7 +94,7 @@
   display: flex;
   box-sizing: border-box;
   border-radius: 25px;
-  background: #ededed;
+  background: var(--accent-tertiary);
   padding: 5px 13px;
   height: 43px;
   align-items: center;
@@ -103,7 +103,7 @@
 
 .reviews-text {
   font: normal 500 0.9rem "Kumbh Sans";
-  color: #000000;
+  color: var(--text-tertiary);
 }
 
 .rating-display {

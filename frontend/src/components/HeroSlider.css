@@ -9,7 +9,7 @@
 font-family: "eina03", sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--text-primary);
   margin: 0px 0px 20px 60px;
 }
 
@@ -26,8 +26,8 @@ font-family: "eina03", sans-serif;
   scrollbar-width: none;
   gap: 30px;
   padding: 24px 60px;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-background: rgba(255, 255, 255, 0.20);
+  border: 1px solid var(--border-primary);
+background: var(--bg-tertiary);
 }
 
 .slider-content::-webkit-scrollbar {

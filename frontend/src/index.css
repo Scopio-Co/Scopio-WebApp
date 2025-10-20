@@ -5,8 +5,8 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background: url(../src/assets/img/Gradient-bg.png);
-  background-size: cover;
+  --bg-image-light: url(../src/assets/img/Gradient-bg.png);
+  --bg-image-dark: url(../src/assets/img/Gradient-bg\ \(Dark\).png);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -26,7 +26,11 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  width:100%;
+  width: 100%;
+  background: var(--bg-image-light);
+  background-size: cover;
+  background-attachment: fixed;
+  transition: background-image 0.4s ease;
 }
 
 h1 {
@@ -46,10 +50,24 @@ button {
   transition: border-color 0.25s;
 }
 
+/* Light theme styles */
+body:not(.dark-mode) {
+  background: var(--bg-image-light);
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* Dark theme styles */
+body.dark-mode {
+  background: var(--bg-image-dark);
+  background-size: cover;
+  background-attachment: fixed;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+    background-color: transparent;
   }
   a:hover {
     color: #747bff;

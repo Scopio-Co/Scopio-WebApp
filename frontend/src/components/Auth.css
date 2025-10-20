@@ -20,8 +20,8 @@
   width: 100%;
   max-width: 90%;
   min-height: 600px;
-  border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--border-primary);
+  background: var(--bg-tertiary);
   border-radius: 25px;
   box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(2.4000000953674316px);
@@ -47,10 +47,10 @@
 /* Login Modal Styling */
 .login-modal {
   border-radius: 25px;
-background: linear-gradient(90deg, rgba(235, 235, 235, 0.80) 59.48%, rgba(255, 255, 255, 0.80) 93.39%);
+  background: var(--bg-tertiary);
   padding: 25px 15px;
   backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-primary);
   width: 478px;
 }
 
@@ -67,7 +67,7 @@ background: linear-gradient(90deg, rgba(235, 235, 235, 0.80) 59.48%, rgba(255, 2
 /* Form Labels */
 .form-label {
   display: block;
-  color: #414141;
+  color: var(--text-secondary);
   font-family: 'Eina03', sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -94,35 +94,42 @@ input[type="password"] {
   padding: 15px 20px;
   font-size: 16px;
   border-radius: 25px;
-  border: 3px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.11);
-  box-shadow: 0 0 21px 0 rgba(0, 0, 0, 0.04) inset,
-    0 3px 20.1px -6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border: 3px solid var(--border-primary);
+  background: var(--bg-quaternary);
+  box-shadow: var(--shadow-light);
+  transition: all 0.4s ease;
   box-sizing: border-box;
-  color: #414141;
+  color: var(--text-primary);
 }
 
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus {
-    color:#000000;
+  color: var(--text-tertiary);
   outline: none;
-  border-color: #a855f7;
+  border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
-  background: rgb(202, 198, 198);
+  background: var(--bg-secondary);
 }
-/* Chrome, Edge, Safari */
+
+/* Chrome, Edge, Safari - Dark theme autofill */
 input:-webkit-autofill {
-  -webkit-text-fill-color: #414141 !important;
-  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.11) inset !important;
-  caret-color: #000000 !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-quaternary) inset !important;
+  caret-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
-/* Firefox */
+
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-tertiary) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+}
+
+/* Firefox - Dark theme autofill */
 input:autofill {
-  background-color: #fff !important;
-  color: #414141 !important;
-  caret-color: #000000 !important;
+  background-color: var(--bg-quaternary) !important;
+  color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
 }
 
 input.error {
@@ -159,18 +166,17 @@ input.error {
   -webkit-appearance: none;
   -moz-appearance: none;
   border-radius: 50%;
-  border: 3.5px solid #FFF;
-  background: rgba(255, 255, 255, 0.40);
-  box-shadow: 0 0 21px 0 rgba(0, 0, 0, 0.04) inset;
-  filter: drop-shadow(0 3px 20.1px rgba(0, 0, 0, 0.10));
+  border: 3.5px solid var(--border-primary);
+  background: var(--bg-quaternary);
+  box-shadow: var(--shadow-light);
   cursor: pointer;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 .gender-group input[type="radio"]:checked {
-  background: #A855F7;
-  border-color: #A855F7;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 
 .gender-group input[type="radio"]:checked::after {
@@ -187,9 +193,10 @@ input.error {
 
 .gender-group label {
   font-size: 16px;
-  color: #414141;
+  color: var(--text-secondary);
   font-family: 'Eina03', sans-serif;
   cursor: pointer;
+  transition: color 0.4s ease;
 }
 
 /* Form Options */
@@ -204,13 +211,13 @@ input.error {
 .forgot-password-link {
   background: none;
   border: none;
-  color: #000000;
+  color: var(--text-tertiary);
   cursor: pointer;
   font-size: 14px;
 }
 
 .forgot-password-link:hover {
-  color: #1b1a1b;
+  color: var(--text-secondary);
   text-decoration: underline;
 }
 
@@ -270,15 +277,16 @@ background: #0017ad;
   align-items: center;
   border-radius: 25px;
   padding: clamp(6px, 1vw + 4px, 12px);
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-quaternary);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
 }
 
 /* Social button */
 .social-button {
   background: none;
-  color: white;
+  color: var(--text-primary);
   width: clamp(30px, 2vw + 10px, 45px);
   height: clamp(30px, 2vw + 10px, 45px);
   border: none;

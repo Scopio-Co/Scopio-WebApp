@@ -1,7 +1,7 @@
 /* Footer Styles */
 .footer {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgb(0, 0, 0);
+  background: var(--bg-overlay);
+  color: var(--text-tertiary);
   padding: 3.5rem 0 1rem 0;
   position: relative;
   font-family: "eina03-regular", sans-serif;
@@ -21,15 +21,15 @@
   display: flex;
   justify-content: space-between;
   border-radius: 25px;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-tertiary);
   gap: clamp(0.5rem, 1vw + 0.5rem, 3rem);
   padding: clamp(1.5rem, 2vw + 1rem, 3rem) clamp(1rem, 1.5vw + 0.5rem, 2rem);
 }
 
 /* Brand Section */
 .footer-brand {
-  border-right: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  border-right: 2px solid var(--border-primary);
   width: 35%;
 }
 
@@ -37,6 +37,8 @@
   font-size: clamp(1.5rem, 1.2rem + 1vw, 2.2rem);
   font-family: "eina03", sans-serif;
   margin: 0;
+  color: var(--text-tertiary);
+  transition: color 0.4s ease;
 }
 
 .footer-description {
@@ -45,6 +47,8 @@
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 2rem;
+  color: var(--text-secondary);
+  transition: color 0.4s ease;
 }
 
 .footer-social-media {
@@ -62,6 +66,8 @@
 .footer-heading {
   font-family: "eina03", sans-serif;
   margin-bottom: 1.5rem;
+  color: var(--text-tertiary);
+  transition: color 0.4s ease;
 }
 
 .footer-links {
@@ -75,14 +81,14 @@
 }
 
 .footer-links a {
-  color: rgba(0, 0, 0);
+  color: var(--text-tertiary);
   text-decoration: none;
   font-size: 1rem;
   transition: color 0.3s ease;
 }
 
 .footer-links a:hover {
-  color: rgb(80, 79, 79);
+  color: var(--text-secondary);
   text-decoration: underline;
 }
 
@@ -110,25 +116,29 @@
 
 .contact-item span {
   font-size: 1rem;
+  color: var(--text-secondary);
+  transition: color 0.4s ease;
 }
 
 /* Powered By Section */
 .powered-by-section {
   border-radius: 30px;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-quaternary);
   backdrop-filter: blur(50px);
   padding: 20px;
 }
 .border-line {
   margin: 30px 0;
   height: 2px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--border-secondary);
 }
 .powered-by-title {
   font-size: 1rem;
   font-weight: 600;
   margin: 0px 0px 1.5rem 0px;
+  color: var(--text-tertiary);
+  transition: color 0.4s ease;
 }
 
 .tech-logos-container {
@@ -169,7 +179,7 @@
   height: 50px;
   object-fit: contain;
   filter: grayscale(0.3);
-  transition: all 0.3s ease;
+  transition: all 0.3s ease, filter 0.4s ease;
 }
 
 .fade-left,
@@ -180,13 +190,14 @@
   height: 100%;
   pointer-events: none;
   z-index: 2;
+  transition: background 0.4s ease;
 }
 
 .fade-left {
   left: 0;
   background: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.158) 0%,
+    var(--bg-quaternary) 0%,
     transparent 100%
   );
 }
@@ -195,7 +206,7 @@
   right: 0;
   background: linear-gradient(
     to left,
-    rgba(255, 255, 255, 0.25) 0%,
+    var(--bg-quaternary) 0%,
     transparent 100%
   );
 }
@@ -225,6 +236,8 @@
 
 .copyright {
   font-size: 16px;
+  color: var(--text-secondary);
+  transition: color 0.4s ease;
 }
 
 .footer-legal {
@@ -233,14 +246,14 @@
 }
 
 .footer-legal a {
-  color: rgba(0, 0, 0);
+  color: var(--text-tertiary);
   text-decoration: none;
   font-size: 16px;
   transition: color 0.3s ease;
 }
 
 .footer-legal a:hover {
-  color: rgb(75, 74, 74);
+  color: var(--text-secondary);
   text-decoration: underline;
 }
 
