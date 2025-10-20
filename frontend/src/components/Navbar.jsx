@@ -2,17 +2,31 @@ import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 
 const Navbar = () => {
-  // ✅ Move dark mode state here — top-level inside Navbar
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // ✅ Initialize dark mode state from localStorage
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // ✅ Apply dark mode class to body when toggled
+  // ✅ Apply dark mode class to body and save to localStorage
   useEffect(() => {
     document.body.classList.toggle("dark-mode", isDarkMode);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
+
+  // ✅ Initialize theme on component mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      const isDark = savedTheme === 'dark';
+      setIsDarkMode(isDark);
+      document.body.classList.toggle("dark-mode", isDark);
+    }
+  }, []);
 
   const navigationItems = [
     "Home",
@@ -108,29 +122,25 @@ const Navbar = () => {
             fill="none"
           >
             <path
-              d="M18.0191 9.12107V8.03257C18.0191 5.6584 16.0941 3.7334 13.7199 3.7334H8.03237C5.65937 3.7334 3.73438 5.6584 3.73438 8.03257V14.5251"
-              stroke="black"
+              d="M18.0191 9.12107V8.03257C18.0191 5.6584 16.0941 3.7334 13.7199 3.7334H8.03237C5.65937 3.7334 3.73438 5.6584 3.73438 8.03257V14.5251"    
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <path
               d="M18.0191 19.9302V21.0304C18.0191 23.3976 16.0987 25.3167 13.7316 25.3167H8.03237C5.65937 25.3167 3.73438 23.3917 3.73438 21.0176V18.938"
-              stroke="black"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <path
               d="M25.9444 14.525H11.8965"
-              stroke="black"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <path
               d="M22.5283 11.124L23.3823 11.9742M25.9443 14.5249L22.5283 17.9269"
-              stroke="black"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"

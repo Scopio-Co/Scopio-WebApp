@@ -2,7 +2,7 @@
 @import url("../assets/fonts.css");
 
 .navbar {
-  font-size: 1rem; /* 18px */
+  font-size: 1rem;
   position: sticky;
   top: 0;
   left: 0;
@@ -10,9 +10,9 @@
   height: 100vh;
   overflow-x: hidden;
   overflow-y: scroll;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.27);
-  color: white;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-primary);
+  color: var(--text-light);
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -25,26 +25,26 @@
 }
 
 .navbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar-track);
   border-radius: 10px;
   margin: 5px 0;
 }
 
 .navbar::-webkit-scrollbar-thumb {
-  background: rgba(109, 109, 109, 0.767);
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
   transition: all 0.3s ease;
 }
 
 .navbar::-webkit-scrollbar-thumb:hover {
-  background: rgb(77, 77, 77);
+  background: var(--scrollbar-hover);
   box-shadow: 0 2px 10px rgba(193, 99, 255, 0.3);
 }
 
 /* Profile Section */
 .profile-section {
   padding: 20px;
-  border-bottom: 3px solid #dae1e4;
+  border-bottom: 3px solid var(--border-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -72,15 +72,15 @@
 
 .profile-text h3 {
   margin: 0;
-  color: #000;
+  color: var(--text-tertiary);
   font: normal 400 1.33rem "Coolvetica", "Arial Black", "Helvetica Neue", Arial,
-    sans-serif; /* 24px ÷ 18 = 1.33rem */
+    sans-serif;
 }
 
 .profile-text p {
   margin: 2px 0 0 0;
-  color: #000;
-  font: normal 400 0.89rem "Century Gothic"; /* 16px ÷ 18 = 0.89rem */
+  color: var(--text-secondary);
+  font: normal 400 0.89rem "Century Gothic";
 }
 
 /* Toggle Switch */
@@ -133,7 +133,7 @@ input:checked + .slider:before {
 .navigation-section {
   margin: 15px 20px;
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--bg-secondary);
   width: 265px;
 }
 
@@ -152,20 +152,20 @@ input:checked + .slider:before {
 .nav-item {
   width: 100%;
   padding-bottom: 8px;
-  border-bottom: 2px solid #efefef;
+  border-bottom: 2px solid var(--border-tertiary);
 }
 
 .nav-link {
   text-decoration: none;
-  color: #000;
-  font: normal 400 1.11rem "Segoe UI"; /* 20px ÷ 18 = 1.11rem */
+  color: var(--text-tertiary);
+  font: normal 400 1.11rem "Segoe UI";
   transition: 
     color 0.3s ease,
     font-size 0.1s ease,
 }
 
 .nav-link:hover {
-   color: #2e2e2e;
+   color: var(--text-secondary);
    font-weight: 500;
 }
 
@@ -173,7 +173,7 @@ input:checked + .slider:before {
 .favorites-section {
   margin: 15px 20px 60px 20px;
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--bg-secondary);
   width: 265px;
 }
 
@@ -204,20 +204,20 @@ input:checked + .slider:before {
 .favorite-item {
   width: 100%;
   padding-bottom: 8px;
-  border-bottom: 2px solid #efefef;
+  border-bottom: 2px solid var(--border-tertiary);
 }
 
 .favorite-link {
   text-decoration: none;
-  color: #000;
-  font: normal 400 1.11rem "Segoe UI"; /* 20px ÷ 18 = 1.11rem */
+  color: var(--text-tertiary);
+  font: normal 400 1.11rem "Segoe UI";
   transition: 
     color 0.3s ease,
     font-size 0.1s ease,
 }
 
 .favorite-link:hover {
-  color: #2e2e2e;
+  color: var(--text-secondary);
    font-weight: 500;
 }
 
@@ -245,47 +245,45 @@ input:checked + .slider:before {
   padding: 20px;
   bottom: 0px;
   box-sizing: border-box;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  border: 1px solid var(--border-primary);
   display: flex;
   justify-content: center;
-  background: linear-gradient(
-      135deg, /* ≈ -45° */
-      rgba(255, 255, 255, 0.35), /* bright side */
-      rgba(255, 255, 255, 0.10)  /* shadow side */
-  );
+  background: var(--glass-bg);
   backdrop-filter: blur(12px) saturate(160%) contrast(120%);
   -webkit-backdrop-filter: blur(12px) saturate(160%) contrast(120%);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.15), /* depth */
-    inset 0 0 40px rgba(255, 255, 255, 0.05); /* inner refraction effect */
+  box-shadow: var(--glass-shadow);
+  transition: all 0.4s ease;
 }
 
 .logout-button {
   width: 100%;
   border-radius: 20px;
-border: none;
-background: rgb(255, 255, 255);
-  color: #000;
+  border: none;
+  background: var(--bg-button-primary);
+  color: var(--text-tertiary);
   font: normal 400 1.33rem "Kumbh Sans"; /* 24px ÷ 18 = 1.33rem */
-   padding: 5px 0;
+  padding: 5px 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   transition: all 0.3s ease;
-box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+  box-shadow: var(--shadow-sm);
 }
 
 .logout-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-hover);
+  background: var(--bg-button-hover);
 }
 
 .logout-button:active {
   transform: translateY(0);
 }
-
+.logout-section svg{
+  stroke: var(--text-tertiary);
+}
 @media (max-width: 1024px) {
   .navbar{
     width:250px;

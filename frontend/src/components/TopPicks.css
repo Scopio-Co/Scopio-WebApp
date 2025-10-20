@@ -1,7 +1,6 @@
 /* Top Picks Section Styles */
 .top-picks-section {
   padding: 3rem 0;
-  background: rgba(255, 255, 255, 0.05);
   font-family: "eina03", sans-serif;
 }
 
@@ -9,8 +8,8 @@
   max-width: 1400px;
   width:95%;
   border-radius: 15px;
-  border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--border-primary);
+  background: var(--bg-tertiary);
   margin: 0 auto;
   padding: 0px;
 }
@@ -18,7 +17,7 @@
 .top-picks-heading {
   font-size: 2.3rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--text-primary);
   margin: 0px 0px 20px 50px;
   font-family: "eina03", sans-serif;
 }
@@ -117,7 +116,7 @@
 
 .grid-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-medium);
 }
 
 /* Course Card Styles */
@@ -127,16 +126,16 @@
   position: relative;
   overflow: hidden;
   border-radius: 12px;
-  background: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-tertiary);
   backdrop-filter: blur(10px);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .course-card:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--border-primary);
+  background: var(--bg-tertiary);
 }
 
 .course-image {
