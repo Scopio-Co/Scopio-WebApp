@@ -9,6 +9,7 @@ import HeroCard from './components/HeroCard'
 import HeroSlider from './components/HeroSlider'
 import TopPicks from './components/TopPicks'
 import Footer from './components/Footer'
+import Welcome from './components/Welcome'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -19,10 +20,7 @@ function App() {
         <Navbar />
       </div>
       <div className="main-content">
-        <Signup />
-        <HeroSlider />
-        <TopPicks />
-        <Footer />
+        <Welcome />
       </div>
     </div>
   )
