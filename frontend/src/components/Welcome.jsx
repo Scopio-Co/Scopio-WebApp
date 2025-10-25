@@ -1,4 +1,6 @@
 import './Welcome.css';
+import React, { useState } from 'react';
+import Calendar from './calendar.jsx';
 
 const WelcomeDashboard = () => {
 
@@ -8,6 +10,7 @@ const WelcomeDashboard = () => {
         <h1 className="dashboard-title">Welcome Back!</h1>
         
         <div className="dashboard-grid">
+          <div className='left-column'>
           <div className="dashboard-column">
             {/* Learning Hours */}
             <div className="stat-card">
@@ -72,14 +75,35 @@ const WelcomeDashboard = () => {
             </div>
           </div>
 
+          <div className='calendar-row'>
+            {/* Calendar */}
+            <Calendar/>
+            <div className="menu-column">
+              {/* Portfolio */}
+              <div className="portfolio">
+                <a href='#' className="menu-title">Portfolio</a>
+              </div>
+
+              {/* Events */}
+              <div className="events">
+                <div className="menu-title">Events</div>
+                <div className="menu-list">
+                  <div className="menu-item">Explore</div>
+                  <div className="menu-item">Leaderboards</div>
+                  <div className="menu-item">Hands ON</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          
+
           {/* Profile */}
-          <div className="dashboard-column">
+          {/* <div className="dashboard-column">
             <div className="profile-card">
               <div className="profile-wrapper">
-                {/* Speed text overlay */}
                 <div className="speed-text">Speed</div>
                 
-                {/* Profile image */}
                 <div className="profile-image-container">
                   <img 
                     src="./assets/profile-image.jpg" 
@@ -89,7 +113,7 @@ const WelcomeDashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
