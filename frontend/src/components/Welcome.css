@@ -1,10 +1,15 @@
+*{
+  box-sizing: border-box;
+}
+
 /* Dashboard.css */
 
 .dashboard-container {
     display: flex;
-    height: 786px;
     padding: 40px;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    height: auto;
+    justify-content: center;
     align-items: center;
     align-self: stretch;
     border-radius: 20px;
@@ -33,29 +38,35 @@
 .dashboard-grid {
   display: flex;
   justify-content: space-between;
-  gap: 1.5rem;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: nowrap; 
 }
 
 .dashboard-column {
   display: flex;
-align-items: center;
-gap: 50px;
-align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 50%;    
+  min-width: 0;      
+  max-width: 100%;
+  gap: 40px;
+  transition: all 0.3s ease;
 }
 
-.left-column{
+.left-column {
   display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: flex-start;
-gap: 34px;
-align-self: stretch;
+  flex-direction: column;
+  justify-content: center;
+  gap: 34px;
+  width: 100%;
+  flex: 1 1 50%;   
+  min-width: 320px; 
 }
 
 .stat-card {
   display: flex;
-height: 137px;
-padding: 15px 35px;
+padding: 20px 35px;
 justify-content: space-between;
 align-items: center;
 align-content: center;
@@ -222,13 +233,11 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   position: absolute;
   top: -10px;
   text-align: center;
-  font-size: 5rem;
-  font-weight: bold;
+  font-size: clamp(2rem, 8vw, 5rem); 
+  font-weight: 800;
   font-family: Inter;
   font-style: normal;
-  font-weight: 800;
   line-height: normal;
-  /* text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1); */
   background: linear-gradient(181deg, #FFF 50%, #C5B4FF 80%);
   background-clip: text;
   -webkit-background-clip: text;
@@ -242,21 +251,24 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   padding-top: 4rem;
   margin-bottom: 1.5rem;
   bottom: 0;
+  width: 100%; 
+  max-width: 400px; 
 }
 
 .profile-image {
-  width: 100%;
+  width: 100%;  
   border-radius: 1.5rem;
 }
 
 .badges-container {
   display: flex;
-  min-width: 310.655px;
+  width: 90%; 
+  max-width: 310.655px;
   min-height: 62.971px;
   padding: 8.396px 16.792px;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
-  gap: 12.594px;
+  gap: clamp(6px, 2vw, 12.594px); 
   border-radius: 62.131px;
   border: 2.519px solid #FFF;
   background: linear-gradient(90deg, rgba(197, 180, 255, 0.75) 0%, rgba(158, 205, 255, 0.75) 100%), #FFF;
@@ -265,17 +277,19 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   position: absolute;
   bottom: 50px;
   z-index: 999;
+  flex-wrap: wrap;
 }
 
 .badge {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 1; 
 }
 
-
 .badge-image {
-    width: 68px;
+  width: 65px; 
+  height: auto;
 }
 
 
@@ -334,7 +348,7 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   .badges-container {
     position: relative;
     bottom: 100px;
-    min-width: 280px;
+    min-width: 250px;
   }
 
   .badge-image {
