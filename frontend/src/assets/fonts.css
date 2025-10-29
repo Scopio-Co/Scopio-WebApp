@@ -18,3 +18,8 @@
   font-family: 'Eina03-Regular';
   src: url('./fonts/Eina03-Regular.ttf') format('truetype');
 }
+
+@font-face {
+  font-family: 'LaoMuangDon-Regular';
+  src: url('./fonts/LaoMuangDon-Regular.ttf') format('truetype');
+}

@@ -1,0 +1,357 @@
+*{
+  box-sizing: border-box;
+}
+
+/* Dashboard.css */
+
+.dashboard-container {
+    display: flex;
+    padding: 40px;
+    flex-wrap: wrap;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    border-radius: 20px;
+    border: 2px solid #FFF;
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 24.4px 7px rgba(0, 0, 0, 0.09);
+    backdrop-filter: blur(10px);
+    margin: 40px;
+}
+
+.dashboard-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.dashboard-title {
+    color: #000;
+    font-family: "LaoMuangDon-Regular", sans-serif;
+    font-size: 64px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+
+}
+
+.dashboard-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: nowrap; 
+}
+
+.dashboard-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 50%;    
+  min-width: 0;      
+  max-width: 100%;
+  gap: 40px;
+  transition: all 0.3s ease;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 34px;
+  width: 100%;
+  flex: 1 1 50%;   
+  min-width: 320px; 
+}
+
+.stat-card {
+  display: flex;
+padding: 20px 35px;
+justify-content: space-between;
+align-items: center;
+align-content: center;
+row-gap: 13px;
+flex: 1 0 0;
+flex-wrap: wrap;
+border-radius: 47px;
+border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+background: rgba(255, 255, 255, 0.41);
+
+/* Frame highlighter */
+box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-content > .stat-value{
+    color: var( --text-tertiary);
+    text-align: center;
+    font-family: Inter,sans-serif;
+    font-size: 40px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: normal;
+}
+
+.stat-content > .stat-label{
+    color: var( --text-tertiary);
+    font-family: Inter;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: normal;
+}
+
+.calendar-row{
+display: flex;
+height: 250px;
+min-width: 340px;
+min-height: 200px;
+align-items: center;
+justify-content: space-between;
+gap: 23px;
+align-self: stretch;
+margin-bottom: 40px;
+}
+
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+
+.icon-image {
+  width: 100px;
+}
+
+.stat-value {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.stat-label {
+  color: #6b7280;
+}
+
+.menu-column{
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.portfolio{
+  display: flex;
+padding: 10px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+border-radius: 20px;
+background: #FFF;
+box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+color: #000;
+text-align: center;
+font-family: "Segoe UI";
+font-size: 24px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+
+.portfolio a{
+  text-decoration: none;
+  color: inherit;
+}
+
+.events{
+  display: flex;
+padding: 10px;
+flex-direction: column;
+justify-content: space-between;
+flex: 1 0 0;
+align-self: stretch;
+border-radius: 20px;
+border: 2px solid #FFF;
+background: rgba(255, 255, 255, 0.45);
+
+/* Frame highlighter */
+box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+}
+
+.menu-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.menu-item {
+  color: #374151;
+  cursor: pointer;
+  border-bottom: 1px solid var(--text-light);
+}
+
+.menu-item li{
+  list-style: none;
+}
+.menu-item a{
+  text-decoration: none;
+  color: inherit;
+}
+
+
+.profile-card {
+  background: transparent;
+  border-radius: 1.5rem;
+}
+
+.profile-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.speed-text {
+  position: absolute;
+  top: -10px;
+  text-align: center;
+  font-size: clamp(2rem, 8vw, 5rem); 
+  font-weight: 800;
+  font-family: Inter;
+  font-style: normal;
+  line-height: normal;
+  background: linear-gradient(181deg, #FFF 50%, #C5B4FF 80%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.profile-image-container {
+  position: relative;
+  z-index: 10;
+  padding-top: 4rem;
+  margin-bottom: 1.5rem;
+  bottom: 0;
+  width: 100%; 
+  max-width: 400px; 
+}
+
+.profile-image {
+  width: 100%;  
+  border-radius: 1.5rem;
+}
+
+.badges-container {
+  display: flex;
+  width: 90%; 
+  max-width: 310.655px;
+  min-height: 62.971px;
+  padding: 8.396px 16.792px;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: clamp(6px, 2vw, 12.594px); 
+  border-radius: 62.131px;
+  border: 2.519px solid #FFF;
+  background: linear-gradient(90deg, rgba(197, 180, 255, 0.75) 0%, rgba(158, 205, 255, 0.75) 100%), #FFF;
+  box-shadow: 0 0 20.486px 5.877px rgba(0, 0, 0, 0.09);
+  backdrop-filter: blur(8.396071434020996px);
+  position: absolute;
+  bottom: 50px;
+  z-index: 999;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 1; 
+}
+
+.badge-image {
+  width: 65px; 
+  height: auto;
+}
+
+
+@media screen and (max-width: 1024px) {
+  .dashboard-container {
+    padding: 30px 20px;
+    height: auto;
+    margin: 20px;
+  }
+
+  .dashboard-title {
+    font-size: 48px;
+    text-align: center;
+  }
+
+  .dashboard-grid {
+    flex-direction: column-reverse;
+    gap: 2rem;
+  }
+
+  .left-column {
+    gap: 24px;
+  }
+
+  .dashboard-column {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .stat-card {
+    width: 100%;
+    height: auto;
+    padding: 20px 30px;
+  }
+
+  .calendar-row {
+    flex-direction: column;
+    height: auto;
+    min-width: 100%;
+    gap: 20px;
+  }
+
+  .menu-column {
+    width: 100%;
+  }
+
+  .speed-text {
+    font-size: 3.5rem;
+  }
+
+  .profile-image-container {
+    padding-top: 3rem;
+    width: calc(100% - 30%);
+  }
+
+  .badges-container {
+    position: relative;
+    bottom: 100px;
+    min-width: 250px;
+  }
+
+  .badge-image {
+    width: 56px;
+  }
+}
