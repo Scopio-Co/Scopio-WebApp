@@ -21,7 +21,7 @@
 }
 
 .dashboard-title {
-    color: #000;
+    color: var(--text-tertiary);
     font-family: "LaoMuangDon-Regular", sans-serif;
     font-size: 64px;
     font-style: normal;
@@ -33,6 +33,7 @@
 .dashboard-grid {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 1.5rem;
 }
 
@@ -45,23 +46,28 @@ align-self: stretch;
 
 .left-column{
   display: flex;
+  flex: 1 1 0;
 flex-direction: column;
 justify-content: center;
 align-items: flex-start;
 gap: 34px;
 align-self: stretch;
+  min-width: 0; /* allow column to shrink below its content width */
 }
-
+.rightColumn{
+  flex: 1 1 0;
+  min-width: 0; /* allow column to shrink */
+}
 .stat-card {
   display: flex;
 height: 137px;
-padding: 15px 35px;
+padding: 10px 20px;
 justify-content: space-between;
 align-items: center;
 align-content: center;
 row-gap: 13px;
-flex: 1 0 0;
-flex-wrap: wrap;
+flex: 1 1 0; /* allow stat-cards to shrink as container narrows */
+  min-width: 0; /* allow the stat-card to shrink instead of forcing column width */
 border-radius: 47px;
 border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
 background: rgba(255, 255, 255, 0.41);
@@ -74,16 +80,21 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0; /* allow text to shrink/wrap inside */
 }
 
 .stat-content > .stat-value{
-    color: var( --text-tertiary);
-    text-align: center;
-    font-family: Inter,sans-serif;
-    font-size: 40px;
-    font-style: normal;
-    font-weight: 800;
-    line-height: normal;
+  color: var( --text-tertiary);
+  text-align: center;
+  font-family: Inter, sans-serif;
+  /* responsive font sizing so the numeric value scales with screen */
+  font-size: clamp(1.25rem, 3.5vw, 2.5rem);
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-content > .stat-label{
@@ -98,7 +109,7 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
 .calendar-row{
 display: flex;
 height: 250px;
-min-width: 340px;
+min-width: 0; /* allow calendar to shrink alongside columns; mobile rule will restore min width */
 min-height: 200px;
 align-items: center;
 justify-content: space-between;
@@ -108,9 +119,9 @@ margin-bottom: 40px;
 }
 
 .icon-circle {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  /* allow icon size to scale with viewport so stat cards can shrink proportionally */
+  width: clamp(48px, 6.5vw, 60px);
+  height: clamp(48px, 6.5vw, 60px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -119,11 +130,17 @@ margin-bottom: 40px;
 
 
 .icon-image {
-  width: 100px;
+  /* make icons responsive to their container (.icon-circle is 80x80)
+     so they scale down on narrower layouts */
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .stat-value {
-  font-size: 1.875rem;
+  /* responsive fallback for other uses */
+  font-size: clamp(1rem, 3vw, 1.875rem);
   font-weight: bold;
   color: #1f2937;
 }
@@ -196,6 +213,9 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   border-bottom: 1px solid var(--text-light);
 }
+.menu-item:nth-child(3){
+  border-bottom: none;
+}
 
 .menu-item li{
   list-style: none;
@@ -251,7 +271,8 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
 
 .badges-container {
   display: flex;
-  min-width: 310.655px;
+  min-width: 0;
+  max-width: 340px;
   min-height: 62.971px;
   padding: 8.396px 16.792px;
   justify-content: center;
@@ -275,10 +296,28 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
 
 
 .badge-image {
-    width: 68px;
+  /* keep a preferred size but allow shrinking */
+  width: 68px;
+  max-width: 100%;
+  height: auto;
 }
 
-
+@media (max-width: 1250px) {
+  .stat-card{
+    flex-direction: column;
+    height:auto;
+  }
+  .dashboard-wrapper{
+    height:auto;
+  }
+  .calendar-row{
+    flex-direction: column;
+    height: auto;
+  }
+  .dashboard-container{
+    height:100vh;
+  }
+}
 @media screen and (max-width: 1024px) {
   .dashboard-container {
     padding: 30px 20px;
