@@ -1,161 +1,240 @@
-import React, { useState, useEffect } from "react";
-import "./Navbar.css";
+import React, { useState } from 'react';
+import './Auth.css';
+import Login from './Login';
 
-const Navbar = ({ onLogout }) => {
-  // ✅ Initialize dark mode state from localStorage
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'dark';
+const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    username: '',
+    firstName: '',
+    lastName: '',
+    password: '',
+    confirmPassword: '',
+    gender: 'male'
   });
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+  const [errors, setErrors] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
-  // ✅ Apply dark mode class to body and save to localStorage
-  useEffect(() => {
-    document.body.classList.toggle("dark-mode", isDarkMode);
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
-
-  // ✅ Initialize theme on component mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      const isDark = savedTheme === 'dark';
-      setIsDarkMode(isDark);
-      document.body.classList.toggle("dark-mode", isDark);
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
+    
+    if (!formData.username) newErrors.username = 'Username is required';
+    if (!formData.firstName) newErrors.firstName = 'First name is required';
+    if (!formData.lastName) newErrors.lastName = 'Last name is required';
+    
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    
+    if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
     }
-  }, []);
+    
+    return newErrors;
+  };
 
-  const navigationItems = [
-    "Home",
-    "Learning",
-    "Explore",
-    "Leaderboards",
-    "Hands ON",
-    "Settings",
-  ];
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = validateForm();
+    
+    if (Object.keys(newErrors).length === 0) {
+      // Handle successful form submission
+      console.log('Signup form submitted:', formData);
+      // You can add your signup logic here (API call, etc.)
+      // After successful signup, navigate to Welcome if parent provided handler
+      if (typeof onSwitchToWelcome === 'function') {
+        onSwitchToWelcome();
+      }
+    } else {
+      setErrors(newErrors);
+    }
+  };
 
-  const favoriteItems = [
-    "Kick Like Benz",
-    "Uno dos tres",
-    "Connect it",
-    "Mini Integration",
-    "Forge theory",
-  ];
+  const handleSocialLogin = (provider) => {
+    console.log(`${provider} login clicked`);
+    // Add social login logic here
+  };
 
   return (
-    <div className="navbar">
-      {/* Profile Section */}
-      <div className="profile-section">
-        <div className="profile-info">
-          <div className="profile-avatar">
-            <img
-              src="../../../src/assets/img/Ellipse 8.png"
-              alt="Profile"
-              className="avatar-image"
-            />
-          </div>
-          <div className="profile-text">
-            <h3>Profile</h3>
-            <p>Log in / Sign up</p>
-          </div>
+    <div className="auth-container">
+      <div className="auth-content">
+        <div className="auth-form-section">
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={errors.email ? 'error' : ''}
+              />
+              {errors.email && <span className="error-message">{errors.email}</span>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Username</label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                className={errors.username ? 'error' : ''}
+              />
+              {errors.username && <span className="error-message">{errors.username}</span>}
+            </div>
+
+            <div className="form-row">
+              <div className="form-group half-width">
+                <label className="form-label">First Name</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className={errors.firstName ? 'error' : ''}
+                />
+                {errors.firstName && <span className="error-message">{errors.firstName}</span>}
+              </div>
+              <div className="form-group half-width">
+                <label className="form-label">Last Name</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className={errors.lastName ? 'error' : ''}
+                />
+                {errors.lastName && <span className="error-message">{errors.lastName}</span>}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={errors.password ? 'error' : ''}
+              />
+              {errors.password && <span className="error-message">{errors.password}</span>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className={errors.confirmPassword ? 'error' : ''}
+              />
+              {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+            </div>
+
+            <div className="gender-selection">
+              <div className="gender-group">
+                <input
+                  type="radio"
+                  id="male"
+                  name="gender"
+                  value="male"
+                  checked={formData.gender === 'male'}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="male">Male</label>
+              </div>
+              <div className="gender-group">
+                <input
+                  type="radio"
+                  id="female"
+                  name="gender"
+                  value="female"
+                  checked={formData.gender === 'female'}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="female">Female</label>
+              </div>
+            </div>
+
+            <button type="submit" className="auth-button primary">
+              Create account
+            </button>
+
+            <div className="social-login">
+                <div className="social-media">
+              <button
+                type="button"
+                className="social-button linkedin"
+                onClick={() => handleSocialLogin('LinkedIn')}
+              >
+                <img src="../../../src/assets/img/Linkedin.svg" alt="LinkedIn" className='social-icon'/>
+              </button>
+              <button
+                type="button"
+                className="social-button google"
+                onClick={() => handleSocialLogin('Google')}
+              >
+                <img src="../../../src/assets/img/Google.svg" alt="Google" className='social-icon'/>
+              </button>
+              <button
+                type="button"
+                className="social-button github"
+                onClick={() => handleSocialLogin('GitHub')}
+              >
+                <img src="../../../src/assets/img/Github.svg" alt="GitHub" className="social-icon" />
+              </button>
+              </div>
+              <button
+                type="button"
+                className="auth-button secondary"
+                onClick={() => setShowLoginModal(true)}
+              >
+                Got one?
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* ✅ Dark Mode Toggle */}
-        <div className="toggle-switch">
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={isDarkMode}
-              onChange={toggleDarkMode}
-            />
-            <span className="slider"></span>
-          </label>
+        <div className="auth-brand-section">
+          <div className="brand-content">
+            <h1 className="brand-title">SCOPIO.</h1>
+          </div>
         </div>
       </div>
-
-      {/* Navigation Menu */}
-      <div className="navigation-section">
-        <ul className="nav-list">
-          {navigationItems.map((item, index) => (
-            <li key={index} className="nav-item">
-              <a href="#" className="nav-link">
-                {item}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Favorites Section */}
-      <div className="favorites-section">
-        <ul className="favorites-list">
-          <div className="favorites-header">
-            <span className="favorites-badge">Favorites</span>
+      
+      {/* Login Modal Overlay */}
+      {showLoginModal && (
+        <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            
+            <Login />
           </div>
-          {favoriteItems.map((item, index) => (
-            <li key={index} className="favorite-item">
-              <a href="#" className="favorite-link">
-                {item}
-              </a>
-            </li>
-          ))}
-          <li className="show-more">
-            <a href="#" className="show-more-link">
-              Show more
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      {/* Logout Button */}
-      <div className="logout-section">
-        <button
-          className="logout-button"
-          onClick={() => {
-            if (typeof onLogout === 'function') onLogout();
-            else console.log('Logout clicked!');
-          }}
-        >
-          <span>Log Out</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="29"
-            height="29"
-            viewBox="0 0 29 29"
-            fill="none"
-          >
-            <path
-              d="M18.0191 9.12107V8.03257C18.0191 5.6584 16.0941 3.7334 13.7199 3.7334H8.03237C5.65937 3.7334 3.73438 5.6584 3.73438 8.03257V14.5251"    
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M18.0191 19.9302V21.0304C18.0191 23.3976 16.0987 25.3167 13.7316 25.3167H8.03237C5.65937 25.3167 3.73438 23.3917 3.73438 21.0176V18.938"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M25.9444 14.525H11.8965"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M22.5283 11.124L23.3823 11.9742M25.9443 14.5249L22.5283 17.9269"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Navbar;
+export default Signup;
