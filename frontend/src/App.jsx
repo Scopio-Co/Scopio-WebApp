@@ -13,14 +13,29 @@ import Welcome from './components/Welcome'
 
 function App() {
   const [count, setCount] = useState(0)
+  const [showWelcome, setShowWelcome] = useState(false)
 
   return (
     <div className="app-layout">
       <div className="navbar-section">
-        <Navbar />
+        <Navbar onLogout={() => setShowWelcome(false)} />
       </div>
       <div className="main-content">
-        <Welcome />
+        {showWelcome ? (
+          <>
+            <Welcome />
+            <HeroSlider />
+            <TopPicks />
+            <Footer />
+          </>
+        ) : (
+          <>
+            <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
+            <HeroSlider />
+            <TopPicks />
+            <Footer />
+          </>
+        )}
       </div>
     </div>
   )

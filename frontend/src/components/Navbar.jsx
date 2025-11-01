@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 
-const Navbar = () => {
+const Navbar = ({ onLogout }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -112,7 +112,13 @@ const Navbar = () => {
 
       {/* Logout Button */}
       <div className="logout-section">
-        <button className="logout-button" onClick={() => console.log("Logout clicked!")}>
+        <button
+          className="logout-button"
+          onClick={() => {
+            if (typeof onLogout === 'function') onLogout();
+            else console.log('Logout clicked!');
+          }}
+        >
           <span>Log Out</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
