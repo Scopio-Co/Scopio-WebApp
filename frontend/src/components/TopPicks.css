@@ -6,12 +6,14 @@
 
 .top-picks-container {
   max-width: 1400px;
-  width:95%;
+  width: 95%;
   border-radius: 15px;
   border: 2px solid var(--border-primary);
   background: var(--bg-tertiary);
   margin: 0 auto;
   padding: 0px;
+  box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(3.75px);
 }
 
 .top-picks-heading {
