@@ -46,7 +46,9 @@ const LearningPage = ({ onLogout }) => {
                 <div className="course-author">
                   <div className="author-section">
                     <div className="author-avatar">
-                      <span className="avatar-initial">D</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+</svg>
                     </div>
                     <div className="author-info">
                       <span className="author-name">Donald J Trump</span>
@@ -77,7 +79,9 @@ const LearningPage = ({ onLogout }) => {
                 <div className="course-author">
                   <div className="author-section">
                     <div className="author-avatar">
-                      <span className="avatar-initial">D</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+</svg>
                     </div>
                     <div className="author-info">
                       <span className="author-name">Donald J Trump</span>
@@ -108,7 +112,9 @@ const LearningPage = ({ onLogout }) => {
                 <div className="course-author">
                   <div className="author-section">
                     <div className="author-avatar">
-                      <span className="avatar-initial">D</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+</svg>
                     </div>
                     <div className="author-info">
                       <span className="author-name">Donald J Trump</span>
@@ -139,7 +145,9 @@ const LearningPage = ({ onLogout }) => {
                 <div className="course-author">
                   <div className="author-section">
                     <div className="author-avatar">
-                      <span className="avatar-initial">D</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+</svg>
                     </div>
                     <div className="author-info">
                       <span className="author-name">Donald J Trump</span>
