@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 
-const Navbar = ({ onLogout, onNavigateToLearning }) => {
+const Navbar = ({ onLogout, onNavigateToLearning, onNavigateToExplore }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -27,6 +27,14 @@ const Navbar = ({ onLogout, onNavigateToLearning }) => {
       document.body.classList.toggle("dark-mode", isDark);
     }
   }, []);
+
+  const handleNavItemClick = (item) => {
+    if (item === "Learning" && onNavigateToLearning) {
+      onNavigateToLearning();
+    } else if (item === "Explore" && onNavigateToExplore) {
+      onNavigateToExplore();
+    }
+  };
 
   const navigationItems = [
     "Home",
@@ -86,9 +94,7 @@ const Navbar = ({ onLogout, onNavigateToLearning }) => {
                 className="nav-link"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (item === "Learning" && typeof onNavigateToLearning === 'function') {
-                    onNavigateToLearning();
-                  }
+                  handleNavItemClick(item);
                 }}
               >
                 {item}

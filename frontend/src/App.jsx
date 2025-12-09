@@ -11,20 +11,30 @@ import TopPicks from './components/TopPicks'
 import Footer from './components/Footer'
 import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
+import ExplorePage from './pages/ExplorePage'
 
 function App() {
   const [count, setCount] = useState(0)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showLearning, setShowLearning] = useState(false)
+  const [showExplore, setShowExplore] = useState(false)
 
   const handleNavigateToLearning = () => {
     setShowLearning(true)
     setShowWelcome(false)
+    setShowExplore(false)
+  }
+
+  const handleNavigateToExplore = () => {
+    setShowExplore(true)
+    setShowWelcome(false)
+    setShowLearning(false)
   }
 
   const handleLogout = () => {
     setShowWelcome(false)
     setShowLearning(false)
+    setShowExplore(false)
   }
 
   return (
@@ -33,10 +43,13 @@ function App() {
         <Navbar 
           onLogout={handleLogout} 
           onNavigateToLearning={handleNavigateToLearning}
+          onNavigateToExplore={handleNavigateToExplore}
         />
       </div>
       <div className="main-content">
-        {showLearning ? (
+        {showExplore ? (
+          <ExplorePage onLogout={handleLogout} />
+        ) : showLearning ? (
           <LearningPage onLogout={handleLogout} />
         ) : showWelcome ? (
           <>
