@@ -6,11 +6,11 @@
 }
 
 .slider-heading {
-font-family: "eina03", sans-serif;
-  font-size: 1.3rem;
+ font-size: 2.3rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0px 0px 20px 60px;
+  margin: 0px 0px 20px 50px;
+  font-family: "eina03", sans-serif;
 }
 
 .slider-wrapper {
@@ -106,5 +106,9 @@ background: var(--bg-tertiary);
 
   .nav-arrow.right {
     right: 14px;
+  }
+  .slider-heading {
+    font-size: 1.75rem;
+    margin-left: 5;
   }
 }

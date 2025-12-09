@@ -1,0 +1,169 @@
+/* RatingComponent.css */
+
+.rating-component {
+  display: inline-flex;
+  container-type: inline-size;
+}
+
+.reviews-section {
+  display: flex;
+  box-sizing: border-box;
+  border-radius: 25px;
+  background: var(--accent-tertiary);
+  padding: 5px 13px;
+  height: 43px;
+  align-items: center;
+  gap: 10px;
+}
+
+.reviews-text {
+  font: normal 500 0.9rem "Kumbh Sans";
+  color: var(--text-tertiary);
+}
+
+.reviews-text {
+  font: normal 500 0.9rem "Kumbh Sans";
+  color: var(--text-tertiary);
+}
+
+.rating-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 6px;
+}
+
+.rating-compact {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-number {
+  font: normal 600 0.9rem "Kumbh Sans";
+  color: #000000;
+}
+
+.single-star {
+  width: 18px;
+  height: 18px;
+}
+
+.star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.star svg {
+  width: 18px;
+  height: 18px;
+  transition: all 0.2s ease;
+}
+
+.star:hover svg {
+  transform: scale(1.1);
+}
+
+/* Container Query: When rating-component width is less than 275px */
+@container (max-width: 275px) {
+  .rating-stars.full-stars {
+    display: none;
+  }
+  
+  .rating-compact {
+    display: flex;
+  }
+  
+  .reviews-section {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+  
+  .reviews-text {
+    font-size: 0.8rem;
+  }
+  
+  .rating-number {
+    font-size: 0.8rem;
+  }
+  
+  .single-star {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Container Query specifically for course-author context */
+.course-author {
+  container-type: inline-size;
+}
+
+@container (max-width: 415px) {
+  .course-author .rating-stars.full-stars {
+    display: none;
+  }
+  
+  .course-author .rating-compact {
+    display: flex;
+  }
+  
+  .course-author .reviews-section {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+  
+  .course-author .reviews-text {
+    font-size: 0.8rem;
+  }
+  
+  .course-author .rating-number {
+    font-size: 0.8rem;
+  }
+  
+  .course-author .single-star {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Alternative breakpoints for different use cases */
+@container (max-width: 180px) {
+  .reviews-text {
+    display: none;
+  }
+  
+  .reviews-section {
+    padding: 5px 10px;
+    gap: 0;
+  }
+}
+
+@container (max-width: 120px) {
+  .rating-stars.full-stars {
+    display: none;
+  }
+  
+  .rating-compact {
+    display: flex;
+  }
+  
+  .reviews-section {
+    padding: 3px 8px;
+    height: 35px;
+  }
+  
+  .rating-number {
+    font-size: 0.75rem;
+  }
+  
+  .single-star {
+    width: 14px;
+    height: 14px;
+  }
+}

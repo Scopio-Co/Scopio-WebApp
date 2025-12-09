@@ -6,6 +6,7 @@
   --bg-tertiary: rgba(255, 255, 255, 0.4);
   --bg-quaternary: rgba(255, 255, 255, 0.25);
   --bg-overlay: rgba(255, 255, 255, 0.20);
+  --bg-white: #ffffff;
   
   --text-primary: #1a202c;
   --text-secondary: #4a5568;
@@ -16,6 +17,10 @@
   --border-secondary: #dae1e4;
   --border-tertiary: #EFEFEF;
   
+  --btn-new:#373737;
+  --progress-text:#666;
+  --progress-bar: rgba(0, 0, 0, 0.1);
+
   --shadow-light: 0 10px 30px rgba(0, 0, 0, 0.1);
   --shadow-medium: 0 20px 40px rgba(0, 0, 0, 0.1);
   --shadow-heavy: 0 6px 20px rgba(139, 92, 246, 0.4);
@@ -44,15 +49,20 @@ body.dark-mode {
   --bg-tertiary: rgba(0, 0, 0, 0.4);
   --bg-quaternary: rgba(25, 30, 42, 0.90);
   --bg-overlay: rgba(15, 20, 30, 0.20);
+  --bg-white: #000000;
   
   --text-primary: #e2e8f0;
   --text-secondary: #a0aec0;
   --text-tertiary: #ffffff;
   --text-light: rgba(255, 255, 255, 0.95);
   
-  --border-primary: rgba(100, 120, 150, 0.3);
+  --border-primary: rgba(109, 127, 153, 0.3);
   --border-secondary: rgba(60, 70, 90, 0.5);
   --border-tertiary: rgba(80, 100, 130, 0.2);
+  
+  --btn-new:#b4b4b4;
+  --progress-text:#b8b8b8;
+  --progress-bar: rgba(255, 255, 255, 0.1);
   
   --shadow-light: 0 10px 30px rgba(0, 0, 0, 0.4);
   --shadow-medium: 0 20px 40px rgba(0, 0, 0, 0.5);
