@@ -18,23 +18,13 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [showLearning, setShowLearning] = useState(false)
   const [showExplore, setShowExplore] = useState(false)
-
-  const handleNavigateToLearning = () => {
-    setShowLearning(true)
-    setShowWelcome(false)
-    setShowExplore(false)
-  }
-
-  const handleNavigateToExplore = () => {
-    setShowExplore(true)
-    setShowWelcome(false)
-    setShowLearning(false)
-  }
+  const [showHome, setShowHome] = useState(true)
 
   const handleLogout = () => {
     setShowWelcome(false)
     setShowLearning(false)
     setShowExplore(false)
+    setShowHome(true)
   }
 
   return (
@@ -42,8 +32,10 @@ function App() {
       <div className="navbar-section">
         <Navbar 
           onLogout={handleLogout} 
-          onNavigateToLearning={handleNavigateToLearning}
-          onNavigateToExplore={handleNavigateToExplore}
+          setShowHome={setShowHome}
+          setShowLearning={setShowLearning}
+          setShowExplore={setShowExplore}
+          setShowWelcome={setShowWelcome}
         />
       </div>
       <div className="main-content">
@@ -54,6 +46,13 @@ function App() {
         ) : showWelcome ? (
           <>
             <Welcome />
+            <HeroSlider />
+            <TopPicks />
+            <Footer />
+          </>
+        ) : showHome ? (
+          <>
+            <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
             <HeroSlider />
             <TopPicks />
             <Footer />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './CourseCard.css';
 import RatingComponent from './RatingComponent';
 import defaultCourseImage from '../assets/img/course card.jpg';
@@ -14,16 +14,35 @@ const CourseCard = ({
   authorTitle = "Lover @Kanyakumari"
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef(null);
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
+  const handleMouseEnter = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.top - 550,
+        left: rect.right - 530
+      });
+    }
+    setIsExpanded(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsExpanded(false);
   };
 
   return (
     <div className={`course-card-component ${isExpanded ? 'expanded' : ''}`}>
       {/* Expanded Info Card */}
       {isExpanded && (
-        <div className="info-card-overlay">
+        <div 
+          className="info-card-overlay"
+          style={{
+            top: `${position.top}px`,
+            left: `${position.left}px`
+          }}
+        >
           <div className="info-card">
             <div className="info-card-content">
               <h3 className="info-card-title">{title}</h3>
@@ -45,16 +64,18 @@ const CourseCard = ({
         <div className="card-content-section">
           <h3 className="card-course-title">{title}</h3>
           <div className="card-author-section">
-            <div className="card-author-info">
-              <div className="card-avatar-circle">
-                <span className="card-avatar-initial">{authorName.charAt(0)}</span>
-              </div>
-              <div className="card-author-details">
-                <span className="card-author-name">{authorName}</span>
-                <span className="card-author-title">{authorTitle}</span>
-              </div>
+            <div className="author-section">
+                    <div className="author-avatar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+</svg>
+                    </div>
+                    <div className="author-info">
+                      <span className="author-name">Donald J Trump</span>
+                      <span className="author-title">Web Dev @capestart</span>
+                    </div>
             </div>
-            <button className="card-info-btn" onClick={toggleExpanded}>
+            <button ref={buttonRef} className="card-info-btn" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
               <span className="info-icon-text">i</span>
             </button>
           </div>

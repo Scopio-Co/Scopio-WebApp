@@ -123,7 +123,7 @@ html, body {
   display: flex;
   width: 100vw;
   height: 100vh;
-  overflow: hidden; /* Prevent any overflow from the container */
+  overflow: visible; /* Allow popups to overflow */
 }
 
 .navbar-section {
@@ -137,7 +137,7 @@ html, body {
   flex: 1;
   height: 100vh;
   overflow-y: auto; /* Only allow vertical scroll for main content */
-  overflow-x: hidden; /* Remove horizontal scroll */
+  overflow-x: visible; /* Allow horizontal overflow for popups */
 }
 @media (max-width: 1024px) {
   .navbar-section{
