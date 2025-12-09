@@ -1,0 +1,214 @@
+/* CourseCard.css */
+.course-card-component {
+  position: relative;
+  width: 300px;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.course-card-component.expanded {
+  z-index: 10;
+}
+
+/* Main Course Card */
+.course-card-main {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  overflow: hidden;
+  width: 100%;
+  transition: all 0.3s ease;
+  position: relative;
+  height: 280px;
+  border-radius: 20px;
+border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+box-shadow: 5px 2px 8.3px -1px rgba(0, 0, 0, 0.07), 0 3px 14px -6px rgba(0, 0, 0, 0.25) inset;
+}
+
+.course-card-component.expanded .course-card-main {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Section */
+.card-image-section {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-course-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Content Section */
+.card-content-section {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+background: rgba(255, 255, 255, 0.85);
+backdrop-filter: blur(3.9000000953674316px);
+}
+
+.card-course-title {
+  font-size: 1.125rem;
+  font-family: Eina03-Regular;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+
+/* Author Section */
+.card-author-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+
+/* Info Icon Button */
+.card-info-btn {
+  width: 20px;
+  height: 20px;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  color: #888;
+border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+background: rgba(0, 0, 0, 0.30);
+}
+
+.card-info-btn:hover {
+  background: #D0D0D0;
+  transform: scale(1.05);
+}
+
+.info-icon-text {
+  font-size: 16px;
+  font-weight: 500;
+  font-family: "Inter", sans-serif;
+  color: #ffffff;
+  font-style: italic;
+}
+
+/* Info Card Overlay */
+.info-card-overlay {
+  position: fixed;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+  pointer-events: auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Info Card */
+.info-card {
+  overflow: hidden;
+  width: 300px;
+  animation: slideIn 0.3s ease;
+  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+background: rgba(255, 255, 255, 0.90);
+backdrop-filter: blur(2.4000000953674316px);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.info-card-header {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+
+.info-card-content {
+  padding: 15px;
+}
+
+.info-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+  font-family: Eina03;
+}
+
+.info-card-duration {
+  font-size: 0.875rem;
+  margin: 0 0 12px 0;
+  color: var(--Txt-Gray, #424242);
+font-family: Eina03-Regular;
+}
+
+.info-card-rating {
+  margin: 12px 0 16px 0;
+}
+
+.info-card-rating {
+  margin: 12px 0 16px 0;
+  display: flex;
+  align-items: center;
+}
+
+.info-card-description {
+  font-size: 0.875rem;
+  color: #000;
+  font-family: Eina03-Regular;
+  margin: 0;
+  text-align: justify;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+
+  .info-card {
+    width: 90vw;
+    max-width: 420px;
+  }
+
+  .info-card-content {
+    padding: 20px;
+  }
+}

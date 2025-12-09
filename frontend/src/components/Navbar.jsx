@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 
-const Navbar = ({ onLogout, onNavigateToLearning }) => {
+const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
   });
+
+  const [activePage, setActivePage] = useState('Home');
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -27,6 +29,28 @@ const Navbar = ({ onLogout, onNavigateToLearning }) => {
       document.body.classList.toggle("dark-mode", isDark);
     }
   }, []);
+
+  const handleNavItemClick = (item) => {
+    if (item === "Home" && setShowHome) {
+      setActivePage('Home');
+      setShowHome(true);
+      setShowLearning(false);
+      setShowExplore(false);
+      setShowWelcome(false);
+    } else if (item === "Learning" && setShowLearning) {
+      setActivePage('Learning');
+      setShowLearning(true);
+      setShowHome(false);
+      setShowExplore(false);
+      setShowWelcome(false);
+    } else if (item === "Explore" && setShowExplore) {
+      setActivePage('Explore');
+      setShowExplore(true);
+      setShowHome(false);
+      setShowLearning(false);
+      setShowWelcome(false);
+    }
+  };
 
   const navigationItems = [
     "Home",
@@ -83,12 +107,10 @@ const Navbar = ({ onLogout, onNavigateToLearning }) => {
             <li key={index} className="nav-item">
               <a 
                 href="#" 
-                className="nav-link"
+                className={`nav-link ${activePage === item ? 'active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  if (item === "Learning" && typeof onNavigateToLearning === 'function') {
-                    onNavigateToLearning();
-                  }
+                  handleNavItemClick(item);
                 }}
               >
                 {item}

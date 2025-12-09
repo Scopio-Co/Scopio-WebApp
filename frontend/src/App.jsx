@@ -11,20 +11,20 @@ import TopPicks from './components/TopPicks'
 import Footer from './components/Footer'
 import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
+import ExplorePage from './pages/ExplorePage'
 
 function App() {
   const [count, setCount] = useState(0)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showLearning, setShowLearning] = useState(false)
-
-  const handleNavigateToLearning = () => {
-    setShowLearning(true)
-    setShowWelcome(false)
-  }
+  const [showExplore, setShowExplore] = useState(false)
+  const [showHome, setShowHome] = useState(true)
 
   const handleLogout = () => {
     setShowWelcome(false)
     setShowLearning(false)
+    setShowExplore(false)
+    setShowHome(true)
   }
 
   return (
@@ -32,15 +32,27 @@ function App() {
       <div className="navbar-section">
         <Navbar 
           onLogout={handleLogout} 
-          onNavigateToLearning={handleNavigateToLearning}
+          setShowHome={setShowHome}
+          setShowLearning={setShowLearning}
+          setShowExplore={setShowExplore}
+          setShowWelcome={setShowWelcome}
         />
       </div>
       <div className="main-content">
-        {showLearning ? (
+        {showExplore ? (
+          <ExplorePage onLogout={handleLogout} />
+        ) : showLearning ? (
           <LearningPage onLogout={handleLogout} />
         ) : showWelcome ? (
           <>
             <Welcome />
+            <HeroSlider />
+            <TopPicks />
+            <Footer />
+          </>
+        ) : showHome ? (
+          <>
+            <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
             <HeroSlider />
             <TopPicks />
             <Footer />

@@ -164,6 +164,8 @@ input:checked + .slider:before {
   transition: 
     color 0.3s ease,
     font-size 0.1s ease,
+    margin-left 0.3s ease,
+    font-weight 0.1s ease;
 }
 
 .nav-link:hover {
@@ -171,6 +173,11 @@ input:checked + .slider:before {
    font-weight: 500;
 }
 
+.nav-link.active {
+   color: var(--text-tertiary);
+   margin-left: 10px ;
+   font-weight: 600;
+}
 /* Favorites Section */
 .favorites-section {
   margin: 15px 20px 60px 20px;
