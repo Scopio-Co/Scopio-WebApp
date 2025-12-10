@@ -37,18 +37,25 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowLearning(false);
       setShowExplore(false);
       setShowWelcome(false);
+      // ensure the main content scrolls to top when navigating
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Learning" && setShowLearning) {
       setActivePage('Learning');
       setShowLearning(true);
       setShowHome(false);
       setShowExplore(false);
       setShowWelcome(false);
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Explore" && setShowExplore) {
       setActivePage('Explore');
       setShowExplore(true);
       setShowHome(false);
       setShowLearning(false);
       setShowWelcome(false);
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     }
   };
 
