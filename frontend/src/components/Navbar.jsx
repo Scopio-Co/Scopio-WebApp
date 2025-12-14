@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Navbar.css";
+import profileAvatar from '../assets/img/Ellipse 8.png';
 
 const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome }) => {
   // ✅ Initialize dark mode state from localStorage
@@ -37,18 +38,25 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowLearning(false);
       setShowExplore(false);
       setShowWelcome(false);
+      // ensure the main content scrolls to top when navigating
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Learning" && setShowLearning) {
       setActivePage('Learning');
       setShowLearning(true);
       setShowHome(false);
       setShowExplore(false);
       setShowWelcome(false);
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Explore" && setShowExplore) {
       setActivePage('Explore');
       setShowExplore(true);
       setShowHome(false);
       setShowLearning(false);
       setShowWelcome(false);
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     }
   };
 
@@ -76,7 +84,7 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
         <div className="profile-info">
           <div className="profile-avatar">
             <img
-              src="../../../src/assets/img/Ellipse 8.png"
+              src={profileAvatar}
               alt="Profile"
               className="avatar-image"
             />

@@ -1,5 +1,6 @@
 import React from 'react';
 import './TopPicks.css';
+import courseCardImg from '../assets/img/course card.jpg';
 
 const TopPicks = () => {
   return (
@@ -11,7 +12,7 @@ const TopPicks = () => {
           <div className="child1-toppicks grid-item">
             <div className="course-card large-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 1" 
                 className="course-image"
                 onError={(e) => {
@@ -38,7 +39,7 @@ const TopPicks = () => {
           <div className="child2-toppicks grid-item">
             <div className="course-card medium-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 2" 
                 className="course-image"
                 onError={(e) => {
@@ -60,7 +61,7 @@ const TopPicks = () => {
           <div className="child3-toppicks grid-item">
             <div className="course-card small-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 3" 
                 className="course-image"
                 onError={(e) => {
@@ -78,7 +79,7 @@ const TopPicks = () => {
           <div className="child4-toppicks grid-item">
             <div className="course-card medium-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 4" 
                 className="course-image"
                 onError={(e) => {
@@ -100,7 +101,7 @@ const TopPicks = () => {
           <div className="child5-toppicks grid-item">
             <div className="course-card large-card horizontal">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 5" 
                 className="course-image"
                 onError={(e) => {
@@ -122,7 +123,7 @@ const TopPicks = () => {
           <div className="child6-toppicks grid-item">
             <div className="course-card small-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 6" 
                 className="course-image"
                 onError={(e) => {
@@ -140,7 +141,7 @@ const TopPicks = () => {
           <div className="child7-toppicks grid-item">
             <div className="course-card medium-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 7" 
                 className="course-image"
                 onError={(e) => {
@@ -161,7 +162,7 @@ const TopPicks = () => {
           <div className="child8-toppicks grid-item">
             <div className="course-card large-card horizontal">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 8" 
                 className="course-image"
                 onError={(e) => {
@@ -183,7 +184,7 @@ const TopPicks = () => {
           <div className="child9-toppicks grid-item">
             <div className="course-card small-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 9" 
                 className="course-image"
                 onError={(e) => {
@@ -201,7 +202,7 @@ const TopPicks = () => {
           <div className="child10-toppicks grid-item">
             <div className="course-card small-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 10" 
                 className="course-image"
                 onError={(e) => {
@@ -219,7 +220,7 @@ const TopPicks = () => {
           <div className="child11-toppicks grid-item">
             <div className="course-card large-card">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 11" 
                 className="course-image"
                 onError={(e) => {
@@ -241,7 +242,7 @@ const TopPicks = () => {
           <div className="child12-toppicks grid-item">
             <div className="course-card large-card horizontal">
               <img 
-                src="../../../src/assets/img/course card.jpg" 
+                src={courseCardImg} 
                 alt="Course 12" 
                 className="course-image"
                 onError={(e) => {
