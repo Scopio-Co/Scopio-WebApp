@@ -8,7 +8,7 @@ const HeroCard = ({
   title = "Kick Like Benz", 
   description = "The 34-year-old Carlsen made the revelation on X as he shared the screenshots of his conversation with ChatGPT. He captioned the post: \"I sometimes get bored while travelling.\" In the first screenshot, ChatGPT can be seen conceding defeat as it surrendered to Carlsen with the message: \"All my pawns are gone. You haven't lost a single piece. You fulfilled your win condition perfectly... As agreed, I resign.\"",
   rating = 4.6,
-  image = heroImage || "/src/assets/img/Hero Card img.png" // Fallback path
+  image = heroImage
 }) => {
 
   return (

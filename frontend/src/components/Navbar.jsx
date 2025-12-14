@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Navbar.css";
+import profileAvatar from '../assets/img/Ellipse 8.png';
 
 const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome }) => {
   // ✅ Initialize dark mode state from localStorage
@@ -83,7 +84,7 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
         <div className="profile-info">
           <div className="profile-avatar">
             <img
-              src="../../../src/assets/img/Ellipse 8.png"
+              src={profileAvatar}
               alt="Profile"
               className="avatar-image"
             />

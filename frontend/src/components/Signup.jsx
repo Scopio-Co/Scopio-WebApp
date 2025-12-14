@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './Auth.css';
 import Login from './Login';
+import linkedinIcon from '../assets/img/Linkedin.svg';
+import googleIcon from '../assets/img/Google.svg';
+import githubIcon from '../assets/img/Github.svg';
 
 const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [formData, setFormData] = useState({
@@ -189,21 +192,21 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                 className="social-button linkedin"
                 onClick={() => handleSocialLogin('LinkedIn')}
               >
-                <img src="../../../src/assets/img/Linkedin.svg" alt="LinkedIn" className='social-icon'/>
+                <img src={linkedinIcon} alt="LinkedIn" className='social-icon'/>
               </button>
               <button
                 type="button"
                 className="social-button google"
                 onClick={() => handleSocialLogin('Google')}
               >
-                <img src="../../../src/assets/img/Google.svg" alt="Google" className='social-icon'/>
+                <img src={googleIcon} alt="Google" className='social-icon'/>
               </button>
               <button
                 type="button"
                 className="social-button github"
                 onClick={() => handleSocialLogin('GitHub')}
               >
-                <img src="../../../src/assets/img/Github.svg" alt="GitHub" className="social-icon" />
+                <img src={githubIcon} alt="GitHub" className="social-icon" />
               </button>
               </div>
               <button
