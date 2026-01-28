@@ -144,25 +144,7 @@ const Footer = () => {
                 <img src={brototype} alt="Brototype" />
               </div>
               
-              {/* Duplicate set for seamless loop */}
-              <div className="tech-logo">
-                <img src={freecodec} alt="FreeCodeCamp" />
-              </div>
-              <div className="tech-logo">
-                <img src={brototype} alt="Brototype" />
-              </div>
-              <div className="tech-logo">
-                <img src={arduinoIcon} alt="Arduino" />
-              </div>
-              <div className="tech-logo">
-                <img src={linkedin1} alt="LinkedIn" /> 
-              </div>
-              <div className="tech-logo">
-                <img src={freecodec} alt="FreeCodeCamp" />
-              </div>
-              <div className="tech-logo">
-                <img src={brototype} alt="Brototype" />
-              </div>
+              
             </div>
             <div className="fade-left"></div>
             <div className="fade-right"></div>

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import './ExplorePage.css';
 import CourseCard from '../components/CourseCard';
 import Footer from '../components/Footer';
-import defaultCourseImage from '../assets/img/course card.jpg';
+import courseCardImage from '../assets/img/course_card.webp';
 
 const ExplorePage = () => {
   const scrollRef1 = useRef(null);
@@ -25,7 +25,8 @@ const ExplorePage = () => {
 
   const courses = [
     {
-      image: defaultCourseImage,
+      image: courseCardImage,
+      imageFilter: 'hue-rotate(-10deg) saturate(115%)',
       title: "Mangal Sutra - Introduction to run longer",
       duration: "5 hours, 48 minutes",
       rating: 4.7,
@@ -35,7 +36,8 @@ const ExplorePage = () => {
       authorTitle: "Lover @Kanyakumari"
     },
     {
-      image: defaultCourseImage,
+      image: courseCardImage,
+      imageFilter: 'hue-rotate(25deg) saturate(120%)',
       title: "CSS - Basics to Advanced",
       duration: "5 hours, 48 minutes",
       rating: 4.5,
@@ -45,7 +47,8 @@ const ExplorePage = () => {
       authorTitle: "Lover @Kanyakumari"
     },
     {
-      image: defaultCourseImage,
+      image: courseCardImage,
+      imageFilter: 'hue-rotate(60deg) saturate(118%) brightness(1.05)',
       title: "JavaScript - From Zero to Hero",
       duration: "5 hours, 48 minutes",
       rating: 4.8,
@@ -55,7 +58,8 @@ const ExplorePage = () => {
       authorTitle: "Lover @Kanyakumari"
     },
     {
-      image: defaultCourseImage,
+      image: courseCardImage,
+      imageFilter: 'hue-rotate(120deg) saturate(110%)',
       title: "React - Building Interactive UIs",
       duration: "5 hours, 48 minutes",
       rating: 4.6,
@@ -65,7 +69,8 @@ const ExplorePage = () => {
       authorTitle: "Lover @Kanyakumari"
     },
     {
-      image: defaultCourseImage,
+      image: courseCardImage,
+      imageFilter: 'hue-rotate(180deg) saturate(115%) brightness(0.95)',
       title: "Backend Development with Node.js",
       duration: "5 hours, 48 minutes",
       rating: 4.9,
@@ -75,7 +80,8 @@ const ExplorePage = () => {
       authorTitle: "Lover @Kanyakumari"
     },
     {
-      image: defaultCourseImage,
+      image: courseCardImage,
+      imageFilter: 'hue-rotate(230deg) saturate(120%)',
       title: "Introduction to Database Management",
       duration: "5 hours, 48 minutes",
       rating: 4.4,
@@ -213,17 +219,7 @@ const ExplorePage = () => {
                     <div className="courses-scroll-container" ref={scrollRef1}>
                       <div className="courses-row">
                         {filteredCourses.map((course, index) => (
-                          <CourseCard
-                            key={`search-${index}`}
-                            image={course.image}
-                            title={course.title}
-                            duration={course.duration}
-                            rating={course.rating}
-                            description={course.description}
-                            progress={course.progress}
-                            authorName={course.authorName}
-                            authorTitle={course.authorTitle}
-                          />
+                          <CourseCard key={`search-${index}`} {...course} />
                         ))}
                       </div>
                     </div>
@@ -252,17 +248,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef1}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard
-                          key={`latest-${index}`}
-                          image={course.image}
-                          title={course.title}
-                          duration={course.duration}
-                          rating={course.rating}
-                          description={course.description}
-                          progress={course.progress}
-                          authorName={course.authorName}
-                          authorTitle={course.authorTitle}
-                        />
+                        <CourseCard key={`latest-${index}`} {...course} />
                       ))}
                     </div>
                   </div>
@@ -286,17 +272,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef2}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard
-                          key={`section2-${index}`}
-                          image={course.image}
-                          title={course.title}
-                          duration={course.duration}
-                          rating={course.rating}
-                          description={course.description}
-                          progress={course.progress}
-                          authorName={course.authorName}
-                          authorTitle={course.authorTitle}
-                        />
+                        <CourseCard key={`section2-${index}`} {...course} />
                       ))}
                     </div>
                   </div>
@@ -320,17 +296,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef3}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard
-                          key={`section3-${index}`}
-                          image={course.image}
-                          title={course.title}
-                          duration={course.duration}
-                          rating={course.rating}
-                          description={course.description}
-                          progress={course.progress}
-                          authorName={course.authorName}
-                          authorTitle={course.authorTitle}
-                        />
+                        <CourseCard key={`section3-${index}`} {...course} />
                       ))}
                     </div>
                   </div>
@@ -354,17 +320,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef4}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard
-                          key={`section4-${index}`}
-                          image={course.image}
-                          title={course.title}
-                          duration={course.duration}
-                          rating={course.rating}
-                          description={course.description}
-                          progress={course.progress}
-                          authorName={course.authorName}
-                          authorTitle={course.authorTitle}
-                        />
+                        <CourseCard key={`section4-${index}`} {...course} />
                       ))}
                     </div>
                   </div>
@@ -388,17 +344,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef5}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard
-                          key={`section5-${index}`}
-                          image={course.image}
-                          title={course.title}
-                          duration={course.duration}
-                          rating={course.rating}
-                          description={course.description}
-                          progress={course.progress}
-                          authorName={course.authorName}
-                          authorTitle={course.authorTitle}
-                        />
+                        <CourseCard key={`section5-${index}`} {...course} />
                       ))}
                     </div>
                   </div>
@@ -422,17 +368,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef6}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard
-                          key={`section6-${index}`}
-                          image={course.image}
-                          title={course.title}
-                          duration={course.duration}
-                          rating={course.rating}
-                          description={course.description}
-                          progress={course.progress}
-                          authorName={course.authorName}
-                          authorTitle={course.authorTitle}
-                        />
+                        <CourseCard key={`section6-${index}`} {...course} />
                       ))}
                     </div>
                   </div>

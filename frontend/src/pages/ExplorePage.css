@@ -24,10 +24,9 @@
   outline: none;
   max-width: 350px;
   border-radius: 50px;
-border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-background: rgba(255, 255, 255, 0.30);
-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.28) inset;
-backdrop-filter: blur(3.5px);
+  border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  background: rgba(255, 255, 255, 0.30);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.28) inset;
   transition: all 0.3s ease;
 }
 
@@ -147,8 +146,8 @@ backdrop-filter: blur(3.5px);
   border-radius: 25px;
   width:max-content;
   padding:10px 15px;
-border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-background: rgba(255, 255, 255, 0.30);
+  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  background: rgba(255, 255, 255, 0.30);
 }
 
 .section-container {
@@ -156,9 +155,8 @@ background: rgba(255, 255, 255, 0.30);
   width: 100%;
   overflow: visible;
   border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-background: rgba(255, 255, 255, 0.20);
-backdrop-filter: blur(3.75px);
-padding:5px 10px;
+  background: rgba(255, 255, 255, 0.20);
+  padding:5px 10px;
 }
 
 .arrow-btn {
@@ -176,9 +174,8 @@ padding:5px 10px;
   z-index: 1001;
   position: absolute;
   top: 50%;
-border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-background: rgba(136, 136, 136, 0.35);
-backdrop-filter: blur(2.25px);
+  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  background: rgba(136, 136, 136, 0.35);
   transform: translateY(-50%);
 }
 

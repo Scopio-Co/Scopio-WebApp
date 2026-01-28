@@ -16,7 +16,6 @@
     border: 2px solid #FFF;
     background: rgba(255, 255, 255, 0.25);
     box-shadow: 0 0 24.4px 7px rgba(0, 0, 0, 0.09);
-    backdrop-filter: blur(10px);
     margin: 40px;
 }
 
@@ -288,7 +287,6 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   border: 2.519px solid #FFF;
   background: linear-gradient(90deg, rgba(197, 180, 255, 0.75) 0%, rgba(158, 205, 255, 0.75) 100%), #FFF;
   box-shadow: 0 0 20.486px 5.877px rgba(0, 0, 0, 0.09);
-  backdrop-filter: blur(8.396071434020996px);
   position: absolute;
   bottom: 50px;
   z-index: 999;

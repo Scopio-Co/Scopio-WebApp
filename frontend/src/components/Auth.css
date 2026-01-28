@@ -24,7 +24,6 @@
   background: var(--bg-tertiary);
   border-radius: 25px;
   box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(2.4000000953674316px);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -49,7 +48,6 @@
   border-radius: 25px;
   background: var(--bg-tertiary);
   padding: 25px 15px;
-  backdrop-filter: blur(15px);
   border: 1px solid var(--border-primary);
   width: 478px;
 }
@@ -351,8 +349,6 @@ background: #0017ad;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.3s ease-out;
 }
 
 .modal-content {
@@ -360,28 +356,6 @@ background: #0017ad;
   max-width: 90vw;
   max-height: 90vh;
   overflow: auto;
-  animation: slideIn 0.3s ease-out;
-}
-
-/* Modal Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 @media (max-width: 1024px) {

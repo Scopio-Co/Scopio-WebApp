@@ -1,6 +1,6 @@
 import React from 'react';
 import './TopPicks.css';
-import courseCardImg from '../assets/img/course card.jpg';
+import courseCardImg from '../assets/img/course_card.webp';
 
 const TopPicks = () => {
   return (

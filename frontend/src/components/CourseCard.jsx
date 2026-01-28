@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './CourseCard.css';
 import RatingComponent from './RatingComponent';
-import defaultCourseImage from '../assets/img/course card.jpg';
+import defaultCourseImage from '../assets/img/course_card.webp';
 
 const CourseCard = ({ 
   image = defaultCourseImage, 
@@ -11,7 +11,8 @@ const CourseCard = ({
   description = "Robust trainig of how to run longer with your mangal sutra. Complete beginners guide to cover long distances within limited stamina. Holding the mangal sutra is also covered in this course.",
   progress = 80,
   authorName = "Ashva Rishemh",
-  authorTitle = "Lover @Kanyakumari"
+  authorTitle = "Lover @Kanyakumari",
+  imageFilter = ''
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -59,7 +60,12 @@ const CourseCard = ({
       {/* Main Course Card */}
       <div className="course-card-main">
         <div className="card-image-section">
-          <img src={image} alt={title} className="card-course-img" />
+          <img
+            src={image}
+            alt={title}
+            className="card-course-img"
+            style={imageFilter ? { filter: imageFilter } : undefined}
+          />
         </div>
         <div className="card-content-section">
           <h3 className="card-course-title">{title}</h3>

@@ -21,12 +21,7 @@
   position: relative;
   height: 280px;
   border-radius: 20px;
-border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-box-shadow: 5px 2px 8.3px -1px rgba(0, 0, 0, 0.07), 0 3px 14px -6px rgba(0, 0, 0, 0.25) inset;
-}
-
-.course-card-component.expanded .course-card-main {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
 }
 
 /* Image Section */
@@ -61,8 +56,7 @@ box-shadow: 5px 2px 8.3px -1px rgba(0, 0, 0, 0.07), 0 3px 14px -6px rgba(0, 0, 0
   flex-direction: column;
   gap: 0;
   border-top: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-background: rgba(255, 255, 255, 0.85);
-backdrop-filter: blur(3.9000000953674316px);
+  background: rgba(255, 255, 255, 0.85);
 }
 
 .card-course-title {
@@ -118,40 +112,15 @@ background: rgba(0, 0, 0, 0.30);
 .info-card-overlay {
   position: fixed;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
   pointer-events: auto;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 /* Info Card */
 .info-card {
   overflow: hidden;
   width: 300px;
-  animation: slideIn 0.3s ease;
   border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-background: rgba(255, 255, 255, 0.90);
-backdrop-filter: blur(2.4000000953674316px);
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  background: rgba(255, 255, 255, 0.90);
 }
 
 .info-card-header {

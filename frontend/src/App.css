@@ -85,20 +85,16 @@ body.dark-mode {
   --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
-/* Global transition setup for smooth theme switching */
-* {
-  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
-}
-
-/* Ensure transitions work for pseudo-elements and gradients */
-*:before,
-*:after {
-  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
-}
-
-/* Global reset to prevent scroll issues */
+/* Base element defaults */
 * {
   box-sizing: border-box;
+}
+
+/* Scope theme transitions to major surfaces only */
+body,
+#root,
+.navbar,
+.main-content {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
