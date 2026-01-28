@@ -12,18 +12,21 @@ import Footer from './components/Footer'
 import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
 import ExplorePage from './pages/ExplorePage'
+import LeaderboardPage from './pages/LeaderboardPage';
 
 function App() {
   const [count, setCount] = useState(0)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showLearning, setShowLearning] = useState(false)
   const [showExplore, setShowExplore] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showHome, setShowHome] = useState(true)
 
   const handleLogout = () => {
     setShowWelcome(false)
     setShowLearning(false)
     setShowExplore(false)
+    setShowLeaderboard(false)
     setShowHome(true)
   }
 
@@ -35,6 +38,7 @@ function App() {
           setShowHome={setShowHome}
           setShowLearning={setShowLearning}
           setShowExplore={setShowExplore}
+          setShowLeaderboard={setShowLeaderboard}
           setShowWelcome={setShowWelcome}
         />
       </div>
@@ -43,6 +47,8 @@ function App() {
           <ExplorePage onLogout={handleLogout} />
         ) : showLearning ? (
           <LearningPage onLogout={handleLogout} />
+        ) : showLeaderboard ? (
+          <LeaderboardPage onLogout={handleLogout} />
         ) : showWelcome ? (
           <>
             <Welcome />

@@ -33,6 +33,15 @@
   --scrollbar-thumb: rgba(109, 109, 109, 0.767);
   --scrollbar-hover: rgb(77, 77, 77);
   
+  /* Leaderboard Variables */
+  --leaderboard-table-bg: rgba(255, 255, 255, 0.4);
+  --leaderboard-row-bg: rgba(255, 255, 255, 0.30);
+  --leaderboard-badge-bg: rgba(255, 255, 255, 0.40);
+  --leaderboard-badge-border: rgba(255, 255, 255, 0.72);
+  --leaderboard-text: #2a2a2a;
+  --leaderboard-username: #666;
+  --leaderboard-header-bg: rgba(220, 210, 255, 0.4);
+  
   /* Glassmorphism and Button Variables */
   --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.10));
   --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), inset 0 0 40px rgba(255, 255, 255, 0.05);
@@ -75,6 +84,15 @@ body.dark-mode {
   --scrollbar-track: rgba(50, 60, 80, 0.3);
   --scrollbar-thumb: rgba(100, 120, 150, 0.6);
   --scrollbar-hover: rgba(130, 150, 180, 0.8);
+  
+  /* Leaderboard Variables */
+  --leaderboard-table-bg: rgba(30, 36, 50, 0.5);
+  --leaderboard-row-bg: rgba(40, 46, 60, 0.40);
+  --leaderboard-badge-bg: rgba(50, 60, 80, 0.50);
+  --leaderboard-badge-border: rgba(100, 120, 150, 0.5);
+  --leaderboard-text: #e2e8f0;
+  --leaderboard-username: #a0aec0;
+  --leaderboard-header-bg: rgba(50, 60, 80, 0.5);
   
   /* Dark Theme Glassmorphism and Button Variables */
   --glass-bg: linear-gradient(135deg, rgba(40, 46, 60, 0.4), rgba(20, 24, 35, 0.2));

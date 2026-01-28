@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 import profileAvatar from '../assets/img/Ellipse 8.png';
 
-const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome }) => {
+const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -38,6 +38,7 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowLearning(false);
       setShowExplore(false);
       setShowWelcome(false);
+      if (setShowLeaderboard) setShowLeaderboard(false);
       // ensure the main content scrolls to top when navigating
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
@@ -47,6 +48,7 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowHome(false);
       setShowExplore(false);
       setShowWelcome(false);
+      if (setShowLeaderboard) setShowLeaderboard(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Explore" && setShowExplore) {
@@ -54,6 +56,16 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowExplore(true);
       setShowHome(false);
       setShowLearning(false);
+      setShowWelcome(false);
+      if (setShowLeaderboard) setShowLeaderboard(false);
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+    } else if (item === "Leaderboards" && setShowLeaderboard) {
+      setActivePage('Leaderboards');
+      setShowLeaderboard(true);
+      setShowHome(false);
+      setShowLearning(false);
+      setShowExplore(false);
       setShowWelcome(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });

@@ -223,6 +223,9 @@
 }
 
 @media (max-width: 1024px) {
+  .explore-page-header {
+    padding:10px 25px;
+  }
   .explore-sections{
     padding:0px;
   }
@@ -241,7 +244,6 @@
 }
 
 @media (max-width: 768px) {
-  
   .explore-page-content {
     padding: 20px;
   }
@@ -254,7 +256,6 @@
     gap: 10px;
     align-items: flex-start;
     padding:10px 20px;
-
   }
   .courses-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

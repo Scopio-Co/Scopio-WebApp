@@ -32,7 +32,7 @@ const ExplorePage = () => {
       rating: 4.7,
       description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide to cover long distances within limited stamina.",
       progress: 75,
-      authorName: "Ashva Rishemh",
+      authorName: "Ashva Rishenth",
       authorTitle: "Lover @Kanyakumari"
     },
     {
@@ -43,7 +43,7 @@ const ExplorePage = () => {
       rating: 4.5,
       description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide to cover long distances.",
       progress: 60,
-      authorName: "Ashva Rishemh",
+      authorName: "Ashva Rishenth",
       authorTitle: "Lover @Kanyakumari"
     },
     {
@@ -54,7 +54,7 @@ const ExplorePage = () => {
       rating: 4.8,
       description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide.",
       progress: 90,
-      authorName: "Ashva Rishemh",
+      authorName: "Ashva Rishenth",
       authorTitle: "Lover @Kanyakumari"
     },
     {
@@ -65,7 +65,7 @@ const ExplorePage = () => {
       rating: 4.6,
       description: "Robust training of how to run longer with your mangal sutra.",
       progress: 45,
-      authorName: "Ashva Rishemh",
+      authorName: "Ashva Rishenth",
       authorTitle: "Lover @Kanyakumari"
     },
     {
@@ -76,7 +76,7 @@ const ExplorePage = () => {
       rating: 4.9,
       description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide to cover long distances.",
       progress: 80,
-      authorName: "Ashva Rishemh",
+      authorName: "Ashva Rishenth",
       authorTitle: "Lover @Kanyakumari"
     },
     {
@@ -87,7 +87,7 @@ const ExplorePage = () => {
       rating: 4.4,
       description: "Robust training of how to run longer with your mangal sutra.",
       progress: 55,
-      authorName: "Ashva Rishemh",
+      authorName: "Ashva Rishenth",
       authorTitle: "Lover @Kanyakumari"
     }
   ];
