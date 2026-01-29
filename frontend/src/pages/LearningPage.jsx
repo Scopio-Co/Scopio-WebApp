@@ -1,6 +1,7 @@
 import React from 'react';
 import './LearningPage.css';
 import Footer from '../components/Footer';
+import Pagination from '../components/Pagination';
 import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
 
@@ -47,7 +48,7 @@ const LearningPage = ({ onLogout }) => {
                   <div className="author-section">
                     <div className="author-avatar">
                       <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
-  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" strokeWidth="5"/>
 </svg>
                     </div>
                     <div className="author-info">
@@ -80,7 +81,7 @@ const LearningPage = ({ onLogout }) => {
                   <div className="author-section">
                     <div className="author-avatar">
                       <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
-  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" strokeWidth="5"/>
 </svg>
                     </div>
                     <div className="author-info">
@@ -113,7 +114,7 @@ const LearningPage = ({ onLogout }) => {
                   <div className="author-section">
                     <div className="author-avatar">
                       <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
-  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" strokeWidth="5"/>
 </svg>
                     </div>
                     <div className="author-info">
@@ -146,7 +147,7 @@ const LearningPage = ({ onLogout }) => {
                   <div className="author-section">
                     <div className="author-avatar">
                       <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
-  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" strokeWidth="5"/>
 </svg>
                     </div>
                     <div className="author-info">
@@ -162,10 +163,8 @@ const LearningPage = ({ onLogout }) => {
 
         </div>
           {/* Pagination */}
-          <div className="pagination">
-            <button className="pagination-btn">1</button>
-            <button className="pagination-btn active">2</button>
-            <button className="pagination-btn">3</button>
+          <div className="pagination-wrapper">
+            <Pagination currentPage={2} totalPages={3} onPageChange={() => { /* noop for now */ }} />
           </div>
       </div>
 

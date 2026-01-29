@@ -21,9 +21,13 @@ const CourseCard = ({
   const handleMouseEnter = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      // Position the overlay centered horizontally over the button
+      // and vertically anchored near the button so it appears close to the card.
+      const centerX = rect.left + rect.width / 2;
+      const anchorTop = rect.top; // rect.top is relative to viewport; overlay is fixed
       setPosition({
-        top: rect.top - 550,
-        left: rect.right - 530
+        top: anchorTop,
+        left: centerX
       });
     }
     setIsExpanded(true);
@@ -41,7 +45,8 @@ const CourseCard = ({
           className="info-card-overlay"
           style={{
             top: `${position.top}px`,
-            left: `${position.left}px`
+            left: `${position.left}px`,
+            transform: 'translate(-50%, -110%)'
           }}
         >
           <div className="info-card">
@@ -73,12 +78,12 @@ const CourseCard = ({
             <div className="author-section">
                     <div className="author-avatar">
                       <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
-  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" stroke-width="5"/>
+  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" strokeWidth="5"/>
 </svg>
                     </div>
                     <div className="author-info">
-                      <span className="author-name">Donald J Trump</span>
-                      <span className="author-title">Web Dev @capestart</span>
+                      <span className="author-name">{authorName}</span>
+                      <span className="author-title">{authorTitle}</span>
                     </div>
             </div>
             <button ref={buttonRef} className="card-info-btn" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>

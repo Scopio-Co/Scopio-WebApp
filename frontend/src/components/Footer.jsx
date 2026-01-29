@@ -155,7 +155,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div className="copyright">
-            <span>©2025 SCOPIO. All rights reserved.</span>
+            <span>©{new Date().getFullYear()} SCOPIO. All rights reserved.</span>
           </div>
           <div className="footer-legal">
             <a href="#privacy">Privacy Policy</a>
