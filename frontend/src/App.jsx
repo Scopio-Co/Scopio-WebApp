@@ -13,6 +13,7 @@ import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
 import ExplorePage from './pages/ExplorePage'
 import LeaderboardPage from './pages/LeaderboardPage';
+import CourseVideoPage from './pages/CourseVideoPage';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -21,6 +22,8 @@ function App() {
   const [showExplore, setShowExplore] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showHome, setShowHome] = useState(true)
+  const [showCourseVideo, setShowCourseVideo] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState(null)
 
   const handleLogout = () => {
     setShowWelcome(false)
@@ -28,6 +31,22 @@ function App() {
     setShowExplore(false)
     setShowLeaderboard(false)
     setShowHome(true)
+    setShowCourseVideo(false)
+  }
+
+  const handleCourseClick = (course) => {
+    setSelectedCourse(course || null)
+    setShowCourseVideo(true)
+    setShowWelcome(false)
+    setShowLearning(false)
+    setShowExplore(false)
+    setShowLeaderboard(false)
+    setShowHome(false)
+  }
+
+  const handleBackFromCourse = () => {
+    setShowCourseVideo(false)
+    setShowWelcome(true)
   }
 
   return (
@@ -40,34 +59,38 @@ function App() {
           setShowExplore={setShowExplore}
           setShowLeaderboard={setShowLeaderboard}
           setShowWelcome={setShowWelcome}
+          setShowCourseVideo={setShowCourseVideo}
+          showCourseVideo={showCourseVideo}
         />
       </div>
       <div className="main-content">
-        {showExplore ? (
-          <ExplorePage onLogout={handleLogout} />
+        {showCourseVideo ? (
+          <CourseVideoPage selectedCourse={selectedCourse} onBack={handleBackFromCourse} />
+        ) : showExplore ? (
+          <ExplorePage onLogout={handleLogout} onCourseClick={handleCourseClick} />
         ) : showLearning ? (
-          <LearningPage onLogout={handleLogout} />
+          <LearningPage onLogout={handleLogout} onCourseClick={handleCourseClick} />
         ) : showLeaderboard ? (
           <LeaderboardPage onLogout={handleLogout} />
         ) : showWelcome ? (
           <>
             <Welcome />
             <HeroSlider />
-            <TopPicks />
+            <TopPicks onCourseClick={handleCourseClick} />
             <Footer />
           </>
         ) : showHome ? (
           <>
             <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
             <HeroSlider />
-            <TopPicks />
+            <TopPicks onCourseClick={handleCourseClick} />
             <Footer />
           </>
         ) : (
           <>
             <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
             <HeroSlider />
-            <TopPicks />
+            <TopPicks onCourseClick={handleCourseClick} />
             <Footer />
           </>
         )}

@@ -12,7 +12,6 @@
   overflow-y: scroll;
   border: 1px solid var(--border-primary);
   background: var(--bg-primary);
-  color: var(--text-light);
   padding: 0;
   display: flex;
   flex-direction: column;

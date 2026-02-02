@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 import profileAvatar from '../assets/img/Ellipse 8.png';
 
-const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard }) => {
+const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard, setShowProfile, setShowCourseVideo, showCourseVideo }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -29,44 +29,73 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setIsDarkMode(isDark);
       document.body.classList.toggle("dark-mode", isDark);
     }
+    // reflect course page in active state
+    if (showCourseVideo) setActivePage('Course');
   }, []);
+
+  useEffect(() => {
+    if (showCourseVideo) setActivePage('Course');
+  }, [showCourseVideo]);
+
+  const handleProfileClick = () => {
+    if (setShowProfile) {
+      setActivePage('Profile');
+      setShowProfile(true);
+      if (setShowCourseVideo) setShowCourseVideo(false);
+      setShowHome(false);
+      setShowLearning(false);
+      setShowExplore(false);
+      setShowWelcome(false);
+      if (setShowLeaderboard) setShowLeaderboard(false);
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  };
 
   const handleNavItemClick = (item) => {
     if (item === "Home" && setShowHome) {
       setActivePage('Home');
       setShowHome(true);
+      if (setShowCourseVideo) setShowCourseVideo(false);
       setShowLearning(false);
       setShowExplore(false);
       setShowWelcome(false);
       if (setShowLeaderboard) setShowLeaderboard(false);
+      if (setShowProfile) setShowProfile(false);
       // ensure the main content scrolls to top when navigating
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Learning" && setShowLearning) {
       setActivePage('Learning');
       setShowLearning(true);
+      if (setShowCourseVideo) setShowCourseVideo(false);
       setShowHome(false);
       setShowExplore(false);
       setShowWelcome(false);
       if (setShowLeaderboard) setShowLeaderboard(false);
+      if (setShowProfile) setShowProfile(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Explore" && setShowExplore) {
       setActivePage('Explore');
       setShowExplore(true);
+      if (setShowCourseVideo) setShowCourseVideo(false);
       setShowHome(false);
       setShowLearning(false);
       setShowWelcome(false);
       if (setShowLeaderboard) setShowLeaderboard(false);
+      if (setShowProfile) setShowProfile(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     } else if (item === "Leaderboards" && setShowLeaderboard) {
       setActivePage('Leaderboards');
       setShowLeaderboard(true);
+      if (setShowCourseVideo) setShowCourseVideo(false);
       setShowHome(false);
       setShowLearning(false);
       setShowExplore(false);
       setShowWelcome(false);
+      if (setShowProfile) setShowProfile(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     }
@@ -92,7 +121,7 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
   return (
     <div className="navbar">
       {/* Profile Section */}
-      <div className="profile-section">
+      <div className="profile-section" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
         <div className="profile-info">
           <div className="profile-avatar">
             <img

@@ -146,16 +146,16 @@
   border-radius: 25px;
   width:max-content;
   padding:10px 15px;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.30);
+  border: 1px solid var(--border-primary);
+  background: var(--leaderboard-row-bg);
 }
 
 .section-container {
   position: relative;
   width: 100%;
   overflow: visible;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.20);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-overlay);
   padding:5px 10px;
 }
 
