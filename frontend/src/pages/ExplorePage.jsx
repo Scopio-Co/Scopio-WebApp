@@ -4,14 +4,34 @@ import './ExplorePage.css';
 import CourseCard from '../components/CourseCard';
 import Footer from '../components/Footer';
 import courseCardImage from '../assets/img/course_card.webp';
+import { ExplorePageSkeleton } from '../components/skeletons';
 
 const ExplorePage = ({ onCourseClick }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const scrollRef1 = useRef(null);
   const scrollRef2 = useRef(null);
   const scrollRef3 = useRef(null);
   const scrollRef4 = useRef(null);
   const scrollRef5 = useRef(null);
   const scrollRef6 = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      // Scroll to top after state update
+      setTimeout(() => {
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+          mainContent.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 0);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleScroll = (ref, direction) => {
     if (ref.current) {
@@ -204,6 +224,9 @@ const ExplorePage = ({ onCourseClick }) => {
         </div>
 
         {/* Course Sections */}
+        {isLoading ? (
+          <ExplorePageSkeleton />
+        ) : (
         <div className="explore-sections">
           {searchTerm.trim() ? (
             <div className="explore-section">
@@ -382,6 +405,7 @@ const ExplorePage = ({ onCourseClick }) => {
             </>
           )}
         </div>
+        )}
       </div>
 
       {/* Footer */}

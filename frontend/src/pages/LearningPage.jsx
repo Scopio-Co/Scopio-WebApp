@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './LearningPage.css';
 import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
+import { LearningPageSkeleton } from '../components/skeletons';
 
-const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
+const LearningPage = ({ onLogout, onCourseClick }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      // Scroll to top after state update
+      setTimeout(() => {
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+          mainContent.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 0);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
   // Function to extract percentage from progress text
   const getProgressPercentage = (progressText) => {
     const match = progressText.match(/(\d+)%/);
@@ -26,6 +46,10 @@ const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
         </div>
 
         {/* Learning Design Content */}
+        {isLoading ? (
+          <LearningPageSkeleton />
+        ) : (
+        <>
         <div className="learning-design-container">
           <div className="course-grid">
             {/* Course Card 1 */}
@@ -162,10 +186,12 @@ const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
           </div>
 
         </div>
-          {/* Pagination */}
-          <div className="pagination-wrapper">
-            <Pagination currentPage={2} totalPages={3} onPageChange={() => { /* noop for now */ }} />
-          </div>
+        {/* Pagination */}
+        <div className="pagination-wrapper">
+          <Pagination currentPage={2} totalPages={3} onPageChange={() => { /* noop for now */ }} />
+        </div>
+        </>
+        )}
       </div>
 
       {/* Footer */}
