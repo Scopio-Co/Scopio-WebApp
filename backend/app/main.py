@@ -1,1 +1,0 @@
-#Starts the FastAPI app and includes routes

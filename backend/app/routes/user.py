@@ -1,1 +1,0 @@
- # All API routes like /register, /login

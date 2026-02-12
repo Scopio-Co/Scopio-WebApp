@@ -1,0 +1,10 @@
+asgiref
+Django
+django-cors-headers # For handling Cross-Origin Resource Sharing (CORS) in Django applications  
+djangorestframework
+djangorestframework-simplejwt # JWT authentication for Django REST Framework
+PyJWT
+pytz
+sqlparse
+psycopg2-binary # PostgreSQL database adapter for Python
+python-dotenv # For loading environment variables from a .env file

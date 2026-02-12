@@ -13,7 +13,7 @@ import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
 import ExplorePage from './pages/ExplorePage'
 import LeaderboardPage from './pages/LeaderboardPage';
-
+import react from "react" 
 function App() {
   const [count, setCount] = useState(0)
   const [showWelcome, setShowWelcome] = useState(false)
