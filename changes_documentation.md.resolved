@@ -1,0 +1,687 @@
+# Authentication Integration - Changes Documentation
+
+## Overview
+
+This document details all changes made to connect your React frontend authentication system to the Django backend API. Each change is explained with the **what**, **why**, and **how** it was implemented.
+
+---
+
+## 🔧 Changes Made
+
+### 1. Environment Configuration Fix
+
+#### File: [.env](file:///d:/Scopio/frontend/.env)
+
+**What Changed:**
+```diff
+- VITE_API_URL = "http://localhost:800"
++ VITE_API_URL=http://localhost:8000
+```
+
+**Why This Change:**
+- **Port Correction**: Django's default development server runs on port `8000`, not `800`
+- **Format Fix**: Vite environment variables should not have spaces around `=` and don't need quotes
+- **Critical Bug**: Without this fix, all API calls would fail with connection errors
+
+**Impact:** This is the foundation - without the correct API URL, no frontend-backend communication is possible.
+
+---
+
+### 2. Login Component Integration
+
+#### File: [Login.jsx](file:///d:/Scopio/frontend/src/components/Login.jsx)
+
+#### Change 2.1: Import Dependencies
+
+**What Changed:**
+```javascript
+import api from '../api';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
+```
+
+**Why This Change:**
+- `api`: Pre-configured Axios instance with JWT interceptors
+- `ACCESS_TOKEN` & `REFRESH_TOKEN`: Constants for localStorage keys to ensure consistency across the app
+
+---
+
+#### Change 2.2: Component Props & State
+
+**What Changed:**
+```javascript
+// Before
+const Login = () => {
+  const [formData, setFormData] = useState({
+    emailOrUsername: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
+
+// After
+const Login = ({ onLoginSuccess }) => {
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+```
+
+**Why This Change:**
+- **`onLoginSuccess` prop**: Allows parent component ([App.jsx](file:///d:/Scopio/frontend/src/App.jsx)) to handle navigation after successful login
+- **`username` field**: Django's JWT endpoint expects `username`, not `emailOrUsername`
+- **`loading` state**: Provides user feedback during API calls and prevents double submissions
+
+**Backend Requirement:**
+Django's `TokenObtainPairView` expects this exact payload:
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+---
+
+#### Change 2.3: Form Validation Update
+
+**What Changed:**
+```javascript
+// Before
+if (!formData.emailOrUsername) {
+  newErrors.emailOrUsername = 'Email or Username is required';
+}
+
+// After
+if (!formData.username) {
+  newErrors.username = 'Username is required';
+}
+```
+
+**Why This Change:**
+- Matches the updated field name in form data
+- Ensures validation errors display correctly
+
+---
+
+#### Change 2.4: API Integration in handleSubmit
+
+**What Changed:**
+```javascript
+// Before
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const newErrors = validateForm();
+  
+  if (Object.keys(newErrors).length === 0) {
+    console.log('Login form submitted:', formData);
+  } else {
+    setErrors(newErrors);
+  }
+};
+
+// After
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const newErrors = validateForm();
+  
+  if (Object.keys(newErrors).length === 0) {
+    setLoading(true);
+    try {
+      // Call Django JWT token endpoint
+      const response = await api.post('/api/token/', {
+        username: formData.username,
+        password: formData.password
+      });
+
+      // Store tokens in localStorage
+      localStorage.setItem(ACCESS_TOKEN, response.data.access);
+      localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
+
+      // Call success callback if provided
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      if (error.response) {
+        setErrors({
+          general: error.response.data.detail || 'Invalid username or password'
+        });
+      } else {
+        setErrors({
+          general: 'Unable to connect to server. Please try again.'
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  } else {
+    setErrors(newErrors);
+  }
+};
+```
+
+**Why This Change:**
+
+1. **`async/await`**: Required for making asynchronous API calls
+2. **API Call**: `POST /api/token/` is Django's JWT authentication endpoint
+3. **Token Storage**: Stores both access and refresh tokens for:
+   - Access token: Used for authenticated API requests (30 min lifetime)
+   - Refresh token: Used to get new access tokens (1 day lifetime)
+4. **Error Handling**:
+   - `error.response`: Backend returned an error (wrong credentials, validation)
+   - No response: Network error or server down
+5. **Loading State**: Prevents multiple submissions and provides UI feedback
+
+**Backend Response:**
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}
+```
+
+---
+
+#### Change 2.5: UI Updates
+
+**What Changed:**
+```jsx
+// Added general error display
+{errors.general && (
+  <div className="error-message" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+    {errors.general}
+  </div>
+)}
+
+// Updated field name
+<label className="form-label">Username</label>
+<input
+  type="text"
+  name="username"
+  value={formData.username}
+  onChange={handleInputChange}
+  className={errors.username ? 'error' : ''}
+  disabled={loading}
+/>
+
+// Updated submit button
+<button type="submit" className="auth-button primary login-button" disabled={loading}>
+  {loading ? 'Logging in...' : 'Log in'}
+</button>
+```
+
+**Why This Change:**
+- **General error display**: Shows authentication errors from backend
+- **Field name update**: Matches backend expectations
+- **`disabled={loading}`**: Prevents interaction during API call
+- **Dynamic button text**: Provides visual feedback during login process
+
+---
+
+### 3. Signup Component Integration
+
+#### File: [Signup.jsx](file:///d:/Scopio/frontend/src/components/Signup.jsx)
+
+#### Change 3.1: Import Dependencies
+
+**What Changed:**
+```javascript
+import api from '../api';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
+```
+
+**Why This Change:**
+Same as Login component - needed for API calls and token management.
+
+---
+
+#### Change 3.2: Add Loading State
+
+**What Changed:**
+```javascript
+const [loading, setLoading] = useState(false);
+```
+
+**Why This Change:**
+Manages UI state during registration and auto-login process.
+
+---
+
+#### Change 3.3: API Integration in handleSubmit
+
+**What Changed:**
+```javascript
+// Before
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const newErrors = validateForm();
+  
+  if (Object.keys(newErrors).length === 0) {
+    console.log('Signup form submitted:', formData);
+    if (typeof onSwitchToWelcome === 'function') {
+      onSwitchToWelcome();
+    }
+  } else {
+    setErrors(newErrors);
+  }
+};
+
+// After
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const newErrors = validateForm();
+  
+  if (Object.keys(newErrors).length === 0) {
+    setLoading(true);
+    try {
+      // Register user with Django backend
+      await api.post('/api/user/register/', {
+        username: formData.username,
+        email: formData.email,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        password: formData.password
+      });
+
+      // Auto-login after successful registration
+      const loginResponse = await api.post('/api/token/', {
+        username: formData.username,
+        password: formData.password
+      });
+
+      // Store tokens
+      localStorage.setItem(ACCESS_TOKEN, loginResponse.data.access);
+      localStorage.setItem(REFRESH_TOKEN, loginResponse.data.refresh);
+
+      // Navigate to Welcome page
+      if (typeof onSwitchToWelcome === 'function') {
+        onSwitchToWelcome();
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      if (error.response && error.response.data) {
+        // Backend validation errors
+        const backendErrors = {};
+        Object.keys(error.response.data).forEach(key => {
+          // Map backend field names to frontend field names
+          if (key === 'first_name') {
+            backendErrors.firstName = error.response.data[key][0];
+          } else if (key === 'last_name') {
+            backendErrors.lastName = error.response.data[key][0];
+          } else {
+            backendErrors[key] = Array.isArray(error.response.data[key]) 
+              ? error.response.data[key][0] 
+              : error.response.data[key];
+          }
+        });
+        setErrors(backendErrors);
+      } else {
+        setErrors({
+          general: 'Unable to connect to server. Please try again.'
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  } else {
+    setErrors(newErrors);
+  }
+};
+```
+
+**Why This Change:**
+
+1. **Two-Step Process**:
+   - Step 1: Register user via `POST /api/user/register/`
+   - Step 2: Auto-login via `POST /api/token/`
+
+2. **Field Name Mapping**:
+   - Frontend uses camelCase: `firstName`, `lastName`
+   - Backend expects snake_case: `first_name`, `last_name`
+   - This mapping is necessary because Django models use snake_case
+
+3. **Error Mapping**:
+   - Backend returns errors with snake_case field names
+   - We map them back to camelCase for frontend display
+   - Example: `first_name: ["This field is required"]` → `firstName: "This field is required"`
+
+4. **Auto-Login**: Improves UX by immediately logging in the user after registration
+
+**Backend Registration Payload:**
+```json
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "password": "securepass123"
+}
+```
+
+**Backend Registration Response:**
+```json
+{
+  "id": 1,
+  "username": "johndoe",
+  "email": "john@example.com",
+  "first_name": "John",
+  "last_name": "Doe"
+}
+```
+
+---
+
+#### Change 3.4: UI Updates
+
+**What Changed:**
+```jsx
+// Added general error display
+{errors.general && (
+  <div className="error-message" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+    {errors.general}
+  </div>
+)}
+
+// All form inputs now have disabled={loading}
+<input
+  type="email"
+  name="email"
+  value={formData.email}
+  onChange={handleInputChange}
+  className={errors.email ? 'error' : ''}
+  disabled={loading}
+/>
+
+// Submit button with loading state
+<button type="submit" className="auth-button primary" disabled={loading}>
+  {loading ? 'Creating account...' : 'Create account'}
+</button>
+```
+
+**Why This Change:**
+- Prevents user interaction during registration process
+- Provides clear feedback about what's happening
+- Shows backend validation errors
+
+---
+
+#### Change 3.5: Login Modal Integration
+
+**What Changed:**
+```jsx
+// Before
+<Login />
+
+// After
+<Login onLoginSuccess={() => {
+  setShowLoginModal(false);
+  if (onSwitchToWelcome) {
+    onSwitchToWelcome();
+  }
+}} />
+```
+
+**Why This Change:**
+- Ensures the "Got one?" button (which opens login modal) also works correctly
+- Closes modal and navigates to Welcome page after successful login
+
+---
+
+### 4. App Component Updates
+
+#### File: [App.jsx](file:///d:/Scopio/frontend/src/App.jsx)
+
+#### Change 4.1: Enhanced Logout Function
+
+**What Changed:**
+```javascript
+// Before
+const handleLogout = () => {
+  setShowWelcome(false)
+  setShowLearning(false)
+  setShowExplore(false)
+  setShowLeaderboard(false)
+  setShowHome(true)
+}
+
+// After
+const handleLogout = () => {
+  // Clear tokens from localStorage
+  localStorage.removeItem('access');
+  localStorage.removeItem('refresh');
+  
+  setShowWelcome(false)
+  setShowLearning(false)
+  setShowExplore(false)
+  setShowLeaderboard(false)
+  setShowHome(true)
+}
+```
+
+**Why This Change:**
+- **Security**: Removes JWT tokens from browser storage
+- **Prevents unauthorized access**: Without tokens, protected routes will redirect to login
+- **Complete logout**: Ensures user is fully logged out, not just visually
+
+---
+
+#### Change 4.2: Login Success Handler
+
+**What Changed:**
+```javascript
+const handleLoginSuccess = () => {
+  setShowHome(false)
+  setShowWelcome(true)
+}
+```
+
+**Why This Change:**
+- Centralizes navigation logic after successful authentication
+- Used by both Login and Signup components
+- Ensures consistent behavior across authentication flows
+
+---
+
+#### Change 4.3: Pass Callbacks to Components
+
+**What Changed:**
+```jsx
+// Before
+<Signup onSwitchToWelcome={() => setShowWelcome(true)} />
+
+// After
+<Signup onSwitchToWelcome={handleLoginSuccess} />
+```
+
+**Why This Change:**
+- Uses the centralized handler instead of inline function
+- Ensures state updates happen in correct order
+
+---
+
+## 📊 Field Name Mapping Reference
+
+| Frontend (React) | Backend (Django) | Data Type |
+|-----------------|------------------|-----------|
+| `username` | `username` | string |
+| `email` | `email` | string |
+| `firstName` | `first_name` | string |
+| `lastName` | `last_name` | string |
+| `password` | `password` | string |
+
+**Why Different Naming Conventions:**
+- **React**: Uses camelCase (JavaScript convention)
+- **Django**: Uses snake_case (Python convention)
+- **Solution**: We map field names in the API call and error handling
+
+---
+
+## 🔄 Authentication Flow
+
+### Registration Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant Signup
+    participant Backend
+    participant App
+
+    User->>Signup: Fill form & submit
+    Signup->>Backend: POST /api/user/register/
+    Backend-->>Signup: User created (201)
+    Signup->>Backend: POST /api/token/
+    Backend-->>Signup: JWT tokens
+    Signup->>Signup: Store tokens in localStorage
+    Signup->>App: Call onSwitchToWelcome()
+    App->>App: Navigate to Welcome page
+```
+
+### Login Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant Login
+    participant Backend
+    participant App
+
+    User->>Login: Enter credentials & submit
+    Login->>Backend: POST /api/token/
+    Backend-->>Login: JWT tokens
+    Login->>Login: Store tokens in localStorage
+    Login->>App: Call onLoginSuccess()
+    App->>App: Navigate to Welcome page
+```
+
+### Protected Route Access
+```mermaid
+sequenceDiagram
+    participant User
+    participant ProtectedRoute
+    participant Backend
+    participant Welcome
+
+    User->>ProtectedRoute: Access /welcome
+    ProtectedRoute->>ProtectedRoute: Check access token
+    alt Token valid
+        ProtectedRoute->>Welcome: Render component
+    else Token expired
+        ProtectedRoute->>Backend: POST /api/token/refresh/
+        Backend-->>ProtectedRoute: New access token
+        ProtectedRoute->>Welcome: Render component
+    else No token
+        ProtectedRoute->>Login: Redirect to /login
+    end
+```
+
+---
+
+## 🧪 Testing Guide
+
+### 1. Test Registration
+1. Start Django backend: `cd Backend && python manage.py runserver`
+2. Start React frontend: `cd frontend && npm run dev`
+3. Fill out signup form with:
+   - Email: `test@example.com`
+   - Username: `testuser`
+   - First Name: `Test`
+   - Last Name: [User](file:///d:/Scopio/Backend/api/serializers.py#4-20)
+   - Password: `testpass123`
+   - Confirm Password: `testpass123`
+4. Click "Create account"
+5. **Expected**: Redirected to Welcome page
+6. **Verify**: Check browser DevTools → Application → Local Storage → `access` and [refresh](file:///d:/Scopio/frontend/src/components/ProtectedRoutes.jsx#16-33) keys exist
+
+### 2. Test Login
+1. Click logout (if logged in)
+2. Click "Got one?" button to open login modal
+3. Enter credentials:
+   - Username: `testuser`
+   - Password: `testpass123`
+4. Click "Log in"
+5. **Expected**: Redirected to Welcome page
+6. **Verify**: Tokens in localStorage
+
+### 3. Test Error Handling
+1. Try registering with existing username
+   - **Expected**: Error message "A user with that username already exists."
+2. Try logging in with wrong password
+   - **Expected**: Error message "Invalid username or password"
+3. Stop Django backend and try logging in
+   - **Expected**: Error message "Unable to connect to server. Please try again."
+
+### 4. Test Protected Routes
+1. Log in successfully
+2. Navigate to Welcome page (should work)
+3. Open DevTools → Application → Local Storage
+4. Delete `access` token
+5. Refresh page
+6. **Expected**: Redirected to login page
+
+### 5. Test Logout
+1. Log in successfully
+2. Click logout button
+3. **Verify**: 
+   - Redirected to home/signup page
+   - Tokens removed from localStorage
+   - Cannot access Welcome page without logging in again
+
+---
+
+## 🔍 Debugging Tips
+
+### Check API Calls
+1. Open DevTools → Network tab
+2. Filter by "Fetch/XHR"
+3. Look for:
+   - `POST /api/user/register/` (registration)
+   - `POST /api/token/` (login)
+   - `POST /api/token/refresh/` (token refresh)
+
+### Check Request Headers
+Click on any API request → Headers tab:
+```
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
+Content-Type: application/json
+```
+
+### Check Response
+Click on any API request → Response tab to see backend response
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| CORS error | Backend not allowing frontend origin | Already fixed in Django settings |
+| 404 Not Found | Wrong API URL | Check [.env](file:///d:/Scopio/frontend/.env) file has correct URL |
+| 401 Unauthorized | Token expired or invalid | Check token in localStorage, try logging in again |
+| Field validation errors | Field name mismatch | Check field mapping in code |
+
+---
+
+## 📝 Summary
+
+### What We Built
+✅ Complete authentication system connecting React frontend to Django backend  
+✅ User registration with auto-login  
+✅ User login with JWT token management  
+✅ Protected routes with automatic token refresh  
+✅ Proper error handling and user feedback  
+✅ Loading states for better UX  
+
+### Key Concepts Used
+- **JWT Authentication**: Stateless authentication using access and refresh tokens
+- **Axios Interceptors**: Automatically add auth headers to requests
+- **Field Mapping**: Convert between camelCase (React) and snake_case (Django)
+- **Error Handling**: Display backend validation errors to users
+- **State Management**: Coordinate authentication state across components
+
+### Files Modified
+1. [.env](file:///d:/Scopio/frontend/.env) - Fixed API URL
+2. [Login.jsx](file:///d:/Scopio/frontend/src/components/Login.jsx) - Added API integration
+3. [Signup.jsx](file:///d:/Scopio/frontend/src/components/Signup.jsx) - Added registration and auto-login
+4. [App.jsx](file:///d:/Scopio/frontend/src/App.jsx) - Added authentication state management
+
+### No New Files Created
+All changes were made to existing files as requested.

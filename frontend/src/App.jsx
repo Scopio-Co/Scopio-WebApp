@@ -23,11 +23,20 @@ function App() {
   const [showHome, setShowHome] = useState(true)
 
   const handleLogout = () => {
+    // Clear tokens from localStorage
+    localStorage.removeItem('access');
+    localStorage.removeItem('refresh');
+    
     setShowWelcome(false)
     setShowLearning(false)
     setShowExplore(false)
     setShowLeaderboard(false)
     setShowHome(true)
+  }
+
+  const handleLoginSuccess = () => {
+    setShowHome(false)
+    setShowWelcome(true)
   }
 
   return (
@@ -58,14 +67,14 @@ function App() {
           </>
         ) : showHome ? (
           <>
-            <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
+            <Signup onSwitchToWelcome={handleLoginSuccess} />
             <HeroSlider />
             <TopPicks />
             <Footer />
           </>
         ) : (
           <>
-            <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
+            <Signup onSwitchToWelcome={handleLoginSuccess} />
             <HeroSlider />
             <TopPicks />
             <Footer />
