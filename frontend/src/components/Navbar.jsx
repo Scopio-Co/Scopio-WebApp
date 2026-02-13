@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 import profileAvatar from '../assets/img/Ellipse 8.png';
 
-const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard, setShowProfile, setShowCourseVideo, showCourseVideo }) => {
+const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard, setShowProfile, setShowCourseVideo, setShowArticles, setShowArticleDetail, showCourseVideo, mobileOpen, setMobileOpen }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -47,8 +47,12 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowExplore(false);
       setShowWelcome(false);
       if (setShowLeaderboard) setShowLeaderboard(false);
+      if (setShowArticles) setShowArticles(false);
+      if (setShowArticleDetail) setShowArticleDetail(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+      // close mobile navbar when navigating
+      setMobileOpen(false);
     }
   };
 
@@ -62,9 +66,12 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowWelcome(false);
       if (setShowLeaderboard) setShowLeaderboard(false);
       if (setShowProfile) setShowProfile(false);
+      if (setShowArticles) setShowArticles(false);
+      if (setShowArticleDetail) setShowArticleDetail(false);
       // ensure the main content scrolls to top when navigating
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+      setMobileOpen(false);
     } else if (item === "Learning" && setShowLearning) {
       setActivePage('Learning');
       setShowLearning(true);
@@ -74,8 +81,11 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowWelcome(false);
       if (setShowLeaderboard) setShowLeaderboard(false);
       if (setShowProfile) setShowProfile(false);
+      if (setShowArticles) setShowArticles(false);
+      if (setShowArticleDetail) setShowArticleDetail(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+      setMobileOpen(false);
     } else if (item === "Explore" && setShowExplore) {
       setActivePage('Explore');
       setShowExplore(true);
@@ -85,8 +95,11 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowWelcome(false);
       if (setShowLeaderboard) setShowLeaderboard(false);
       if (setShowProfile) setShowProfile(false);
+      if (setShowArticles) setShowArticles(false);
+      if (setShowArticleDetail) setShowArticleDetail(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+      setMobileOpen(false);
     } else if (item === "Leaderboards" && setShowLeaderboard) {
       setActivePage('Leaderboards');
       setShowLeaderboard(true);
@@ -96,8 +109,24 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setShowExplore(false);
       setShowWelcome(false);
       if (setShowProfile) setShowProfile(false);
+      if (setShowArticles) setShowArticles(false);
+      if (setShowArticleDetail) setShowArticleDetail(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+    } else if (item === "Articles" && setShowArticles) {
+      setActivePage('Articles');
+      setShowArticles(true);
+      if (setShowCourseVideo) setShowCourseVideo(false);
+      setShowHome(false);
+      setShowLearning(false);
+      setShowExplore(false);
+      setShowWelcome(false);
+      if (setShowLeaderboard) setShowLeaderboard(false);
+      if (setShowProfile) setShowProfile(false);
+      if (setShowArticleDetail) setShowArticleDetail(false);
+      const mainEl = document.querySelector('.main-content');
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+      setMobileOpen(false);
     }
   };
 
@@ -105,6 +134,7 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
     "Home",
     "Learning",
     "Explore",
+    "Articles",
     "Leaderboards",
     "Hands ON",
     "Settings",
@@ -119,7 +149,8 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
   ];
 
   return (
-    <div className="navbar">
+    <>
+      <div className={`navbar ${mobileOpen ? 'mobile-open' : ''}`}>
       {/* Profile Section */}
       <div className="profile-section" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
         <div className="profile-info">
@@ -195,9 +226,10 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
         <button
           className="logout-button"
           onClick={() => {
-            if (typeof onLogout === 'function') onLogout();
-            else console.log('Logout clicked!');
-          }}
+              if (typeof onLogout === 'function') onLogout();
+              else console.log('Logout clicked!');
+              setMobileOpen(false);
+            }}
         >
           <span>Log Out</span>
           <svg
@@ -234,7 +266,10 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
           </svg>
         </button>
       </div>
-    </div>
+      </div>
+
+      {mobileOpen && <div className="navbar-overlay" onClick={() => setMobileOpen(false)} />}
+    </>
   );
 };
 

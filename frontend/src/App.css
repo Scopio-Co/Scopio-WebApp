@@ -179,7 +179,7 @@ html, body {
 
 .navbar-section {
   flex-shrink: 0;
-  width: 300px; /* Fixed width to match navbar */
+  width: 20%; /* 20% width for navbar */
   height: 100vh;
   overflow: hidden; /* Let navbar handle its own scrolling */
 }
@@ -187,11 +187,31 @@ html, body {
 .main-content {
   flex: 1;
   height: 100vh;
+  width:80%;
+  max-width: 1500px;
+  margin: 0 auto;
   overflow-y: auto; /* Only allow vertical scroll for main content */
   overflow-x: visible; /* Allow horizontal overflow for popups */
 }
-@media (max-width: 1024px) {
+@media (max-width: 1024px ) {
   .navbar-section{
-    width:250px;
+    width:30%;
+  }
+  .main-content{
+    width:70%;
+  }
+}
+
+/* On small screens the sidebar becomes an overlay; collapse the reserved space */
+@media (max-width: 768px) {
+  .navbar-section {
+    width: 0 !important;
+    flex: 0 0 0 !important;
+    min-width: 0 !important;
+    overflow: visible;
+  }
+
+  .main-content {
+    flex: 1 1 100% !important;
   }
 }

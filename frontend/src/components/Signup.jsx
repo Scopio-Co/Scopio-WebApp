@@ -18,6 +18,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
 
   const [errors, setErrors] = useState({});
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '' });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -63,11 +64,18 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
     if (Object.keys(newErrors).length === 0) {
       // Handle successful form submission
       console.log('Signup form submitted:', formData);
-      // You can add your signup logic here (API call, etc.)
-      // After successful signup, navigate to Welcome if parent provided handler
-      if (typeof onSwitchToWelcome === 'function') {
-        onSwitchToWelcome();
-      }
+      // show toast notification
+      setToast({ visible: true, message: 'Created User Account' });
+      
+      // Wait 1 second before navigating to show the toast
+      setTimeout(() => {
+        setToast({ visible: false, message: '' });
+        // You can add your signup logic here (API call, etc.)
+        // After successful signup, navigate to Welcome if parent provided handler
+        if (typeof onSwitchToWelcome === 'function') {
+          onSwitchToWelcome();
+        }
+      }, 1000);
     } else {
       setErrors(newErrors);
     }
@@ -234,6 +242,12 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
             
             <Login />
           </div>
+        </div>
+      )}
+      {/* Toast notification */}
+      {toast.visible && (
+        <div className={`toast ${toast.visible ? '' : 'hide'}`}>
+          {toast.message}
         </div>
       )}
     </div>
