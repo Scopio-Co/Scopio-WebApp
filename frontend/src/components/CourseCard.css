@@ -14,14 +14,14 @@
 .course-card-main {
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--cv-avatar-bg);
   overflow: hidden;
   width: 100%;
   transition: all 0.3s ease;
   position: relative;
   height: 280px;
   border-radius: 20px;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  border: 1px solid var(--border-primary);
 }
 
 /* Image Section */
@@ -55,15 +55,15 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  border-top: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.85);
+  border-top: 1px solid var(--border-primary);
+  background: var(--text-light);
 }
 
 .card-course-title {
   font-size: 1.125rem;
   font-family: Eina03-Regular;
   font-weight: 600;
-  color: #000;
+  color: var(--text-tertiary);
   margin: 0 0 16px 0;
   line-height: 1.4;
 }
@@ -96,7 +96,7 @@ background: rgba(0, 0, 0, 0.30);
 }
 
 .card-info-btn:hover {
-  background: #D0D0D0;
+  background: var(--btn-info);
   transform: scale(1.05);
 }
 
@@ -104,7 +104,7 @@ background: rgba(0, 0, 0, 0.30);
   font-size: 16px;
   font-weight: 500;
   font-family: "Inter", sans-serif;
-  color: #ffffff;
+  color: var(--cv-avatar-bg);
   font-style: italic;
 }
 
@@ -119,8 +119,8 @@ background: rgba(0, 0, 0, 0.30);
 .info-card {
   overflow: hidden;
   width: 300px;
-  border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
-  background: rgba(255, 255, 255, 0.90);
+  border: 1px solid var(--border-primary);
+  background: var(--text-light);
 }
 
 .info-card-header {
@@ -138,7 +138,7 @@ background: rgba(0, 0, 0, 0.30);
 .info-card-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #000;
+  color: var(--text-tertiary);
   margin: 0 0 8px 0;
   line-height: 1.3;
   font-family: Eina03;
@@ -147,7 +147,7 @@ background: rgba(0, 0, 0, 0.30);
 .info-card-duration {
   font-size: 0.875rem;
   margin: 0 0 12px 0;
-  color: var(--Txt-Gray, #424242);
+  color: var(--cv-description);
 font-family: Eina03-Regular;
 }
 
@@ -163,7 +163,7 @@ font-family: Eina03-Regular;
 
 .info-card-description {
   font-size: 0.875rem;
-  color: #000;
+  color: var(--text-tertiary);
   font-family: Eina03-Regular;
   margin: 0;
   text-align: justify;

@@ -5,7 +5,7 @@ import Pagination from '../components/Pagination';
 import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
 
-const LearningPage = ({ onLogout }) => {
+const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
   // Function to extract percentage from progress text
   const getProgressPercentage = (progressText) => {
     const match = progressText.match(/(\d+)%/);
@@ -29,7 +29,7 @@ const LearningPage = ({ onLogout }) => {
         <div className="learning-design-container">
           <div className="course-grid">
             {/* Course Card 1 */}
-            <div className="course-card">
+            <div className="course-card" onClick={onCourseClick} style={{ cursor: onCourseClick ? 'pointer' : 'default' }}>
               <div className="course-image-card">
                 <img src={heroCardImg} alt="Course Image" className="course-img" />
                 <div className="continue-button-wrapper">
@@ -62,7 +62,7 @@ const LearningPage = ({ onLogout }) => {
             </div>
 
             {/* Course Card 2 */}
-            <div className="course-card">
+            <div className="course-card" onClick={onCourseClick} style={{ cursor: onCourseClick ? 'pointer' : 'default' }}>
               <div className="course-image-card">
                 <img src={heroCardImg} alt="Course Image" className="course-img" />
                 <div className="continue-button-wrapper">
@@ -95,7 +95,7 @@ const LearningPage = ({ onLogout }) => {
             </div>
 
             {/* Course Card 3 */}
-            <div className="course-card">
+            <div className="course-card" onClick={onCourseClick} style={{ cursor: onCourseClick ? 'pointer' : 'default' }}>
               <div className="course-image-card">
                 <img src={heroCardImg} alt="Course Image" className="course-img" />
                 <div className="continue-button-wrapper">
@@ -128,7 +128,7 @@ const LearningPage = ({ onLogout }) => {
             </div>
 
             {/* Course Card 4 */}
-            <div className="course-card">
+            <div className="course-card" onClick={onCourseClick} style={{ cursor: onCourseClick ? 'pointer' : 'default' }}>
               <div className="course-image-card">
                 <img src={heroCardImg} alt="Course Image" className="course-img" />
                 <div className="continue-button-wrapper">

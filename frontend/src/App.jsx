@@ -13,6 +13,9 @@ import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
 import ExplorePage from './pages/ExplorePage'
 import LeaderboardPage from './pages/LeaderboardPage';
+import CourseVideoPage from './pages/CourseVideoPage';
+import ArticlePage from './pages/ArticlePage';
+import ArticleDetailPage from './pages/ArticleDetailPage';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -21,6 +24,12 @@ function App() {
   const [showExplore, setShowExplore] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showHome, setShowHome] = useState(true)
+  const [showCourseVideo, setShowCourseVideo] = useState(false)
+  const [showArticles, setShowArticles] = useState(false)
+  const [showArticleDetail, setShowArticleDetail] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState(null)
+  const [selectedArticle, setSelectedArticle] = useState(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleLogout = () => {
     setShowWelcome(false)
@@ -28,6 +37,50 @@ function App() {
     setShowExplore(false)
     setShowLeaderboard(false)
     setShowHome(true)
+    setShowCourseVideo(false)
+    setShowArticles(false)
+    setShowArticleDetail(false)
+  }
+
+  const handleCourseClick = (course) => {
+    setSelectedCourse(course || null)
+    setShowCourseVideo(true)
+    setShowWelcome(false)
+    setShowLearning(false)
+    setShowExplore(false)
+    setShowLeaderboard(false)
+    setShowHome(false)
+    setShowArticles(false)
+    setShowArticleDetail(false)
+  }
+
+  const handleBackFromCourse = () => {
+    setShowCourseVideo(false)
+    setShowWelcome(true)
+  }
+
+  const handleArticleClick = (article) => {
+    setSelectedArticle(article)
+    setShowArticleDetail(true)
+    setShowArticles(false)
+    // ensure the main content (and window) scrolls to top when opening an article
+    const mainEl = document.querySelector('.main-content');
+    if (mainEl) mainEl.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  const handleBackFromArticleDetail = () => {
+    setShowArticleDetail(false)
+    setShowArticles(true)
+    // scroll back to top when returning to the articles list
+    const mainEl = document.querySelector('.main-content');
+    if (mainEl) mainEl.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  const handleBackFromArticles = () => {
+    setShowArticles(false)
+    setShowWelcome(true)
   }
 
   return (
@@ -40,34 +93,57 @@ function App() {
           setShowExplore={setShowExplore}
           setShowLeaderboard={setShowLeaderboard}
           setShowWelcome={setShowWelcome}
+          setShowCourseVideo={setShowCourseVideo}
+          setShowArticles={setShowArticles}
+          setShowArticleDetail={setShowArticleDetail}
+          showCourseVideo={showCourseVideo}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
         />
       </div>
       <div className="main-content">
-        {showExplore ? (
-          <ExplorePage onLogout={handleLogout} />
+        <div className="hamburger-container">
+          <button
+            className={`hamburger ${mobileOpen ? 'is-active' : ''}`}
+            aria-label="Toggle navigation"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            <span className="hamburger-box">
+              <span className="hamburger-inner" />
+            </span>
+          </button>
+        </div>
+        {showArticleDetail ? (
+          <ArticleDetailPage article={selectedArticle} onBack={handleBackFromArticleDetail} />
+        ) : showArticles ? (
+          <ArticlePage onArticleClick={handleArticleClick} />
+        ) : showCourseVideo ? (
+          <CourseVideoPage selectedCourse={selectedCourse} onBack={handleBackFromCourse} />
+        ) : showExplore ? (
+          <ExplorePage onLogout={handleLogout} onCourseClick={handleCourseClick} />
         ) : showLearning ? (
-          <LearningPage onLogout={handleLogout} />
+          <LearningPage onLogout={handleLogout} onCourseClick={handleCourseClick} />
         ) : showLeaderboard ? (
           <LeaderboardPage onLogout={handleLogout} />
         ) : showWelcome ? (
           <>
             <Welcome />
             <HeroSlider />
-            <TopPicks />
+            <TopPicks onCourseClick={handleCourseClick} />
             <Footer />
           </>
         ) : showHome ? (
           <>
             <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
             <HeroSlider />
-            <TopPicks />
+            <TopPicks onCourseClick={handleCourseClick} />
             <Footer />
           </>
         ) : (
           <>
             <Signup onSwitchToWelcome={() => setShowWelcome(true)} />
             <HeroSlider />
-            <TopPicks />
+            <TopPicks onCourseClick={handleCourseClick} />
             <Footer />
           </>
         )}

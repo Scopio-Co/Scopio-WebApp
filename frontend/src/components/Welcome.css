@@ -317,9 +317,6 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
     flex-direction: column;
     height: auto;
   }
-  .dashboard-container{
-    height:100vh;
-  }
 }
 @media screen and (max-width: 1024px) {
   .dashboard-container {
@@ -343,7 +340,6 @@ box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
   }
 
   .dashboard-column {
-    flex-direction: column;
     gap: 20px;
   }
 
