@@ -14,3 +14,17 @@ walkthrough
 
 # Environment
 benv/
+
+# Secrets
+OAUTH.json
+.env
+Backend/.env
+
+# Python/Django artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.sqlite3
+Backend/db.sqlite3
