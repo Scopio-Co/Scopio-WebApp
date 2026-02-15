@@ -121,8 +121,12 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   };
 
   const handleSocialLogin = (provider) => {
+    if (provider === 'Google') {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      window.location.href = `${apiUrl}/glogin/google/start/`;
+      return;
+    }
     console.log(`${provider} login clicked`);
-    // Add social login logic here
   };
 
   return (

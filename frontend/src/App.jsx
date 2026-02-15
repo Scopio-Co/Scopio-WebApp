@@ -39,6 +39,21 @@ function App() {
     setShowWelcome(true)
   }
 
+  react.useEffect(() => {
+    const hash = window.location.hash || '';
+    if (hash.startsWith('#')) {
+      const params = new URLSearchParams(hash.slice(1));
+      const access = params.get('access');
+      const refresh = params.get('refresh');
+      if (access && refresh) {
+        localStorage.setItem('access', access);
+        localStorage.setItem('refresh', refresh);
+        window.history.replaceState(null, '', window.location.pathname);
+        handleLoginSuccess();
+      }
+    }
+  }, []);
+
   return (
     <div className="app-layout">
       <div className="navbar-section">
