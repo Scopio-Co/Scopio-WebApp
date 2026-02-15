@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import streakBadge from '../assets/img/streak-badge.svg';
 
-const LeaderboardPage = () => {
+const LeaderboardPage = ({ isLoading }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -218,55 +218,78 @@ const LeaderboardPage = () => {
         <div className="explore-sections">
 
         <div className="leaderboard-table-container">
-          <table className="leaderboard-table">
-            <thead>
-              <tr className="table-header-row">
-                <th className="header-rank">Rank</th>
-                <th className="header-learner">Learner</th>
-                <th className="header-score">Score</th>
-                <th className="header-streak">Streak</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedLeaderboard.map((entry, index) => (
-                <tr 
-                  key={index} 
-                  className="leaderboard-row"
-                  style={{ background: entry.bgColor }}
-                >
-                  <td className="rank-cell">
-                    <div 
-                      className="rank-badge"
-                      style={{ 
-                        background: getRankBadgeColor(entry.rank),
-                        border: entry.rank ? '2px solid rgba(255, 255, 255, 0.72)' : 'none'
-                      }}
-                    >
-                      {entry.rank}
-                    </div>
-                  </td>
-                  <td className="learner-cell">
-                    <div className="learner-info">
-                      <div className="learner-avatar"></div>
-                      <div className="learner-details">
-                        <div className="learner-name">{entry.name}</div>
-                        <div className="learner-username">{entry.username}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="score-cell">
-                    <div className="score-badge">{entry.score}</div>
-                  </td>
-                  <td className="streak-cell">
-                    <div className="streak-badge">
-                      <img src={streakBadge} alt="Streak Icon" />
-                      <span className="streak-number">{entry.streak}</span>
-                    </div>
-                  </td>
+          {isLoading ? (
+            <table className="leaderboard-table skeleton-table">
+              <thead>
+                <tr className="table-header-row">
+                  <th className="header-rank">Rank</th>
+                  <th className="header-learner">Learner</th>
+                  <th className="header-score">Score</th>
+                  <th className="header-streak">Streak</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <tr className="leaderboard-row skeleton-row" key={`skele-${i}`}>
+                    <td className="rank-cell"><div className="skeleton-line small" /></td>
+                    <td className="learner-cell"><div className="skeleton-line medium" /></td>
+                    <td className="score-cell"><div className="skeleton-line small" /></td>
+                    <td className="streak-cell"><div className="skeleton-line small" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <table className="leaderboard-table">
+              <thead>
+                <tr className="table-header-row">
+                  <th className="header-rank">Rank</th>
+                  <th className="header-learner">Learner</th>
+                  <th className="header-score">Score</th>
+                  <th className="header-streak">Streak</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedLeaderboard.map((entry, index) => (
+                  <tr 
+                    key={index} 
+                    className="leaderboard-row"
+                    style={{ background: entry.bgColor }}
+                  >
+                    <td className="rank-cell">
+                      <div 
+                        className="rank-badge"
+                        style={{ 
+                          background: getRankBadgeColor(entry.rank),
+                          border: entry.rank ? '2px solid rgba(255, 255, 255, 0.72)' : 'none'
+                        }}
+                      >
+                        {entry.rank}
+                      </div>
+                    </td>
+                    <td className="learner-cell">
+                      <div className="learner-info">
+                        <div className="learner-avatar"></div>
+                        <div className="learner-details">
+                          <div className="learner-name">{entry.name}</div>
+                          <div className="learner-username">{entry.username}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="score-cell">
+                      <div className="score-badge">{entry.score}</div>
+                    </td>
+                    <td className="streak-cell">
+                      <div className="streak-badge">
+                        <img src={streakBadge} alt="Streak Icon" />
+                        <span className="streak-number">{entry.streak}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
         </div>
 

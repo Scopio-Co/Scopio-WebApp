@@ -21,6 +21,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [errors, setErrors] = useState({});
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '' });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -85,10 +86,16 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
         localStorage.setItem(ACCESS_TOKEN, loginResponse.data.access);
         localStorage.setItem(REFRESH_TOKEN, loginResponse.data.refresh);
 
-        // Navigate to Welcome page
-        if (typeof onSwitchToWelcome === 'function') {
-          onSwitchToWelcome();
-        }
+        // Toast notification on success
+        setToast({ visible: true, message: 'Created User Account' });
+
+        // Navigate to Welcome page after brief toast
+        setTimeout(() => {
+          setToast({ visible: false, message: '' });
+          if (typeof onSwitchToWelcome === 'function') {
+            onSwitchToWelcome();
+          }
+        }, 1000);
       } catch (error) {
         console.error('Signup error:', error);
         if (error.response && error.response.data) {
@@ -101,8 +108,8 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
             } else if (key === 'last_name') {
               backendErrors.lastName = error.response.data[key][0];
             } else {
-              backendErrors[key] = Array.isArray(error.response.data[key]) 
-                ? error.response.data[key][0] 
+              backendErrors[key] = Array.isArray(error.response.data[key])
+                ? error.response.data[key][0]
                 : error.response.data[key];
             }
           });
@@ -303,6 +310,12 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
               }
             }} />
           </div>
+        </div>
+      )}
+      {/* Toast notification */}
+      {toast.visible && (
+        <div className={`toast ${toast.visible ? '' : 'hide'}`}>
+          {toast.message}
         </div>
       )}
     </div>

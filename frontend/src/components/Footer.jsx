@@ -14,6 +14,10 @@ import arduinoIcon from '../assets/img/arduino.svg';
 import linkedin1 from '../assets/img/Linkedin (1).svg';
 
 const Footer = () => {
+  const handleSocialLogin = (platform) => {
+    console.log(`Opening ${platform}`);
+  };
+
   return (
     <footer className="footer">
       <div className="footer-container">
