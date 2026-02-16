@@ -1,31 +1,13 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics
-from .serializers import UserSerializer, NoteSerializer
+from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.urls import reverse
-from .models import Note
 
 
-class NoteListCreateView(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user) 
-        else:
-            print(serializer.errors)
-class NoteDelete(generics.DestroyAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all() #all obj we gonna look after in order to create a user
     serializer_class = UserSerializer #serializer class - make sure what we need to create a user is valid
