@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Auth.css';
 
-const Login = () => {
+const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
     emailOrUsername: '',
     password: ''
@@ -47,6 +47,10 @@ const Login = () => {
       // Handle successful login
       console.log('Login form submitted:', formData);
       // You can add your login logic here
+      // notify parent about successful login so it can show toast / navigate
+      if (typeof onLoginSuccess === 'function') {
+        onLoginSuccess();
+      }
     } else {
       setErrors(newErrors);
     }

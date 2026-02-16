@@ -86,6 +86,19 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
     // Add social login logic here
   };
 
+  const handleLoginSuccess = () => {
+    // show toast notification for login
+    setToast({ visible: true, message: 'Login successfully' });
+    // Wait 1 second before navigating to show the toast
+    setTimeout(() => {
+      setToast({ visible: false, message: '' });
+      if (typeof onSwitchToWelcome === 'function') {
+        onSwitchToWelcome();
+      }
+      setShowLoginModal(false);
+    }, 1000);
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-content">
@@ -238,9 +251,8 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
       {/* Login Modal Overlay */}
       {showLoginModal && (
         <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            
-            <Login />
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <Login onLoginSuccess={handleLoginSuccess} />
           </div>
         </div>
       )}
