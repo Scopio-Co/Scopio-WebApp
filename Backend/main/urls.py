@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), #endpoint for refreshing JWT tokens
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include('api.urls')),
+    path('api/video/', include('video.urls')),
     path('accounts/', include('allauth.urls')),
     path('glogin/', include('glogin.urls')),
 ]

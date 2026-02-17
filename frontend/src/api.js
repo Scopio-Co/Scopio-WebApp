@@ -1,11 +1,10 @@
-//(axios)interceptors - intercept the requests  will auto add correct headers 
-
+// (axios) interceptors - intercept requests, auto-add auth headers
 
 import axios from "axios";
 import { ACCESS_TOKEN } from "./constants";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
 });
 api.interceptors.request.use(
     (config) => {
@@ -21,4 +20,9 @@ api.interceptors.request.use(
 );
 export default api;
 
-//instead of raw axios we can now use api which we just customized nowww
+// API helpers
+export async function fetchVideos() {
+  const { data } = await api.get('/api/video/videos/');
+  return data;
+}
+

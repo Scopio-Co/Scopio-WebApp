@@ -11,3 +11,4 @@ python-dotenv # For loading environment variables from a .env file
 django-allauth # Social auth (Google, etc.)
 requests # HTTP client used by allauth Google provider
 cryptography # Required by pyjwt for secure token handling
+django-embed-video # For embedding videos in Django models

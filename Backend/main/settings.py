@@ -71,6 +71,9 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     # Enable JWT token blacklisting when rotating refresh tokens
     'rest_framework_simplejwt.token_blacklist',
+    'embed_video',  # For embedding videos in Django models
+    'video',
+    
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
