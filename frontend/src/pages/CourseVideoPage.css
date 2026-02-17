@@ -818,6 +818,7 @@
   }
 
   .course-detail h1 {
+    margin-top:40px;
     font-size: 1.4rem;
   }
 
@@ -849,5 +850,35 @@
 
   .discussions-overview-container {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .course-video-header {
+    gap: 0.5rem;
+  }
+  .what-learn-section{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .course-detail h1 {
+    font-size: 1.2rem;
+  }
+  .overview-container{
+    padding:1rem;
+  }
+   .tab{
+    padding:0.8rem 0.7rem;
+    font-size: 0.9rem;
+  }
+  .video-overlay {
+    padding: 4rem 1rem 1rem 1rem;
+  }
+
+  .video-overlay h2 {
+    font-size: 1.5rem;
+  }
+
+  .video-subtitle {
+    font-size: 1rem;
   }
 }
