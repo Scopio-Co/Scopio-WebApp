@@ -10,7 +10,6 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
   });
 
   const [activePage, setActivePage] = useState('Home');
-  const [toast, setToast] = useState({ visible: false, message: '' });
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -114,8 +113,6 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       if (setShowArticleDetail) setShowArticleDetail(false);
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      // close mobile navbar when navigating
-      setMobileOpen(false);
     } else if (item === "Articles" && setShowArticles) {
       setActivePage('Articles');
       setShowArticles(true);
@@ -232,9 +229,6 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
               if (typeof onLogout === 'function') onLogout();
               else console.log('Logout clicked!');
               setMobileOpen(false);
-              // show logout toast
-              setToast({ visible: true, message: 'Logged out' });
-              setTimeout(() => setToast({ visible: false, message: '' }), 1000);
             }}
         >
           <span>Log Out</span>
@@ -275,11 +269,6 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       </div>
 
       {mobileOpen && <div className="navbar-overlay" onClick={() => setMobileOpen(false)} />}
-      {toast.visible && (
-        <div className={`toast ${toast.visible ? '' : 'hide'}`}>
-          {toast.message}
-        </div>
-      )}
     </>
   );
 };

@@ -326,9 +326,7 @@
   .leaderboard-content {
     padding: 15px;
   }
-  .learner-avatar{
-    display:none;
-  }
+
   .leaderboard-title {
     font-size: 1.5rem;
   }
@@ -345,20 +343,5 @@
   .score-badge,
   .streak-badge {
     font-size: 0.85rem;
-  }
-
-  /* Allow horizontal scrolling when the table is wider than the viewport */
-  .leaderboard-table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px; /* give space for scrollbar */
-  }
-
-  /* Prevent table from shrinking too much; enables scroll when necessary */
-  .leaderboard-table {
-    width: auto;
-    min-width: 520px;
-    margin-left: 12px;
-    margin-right: 12px;
   }
 }

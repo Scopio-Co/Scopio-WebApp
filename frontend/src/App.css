@@ -213,19 +213,5 @@ html, body {
 
   .main-content {
     flex: 1 1 100% !important;
-    /* Make main-content the scrolling container instead of the document
-       so mobile browsers are less likely to auto-hide the address bar */
-    height: 100vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  /* Prevent the root/document from scrolling so the browser UI remains stable */
-  html, body, #root {
-    height: 100%;
-    overflow: hidden; /* disable document scroll */
-  }
-  /* ensure content can scroll above footer and mobile UI — give extra bottom padding */
-  .main-content {
-    padding-bottom: 80px; /* room for footer + mobile UI */
   }
 }
