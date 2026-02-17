@@ -17,20 +17,14 @@ const ArticleDetailPage = ({ article, onBack }) => {
 
   return (
     <div className="article-detail-page">
+      <button onClick={onBack} className="back-top-right" aria-label="Back to articles">
+        ← Back to Articles
+      </button>
       <div className="article-detail-container">
         <div className="article-detail-content">
           <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </div>
       </div>
-
-      <button
-        className="back-fab"
-        onClick={onBack}
-        aria-label="Back to articles"
-        title="Back to articles"
-      >
-        ←
-      </button>
     </div>
   );
 };

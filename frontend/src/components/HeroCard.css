@@ -90,4 +90,24 @@
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
 }
 
+/* Hide visual on small screens and make content full-width */
+@media (max-width: 768px) {
+  .hero-visual {
+    display: none;
+  }
+
+  .hero-content {
+    flex: 1 1 100%;
+    width: 100%;
+    padding: 18px;
+  }
+  .slider-item{
+    width: 100% !important;
+  }
+  .hero-card {
+    flex-direction: column;
+    border-radius: 20px;
+  }
+}
+
 
