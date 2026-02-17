@@ -14,7 +14,9 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+
 load_dotenv()  # Load environment variables from .env file
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,15 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*oki0j(n=i3o8)7%hkn%)cvj0ro-(+g6%2!(th+kqsmf^6h_ku'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-*oki0j(n=i3o8)7%hkn%)cvj0ro-(+g6%2!(th+kqsmf^6h_ku')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ["*"] # Allow all hosts for development; change in production
+# Allow all hosts for development; set explicit hosts in production via env
+ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '*').split(',')]
 
-
-# JWT setup
+# Django REST Framework + JWT
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -43,6 +45,9 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    # Safer refresh handling
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 # Application definition
@@ -57,13 +62,15 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'corsheaders',  # For handling CORS
-    "glogin",
+    'glogin',
     # Allauth apps for social authentication
-    "django.contrib.sites",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.socialaccount.providers.google",
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    # Enable JWT token blacklisting when rotating refresh tokens
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -109,14 +116,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'main.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        # Defaults match docker-compose service exposing Postgres on localhost:5432
+        'NAME': os.getenv('DB_NAME', 'scopio'),
+        'USER': os.getenv('DB_USER', 'admin'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Vishalashvafalin'),
+        # Use 'localhost' when Django runs on host; use 'db' when Django runs in Docker
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -139,7 +151,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -151,31 +162,36 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
 
+# CORS: restrict in production, allow dev origin by default
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
+CORS_ALLOW_CREDENTIALS = True
 
-
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWS_CREDENTIALS = True
+# CSRF trusted origins for cookie-based auth flows
+CSRF_TRUSTED_ORIGINS = [FRONTEND_URL]
 
 AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.ModelBackend",# Default authentication
-    "allauth.account.auth_backends.AuthenticationBackend", # For social auth
+    'django.contrib.auth.backends.ModelBackend',  # Default authentication
+    'allauth.account.auth_backends.AuthenticationBackend',  # For social auth
 )
 
 LOGIN_REDIRECT_URL = '/'  # Redirect to home after login
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 
 # allauth configuration to avoid intermediate forms and auto-create users
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = "none"
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+# allauth v0.65+ settings (replace deprecated ones)
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
-SOCIALACCOUNT_ADAPTER = "glogin.adapter.SocialAdapter"
+
+# Enforce stronger defaults in production
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory' if not DEBUG else 'none'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
+SOCIALACCOUNT_ADAPTER = 'glogin.adapter.SocialAdapter'
