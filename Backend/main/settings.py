@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+import dj_database_url
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -121,18 +122,12 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        # Defaults match docker-compose service exposing Postgres on localhost:5432
-        'NAME': os.getenv('DB_NAME', 'scopio'),
-        'USER': os.getenv('DB_USER', 'admin'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Vishalashvafalin'),
-        # Use 'localhost' when Django runs on host; use 'db' when Django runs in Docker
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.parse(
+        "postgresql://neondb_owner:npg_1PFVp6gXeQjy@ep-mute-sun-a741ku8q-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
