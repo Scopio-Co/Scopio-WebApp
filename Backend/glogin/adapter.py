@@ -1,5 +1,6 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib.auth import get_user_model
+from django.core.exceptions import MultipleObjectsReturned
 
 
 class SocialAdapter(DefaultSocialAccountAdapter):
@@ -36,6 +37,11 @@ class SocialAdapter(DefaultSocialAccountAdapter):
             existing_user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
             return
+        except MultipleObjectsReturned:
+            # Handle duplicate email issue - keep the newest one, delete older duplicates
+            users = User.objects.filter(email__iexact=email).order_by('-date_joined')
+            existing_user = users.first()
+            users.exclude(id=existing_user.id).delete()
 
         # Link this social login to the existing user; login will proceed
         # without showing the 3rdparty signup page

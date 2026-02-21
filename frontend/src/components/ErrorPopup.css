@@ -1,0 +1,135 @@
+.error-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.error-popup {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid #e74c3c;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.error-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.error-popup-header h3 {
+  color: #e74c3c;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.error-popup-close {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.error-popup-close:hover {
+  color: #c0392b;
+  transform: scale(1.1);
+}
+
+.error-popup-body {
+  padding: 20px;
+  color: #ecf0f1;
+  line-height: 1.6;
+}
+
+.error-popup-body p {
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.error-popup-footer {
+  padding: 15px 20px;
+  border-top: 1px solid rgba(231, 76, 60, 0.2);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.error-popup-button {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.error-popup-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
+.error-popup-button:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .error-popup {
+    max-width: 95%;
+  }
+
+  .error-popup-header h3 {
+    font-size: 16px;
+  }
+
+  .error-popup-body {
+    padding: 15px;
+  }
+
+  .error-popup-header {
+    padding: 15px;
+  }
+}

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/img/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import Navbar from './components/Navbar'
 import Signup from './components/Signup'
 import Login from './components/Login'
+import ErrorPopup from './components/ErrorPopup'
 import HeroCard from './components/HeroCard'
 import HeroSlider from './components/HeroSlider'
 import TopPicks from './components/TopPicks'
@@ -30,6 +31,28 @@ function App() {
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [selectedArticle, setSelectedArticle] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [authError, setAuthError] = useState(null)
+
+  useEffect(() => {
+    // Check for OAuth callback errors in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const message = urlParams.get('message');
+    
+    if (error) {
+      if (message) {
+        setAuthError(decodeURIComponent(message));
+      } else if (error === 'google_auth_failed') {
+        setAuthError('Google authentication failed. Please try again.');
+      } else if (error === 'auth_error') {
+        setAuthError('An authentication error occurred. Please try again.');
+      } else {
+        setAuthError(`Authentication error: ${error}`);
+      }
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleLogout = () => {
     setShowWelcome(false)
@@ -148,6 +171,7 @@ function App() {
           </>
         )}
       </div>
+      <ErrorPopup error={authError} onClose={() => setAuthError(null)} />
     </div>
   )
 }

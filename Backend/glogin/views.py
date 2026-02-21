@@ -9,18 +9,24 @@ def google_start(request):
     return redirect(f'/accounts/google/login/?process=login&next={next_url}')
 
 def google_finalize(request):
-    if not request.user.is_authenticated:
+    try:
+        if not request.user.is_authenticated:
+            frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+            return redirect(f"{frontend}/auth/callback?error=google_auth_failed")
+
+        refresh = RefreshToken.for_user(request.user)
+        access = str(refresh.access_token)
+        refresh_str = str(refresh)
+
         frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
-        return redirect(f"{frontend}/auth/callback?error=google_auth_failed")
-
-    refresh = RefreshToken.for_user(request.user)
-    access = str(refresh.access_token)
-    refresh_str = str(refresh)
-
-    frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
-    return redirect(f"{frontend}/#access={access}&refresh={refresh_str}")
+        return redirect(f"{frontend}/#access={access}&refresh={refresh_str}")
+    except Exception as e:
+        frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        error_message = str(e).replace('#', '%23').replace('&', '%26')
+        return redirect(f"{frontend}/auth/callback?error=auth_error&message={error_message}")
 
 def google_logout(request):
     django_logout(request)
     frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
     return redirect(frontend)
+
