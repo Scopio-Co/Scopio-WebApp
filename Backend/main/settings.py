@@ -161,16 +161,26 @@ _database_url = os.getenv('DATABASE_URL')
 
 # Debug: Log which database is being used
 if _database_url:
-    print("Using PostgreSQL (DATABASE_URL is set)")
-    DATABASES = {
-        'default': dj_database_url.parse(
-            _database_url,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
+    print("✓ Using PostgreSQL (DATABASE_URL is set)")
+    try:
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=_database_url,
+                conn_max_age=600,
+                ssl_require=True,
+            )
+        }
+    except Exception as e:
+        print(f"⚠ Database connection error: {e}")
+        print("Falling back to SQLite")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
-    print("Using SQLite fallback (DATABASE_URL not set)")
+    print("⚠ Using SQLite fallback (DATABASE_URL not set)")
     # Local development fallback
     DATABASES = {
         'default': {
