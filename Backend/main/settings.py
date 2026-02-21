@@ -12,12 +12,16 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-from dotenv import load_dotenv
 import os
 import json
 import dj_database_url
 
-load_dotenv()  # Load environment variables from .env file
+# Load environment variables from .env file (local development only)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -154,7 +158,10 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 _database_url = os.getenv('DATABASE_URL')
+
+# Debug: Log which database is being used
 if _database_url:
+    print("Using PostgreSQL (DATABASE_URL is set)")
     DATABASES = {
         'default': dj_database_url.parse(
             _database_url,
@@ -163,6 +170,7 @@ if _database_url:
         )
     }
 else:
+    print("Using SQLite fallback (DATABASE_URL not set)")
     # Local development fallback
     DATABASES = {
         'default': {
