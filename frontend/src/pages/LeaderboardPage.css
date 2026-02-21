@@ -251,6 +251,9 @@
   .header-score {
     width: 30%;
   }
+  .table-header-row th:nth-child(3),.leaderboard-row td:nth-child(3) {
+    border-radius: 0 25px 25px 0;
+  }
 }
 
 @media (max-width: 768px) {
@@ -338,27 +341,71 @@
     font-size: 0.8rem;
   }
 
-  .learner-info {
-    gap: 10px;
+  .learner-info,.score-badge {
+    padding: 10px 4px;
+    min-height:auto;
   }
-
-  .score-badge,
-  .streak-badge {
+  .learner-details{
+    background: none;
+    
+  }
+  .score-badge {
     font-size: 0.85rem;
+    padding: 10px 14px;
   }
 
-  /* Allow horizontal scrolling when the table is wider than the viewport */
+  /* Keep table inside viewport and remove horizontal scroll */
   .leaderboard-table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px; /* give space for scrollbar */
+    overflow-x: hidden; /* disable horizontal scrolling */
+    overflow-y: visible;
+    -webkit-overflow-scrolling: auto;
+    padding-bottom: 0;
+    padding-left: 12px;
+    padding-right: 12px;
+    box-sizing: border-box;
   }
 
-  /* Prevent table from shrinking too much; enables scroll when necessary */
+  /* Make the table adapt to the container width on very small screens */
   .leaderboard-table {
-    width: auto;
-    min-width: 520px;
-    margin-left: 12px;
-    margin-right: 12px;
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    margin-right: 0;
+    table-layout: auto; /* allow flexible column widths */
+    white-space: normal; /* allow wrapping inside cells */
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    white-space: normal;
+    word-break: break-word;
+  }
+  .leaderboard-row td{
+    padding: 5px 4px;
+  }
+  .learner-name,.learner-username{
+    line-height: 1;
+  }
+  .header-rank {
+    width: 20%;
+    padding-left: 12px !important;
+  }
+  .leaderboard-row td:first-child,.leaderboard-row td:first{
+    border-radius: 15px 0 0 15px;
+  }
+  .table-header-row th:nth-child(3),.leaderboard-row td:nth-child(3) {
+    border-radius: 0 15px 15px 0;
+  }
+  .header-learner {
+    width: 50%;
+  }
+
+  .header-score {
+    width: 30%;
+    text-align: center !important;
+  }
+
+  .rank-cell {
+    padding-left: 12px !important;
   }
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import './Footer.css';
 import instagramIcon from '../assets/img/instagram.svg';
 import linkedinIcon from '../assets/img/Linkedin.svg';
@@ -17,6 +17,55 @@ const Footer = () => {
   const handleSocialLogin = (platform) => {
     console.log(`Opening ${platform}`);
   };
+
+  // Logos used in the powered-by track. We render two identical sequences
+  // and measure the sequence width to animate by exactly one sequence width.
+  const techLogos = [
+    { src: freecodec, alt: 'FreeCodeCamp' },
+    { src: brototype, alt: 'Brototype' },
+    { src: arduinoIcon, alt: 'Arduino' },
+    { src: linkedin1, alt: 'LinkedIn' },
+  ];
+
+  const trackRef = useRef(null);
+  const seqRef = useRef(null);
+
+  useEffect(() => {
+    if (!seqRef.current || !trackRef.current) return;
+
+    const setSeqWidth = () => {
+      const seqWidth = seqRef.current.getBoundingClientRect().width;
+      // set CSS variable on track for use in keyframes
+      trackRef.current.style.setProperty('--seq-width', `${seqWidth}px`);
+    };
+
+    setSeqWidth();
+    let resizeId = null;
+    const onResize = () => {
+      if (resizeId) cancelAnimationFrame(resizeId);
+      resizeId = requestAnimationFrame(setSeqWidth);
+    };
+
+    // Recalculate when images load (helps on slow networks/devices)
+    const imgs = seqRef.current.querySelectorAll('img');
+    const onImgLoad = () => setSeqWidth();
+    imgs.forEach((img) => {
+      if (!img.complete) img.addEventListener('load', onImgLoad);
+    });
+
+    window.addEventListener('resize', onResize);
+    // also recalc after a short delay to catch layout changes
+    const timeoutId = setTimeout(setSeqWidth, 250);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      imgs.forEach((img) => {
+        img.removeEventListener('load', onImgLoad);
+      });
+      if (resizeId) cancelAnimationFrame(resizeId);
+      clearTimeout(timeoutId);
+    };
+  }, [techLogos]);
 
   return (
     <footer className="footer">
@@ -128,27 +177,30 @@ const Footer = () => {
         <div className="powered-by-section">
           <h4 className="powered-by-title">Powered By</h4>
           <div className="tech-logos-container">
-            <div className="tech-logos-track">
-              <div className="tech-logo">
-                <img src={freecodec} alt="FreeCodeCamp" />
+            <div className="tech-logos-track animate" ref={trackRef} aria-hidden="true">
+              <div className="tech-logos-sequence" ref={seqRef}>
+                {techLogos.map((logo, idx) => (
+                  <div className="tech-logo" key={`tech-a-${idx}`}>
+                    <img src={logo.src} alt={logo.alt} />
+                  </div>
+                ))}
               </div>
-              <div className="tech-logo">
-                <img src={brototype} alt="Brototype" />
+
+              <div className="tech-logos-sequence">
+                {techLogos.map((logo, idx) => (
+                  <div className="tech-logo" key={`tech-b-${idx}`}>
+                    <img src={logo.src} alt={logo.alt} />
+                  </div>
+                ))}
               </div>
-              <div className="tech-logo">
-                <img src={arduinoIcon} alt="Arduino" />
+
+              <div className="tech-logos-sequence">
+                {techLogos.map((logo, idx) => (
+                  <div className="tech-logo" key={`tech-c-${idx}`}>
+                    <img src={logo.src} alt={logo.alt} />
+                  </div>
+                ))}
               </div>
-              <div className="tech-logo">
-                <img src={linkedin1} alt="LinkedIn" /> 
-              </div>
-              <div className="tech-logo">
-                <img src={freecodec} alt="FreeCodeCamp" />
-              </div>
-              <div className="tech-logo">
-                <img src={brototype} alt="Brototype" />
-              </div>
-              
-              
             </div>
             <div className="fade-left"></div>
             <div className="fade-right"></div>

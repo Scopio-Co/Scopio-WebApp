@@ -269,3 +269,47 @@
     margin: 0 0 15px 0;
   }
 }
+
+/* Small mobile: show one centered card per view and enable snapping */
+@media (max-width: 425px) {
+  .section-container {
+    padding: 0 20px;
+  }
+
+  .courses-scroll-container {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  .courses-row {
+    width: 100%;
+    gap: 14px;
+  }
+
+  /* force each card to take full width so only one is visible */
+  .courses-row .course-card-component {
+    min-width: 100%;
+    width: 100%;
+    max-width: 100%;
+    scroll-snap-align: center;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* keep arrows overlaying but slightly inset */
+  .arrow-left { left: 8px; }
+  .arrow-right { right: 8px; }
+
+  /* make arrows a bit smaller on tiny screens */
+  .arrow-btn { width:44px; height:44px; min-width:44px; }
+}
+@media (max-width: 360px) {
+  .section-container {
+    padding: 0 3px;
+  }
+  .course-card-main{
+    height:320px !important;
+  }
+}
