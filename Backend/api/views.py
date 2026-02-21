@@ -10,6 +10,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -20,10 +23,12 @@ class CreateUserView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         """Override create to provide better error messages."""
+        logger.info(f"User registration attempt: {request.data.get('username')} / {request.data.get('email')}")
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
+            logger.info(f"✓ User created: {serializer.data.get('username')} ({serializer.data.get('email')})")
             headers = self.get_success_headers(serializer.data)
             return Response(
                 {
@@ -34,6 +39,7 @@ class CreateUserView(generics.CreateAPIView):
                 headers=headers
             )
         except Exception as e:
+            logger.error(f"✗ User creation failed: {str(e)}")
             # Return validation errors in a user-friendly format
             if hasattr(serializer, 'errors') and serializer.errors:
                 return Response(
@@ -97,6 +103,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         username = request.data.get('username')
         password = request.data.get('password')
         
+        logger.info(f"Login attempt: {username}")
+        
         if username:
             # Try to find user by username or email
             from django.db.models import Q
@@ -130,12 +138,14 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             resp = super().post(request, *args, **kwargs)
             access = resp.data.get("access")
             refresh = resp.data.get("refresh")
+            logger.info(f"✓ Login successful: {username}")
             # Build minimal response and set cookies
             response = JsonResponse({"detail": "login successful"})
             _set_auth_cookies(response, access, refresh)
             return response
         except Exception as e:
             # Return user-friendly error messages
+            logger.error(f"✗ Login failed: {username} - {str(e)}")
             return Response(
                 {
                     "detail": "Invalid username or password. Please check your credentials and try again."
@@ -178,3 +188,33 @@ def cookie_logout(request):
 def get_csrf_token(request):
     """Returns a CSRF token for the client."""
     return JsonResponse({"detail": "CSRF cookie set"})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def auth_status(request):
+    """Test auth: Returns info of authenticated user."""
+    logger.info(f"Auth status check: {request.user.email}")
+    return Response({
+        "authenticated": True,
+        "user": {
+            "id": request.user.id,
+            "username": request.user.username,
+            "email": request.user.email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "date_joined": request.user.date_joined,
+        }
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def users_list(request):
+    """Debug endpoint: List all users in the database."""
+    users = User.objects.all().values('id', 'username', 'email', 'date_joined', 'is_active')
+    logger.info(f"Total users in DB: {users.count()}")
+    return Response({
+        "total_users": users.count(),
+        "users": list(users)
+    }, status=status.HTTP_200_OK)
