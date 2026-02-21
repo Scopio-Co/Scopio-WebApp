@@ -1,2 +1,2 @@
-release: python setup_production.py
-web: gunicorn Backend.wsgi
+release: python Backend/manage.py migrate
+web: gunicorn Backend.main.wsgi:application
