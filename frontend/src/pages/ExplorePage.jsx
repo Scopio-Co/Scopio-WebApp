@@ -15,11 +15,11 @@ const ExplorePage = ({ onCourseClick }) => {
 
   const handleScroll = (ref, direction) => {
     if (ref.current) {
-      const scrollAmount = 400;
-      ref.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
+      // Scroll by the visible container width so on small screens
+      // each click advances exactly one card (which takes full width).
+      const containerWidth = ref.current.clientWidth || ref.current.offsetWidth || 360;
+      const scrollAmount = containerWidth;
+      ref.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
 

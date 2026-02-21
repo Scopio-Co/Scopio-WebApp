@@ -161,16 +161,32 @@
 
 .tech-logos-track {
   display: flex;
-  width: 100%;
+  width: max-content;
+  gap: 2rem; /* space between sequence groups */
+  align-items: center;
+  overflow: visible;
+  position: relative;
+}
+
+.tech-logos-sequence {
+  display: flex;
   gap: 2rem;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tech-logos-track.animate {
+  animation: techLoop var(--tech-duration, 18s) linear infinite;
+  will-change: transform;
 }
 
 .tech-logo {
   flex-shrink: 0;
   transition: transform 0.3s ease;
+}
+
+.tech-logos-track:hover {
+  animation-play-state: paused;
 }
 
 .tech-logo img {
@@ -311,6 +327,7 @@
   
   .tech-logos-track {
     gap: 1.5rem;
+    --tech-duration: 14s;
   }
   
   .tech-logo img {
@@ -339,8 +356,11 @@
 
   .tech-logos-track {
     gap: 1rem;
+    --tech-duration: 12s;
   }
   
+
+/* Animation keyframes are defined at the end of the file (for broad support) */
   .tech-logo img {
     width: 100px;
     height: 40px;
@@ -354,4 +374,15 @@
   .social-icons {
     flex-wrap: wrap;
   }
+}
+
+/* Animation keyframes for continuous logo loop */
+@keyframes techLoop {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-1 * (var(--seq-width, 50%) + 2rem))); }
+}
+
+@-webkit-keyframes techLoop {
+  0% { -webkit-transform: translateX(0); }
+  100% { -webkit-transform: translateX(calc(-1 * (var(--seq-width, 50%) + 2rem))); }
 }

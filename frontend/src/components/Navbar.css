@@ -306,7 +306,7 @@ input:checked + .slider:before {
   height: 44px;
   border-radius: 10px;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
+  border: 2px solid var(--border-primary);
   align-items: center;
   justify-content: center;
   cursor: pointer;

@@ -185,7 +185,7 @@
 /* Mobile Devices */
 @media (max-width: 768px) {
   .article-page-header {
-    margin-bottom: 30px;
+    margin-top: 45px;
   }
 
   .bento-grid {
@@ -236,7 +236,6 @@
   .bento-overlay p {
     font-size: 0.8rem;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
