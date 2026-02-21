@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Auth.css';
 import googleIcon from '../assets/img/Google.svg';
+import { login, fetchCsrfToken } from '../api';
 
 const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,12 @@ const Login = ({ onLoginSuccess }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch CSRF token when component mounts
+  useEffect(() => {
+    fetchCsrfToken();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,17 +47,33 @@ const Login = ({ onLoginSuccess }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      // Handle successful login
-      console.log('Login form submitted:', formData);
-      // You can add your login logic here
-      // notify parent about successful login so it can show toast / navigate
-      if (typeof onLoginSuccess === 'function') {
-        onLoginSuccess();
+      setIsLoading(true);
+      try {
+        // Call the login API
+        await login(formData.emailOrUsername, formData.password);
+        console.log('Login successful');
+        
+        // notify parent about successful login so it can show toast / navigate
+        if (typeof onLoginSuccess === 'function') {
+          onLoginSuccess();
+        }
+      } catch (error) {
+        console.error('Login failed:', error);
+        // Display error message from backend
+        const errorMessage = error.response?.data?.detail || 
+                           error.response?.data?.error ||
+                           'Login failed. Please try again.';
+        
+        setErrors({ 
+          general: errorMessage
+        });
+      } finally {
+        setIsLoading(false);
       }
     } else {
       setErrors(newErrors);
@@ -78,6 +101,12 @@ const Login = ({ onLoginSuccess }) => {
         
           <div className="login-modal">
             <form className="auth-form login-form" onSubmit={handleSubmit}>
+              {errors.general && (
+                <div className="error-message general-error" style={{ marginBottom: '1rem', color: '#ff4444' }}>
+                  {errors.general}
+                </div>
+              )}
+              
               <div className="form-group">
                 <label className="form-label">Email/Username</label>
                 <input
@@ -106,8 +135,8 @@ const Login = ({ onLoginSuccess }) => {
                 <button
                   type="button"
                   className="forgot-password-link"
-                  onClick={handleForgotPassword}
-                >
+                  onClick={handleForgotPassword} disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Log in'}
                   Forgot password?
                 </button>
               </div>

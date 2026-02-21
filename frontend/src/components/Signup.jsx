@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Auth.css';
 import Login from './Login';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import googleIcon from '../assets/img/Google.svg';
 import githubIcon from '../assets/img/Github.svg';
+import api, { fetchCsrfToken } from '../api';
 
 const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,12 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [errors, setErrors] = useState({});
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '' });
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch CSRF token when component mounts
+  useEffect(() => {
+    fetchCsrfToken();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -57,25 +64,85 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      // Handle successful form submission
-      console.log('Signup form submitted:', formData);
-      // show toast notification
-      setToast({ visible: true, message: 'Created User Account' });
-      
-      // Wait 1 second before navigating to show the toast
-      setTimeout(() => {
-        setToast({ visible: false, message: '' });
-        // You can add your signup logic here (API call, etc.)
-        // After successful signup, navigate to Welcome if parent provided handler
-        if (typeof onSwitchToWelcome === 'function') {
-          onSwitchToWelcome();
+      setIsLoading(true);
+      try {
+        // Call the registration API
+        const response = await api.post('/api/user/register/', {
+          username: formData.username,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          password: formData.password,
+        });
+        
+        console.log('Signup successful:', response.data);
+        
+        // Show success toast
+        setToast({ visible: true, message: 'Account created successfully!' });
+        
+        // Wait 1 second before navigating
+        setTimeout(() => {
+          setToast({ visible: false, message: '' });
+          if (typeof onSwitchToWelcome === 'function') {
+            onSwitchToWelcome();
+          } else if (typeof onSwitchToLogin === 'function') {
+            onSwitchToLogin();
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Signup failed:', error.response?.data);
+        
+        // Handle backend validation errors
+        if (error.response?.data?.errors) {
+          const backendErrors = {};
+          const errorData = error.response.data.errors;
+          
+          // Map backend field names to frontend field names
+          if (errorData.username) {
+            backendErrors.username = Array.isArray(errorData.username) 
+              ? errorData.username[0] 
+              : errorData.username;
+          }
+          if (errorData.email) {
+            backendErrors.email = Array.isArray(errorData.email) 
+              ? errorData.email[0] 
+              : errorData.email;
+          }
+          if (errorData.password) {
+            backendErrors.password = Array.isArray(errorData.password) 
+              ? errorData.password[0] 
+              : errorData.password;
+          }
+          if (errorData.first_name) {
+            backendErrors.firstName = Array.isArray(errorData.first_name) 
+              ? errorData.first_name[0] 
+              : errorData.first_name;
+          }
+          if (errorData.last_name) {
+            backendErrors.lastName = Array.isArray(errorData.last_name) 
+              ? errorData.last_name[0] 
+              : errorData.last_name;
+          }
+          
+          setErrors(backendErrors);
+        } else if (error.response?.data?.error) {
+          // General error message
+          setErrors({ 
+            general: error.response.data.error 
+          });
+        } else {
+          setErrors({ 
+            general: 'Signup failed. Please try again.' 
+          });
         }
-      }, 1000);
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setErrors(newErrors);
     }
@@ -109,6 +176,12 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
       <div className="auth-content">
         <div className="auth-form-section">
           <form className="auth-form" onSubmit={handleSubmit}>
+            {errors.general && (
+              <div className="error-message general-error" style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fee', borderRadius: '4px', color: '#c00' }}>
+                {errors.general}
+              </div>
+            )}
+            
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <input
@@ -207,8 +280,8 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
               </div>
             </div>
 
-            <button type="submit" className="auth-button primary">
-              Create account
+            <button type="submit" className="auth-button primary" disabled={isLoading}>
+              {isLoading ? 'Creating account...' : 'Create account'}
             </button>
 
             <div className="social-login">
