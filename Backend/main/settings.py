@@ -157,37 +157,42 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# In Render: DATABASE_URL is set, uses PostgreSQL/Neon
+# Locally: Uses SQLite if DATABASE_URL not set
+
 _database_url = os.getenv('DATABASE_URL')
 
-# Debug: Log which database is being used
 if _database_url:
-    print("✓ Using PostgreSQL (DATABASE_URL is set)")
+    # Production: Use Neon PostgreSQL
     try:
         DATABASES = {
-            'default': dj_database_url.config(
-                default=_database_url,
+            'default': dj_database_url.parse(
+                _database_url,
                 conn_max_age=600,
                 ssl_require=True,
             )
         }
+        print(f"✓ Using PostgreSQL/Neon: {DATABASES['default'].get('ENGINE')}")
     except Exception as e:
-        print(f"⚠ Database connection error: {e}")
-        print("Falling back to SQLite")
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
+        if DEBUG:
+            print(f"⚠ PostgreSQL failed, using SQLite: {e}")
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.sqlite3',
+                    'NAME': BASE_DIR / 'db.sqlite3',
+                }
             }
-        }
+        else:
+            raise RuntimeError(f"❌ Failed to parse DATABASE_URL: {e}")
 else:
-    print("⚠ Using SQLite fallback (DATABASE_URL not set)")
-    # Local development fallback
+    # Local development: Use SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    print("Using SQLite (local development)")
 
 
 # Password validation
