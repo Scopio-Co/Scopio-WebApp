@@ -9,10 +9,4 @@ class Video(models.Model):
     def __str__(self):
         return str(self.title)
     
-class demo(models.Model):
-    title = models.CharField(max_length=255)
-    added = models.DateTimeField(auto_now_add=True)
-    url = EmbedVideoField()
-    
-    class Meta:
-        ordering = ['-added']
+
