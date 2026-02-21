@@ -36,3 +36,28 @@ We’re a group of 4 students building this from scratch:
 
 This is the early development phase. We’re currently setting up the structure and splitting tasks. Updates coming soon.
 
+## 🔐 Google Login (OAuth2) Setup
+
+Backend uses django-allauth + SimpleJWT with a server-side OAuth flow. Frontend triggers Google login via a redirect and receives JWT tokens via the URL hash.
+
+- Prerequisites:
+  - Put your Google OAuth credentials in `Backend/OAUTH.json` (already present).
+  - Ensure callback URI is allowed in Google Cloud: `http://127.0.0.1:8000/accounts/google/login/callback/`.
+- Backend setup:
+  - Create and activate the venv in `Backend/benv`.
+  - Configure the site and SocialApp via management command:
+    - `cd Backend`
+    - `python manage.py migrate`
+    - `python manage.py createsuperuser` (optional for admin UI)
+    - `python manage.py setup_google_oauth --site-domain 127.0.0.1:8000`
+  - Optionally verify in admin: `/admin` → Sites (id=1) and Social applications → Google.
+- Frontend setup:
+  - Copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_URL` (e.g., `http://127.0.0.1:8000`).
+  - Start dev server: `cd frontend` → `npm install` → `npm run dev`.
+- Flow:
+  - In Signup page, click the Google button. You’ll be redirected through `/accounts/google/login/` and back to `/glogin/google/finalize/`.
+  - Backend issues JWT tokens and redirects to the frontend with `#access=...&refresh=...`.
+  - Frontend stores tokens and switches to the welcome view.
+
+For production, update `SITE_ID` domain, `FRONTEND_URL` in `Backend/.env`, and add your real domain to Google OAuth allowed redirect URIs.
+
