@@ -32,7 +32,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-*oki0j(n=i3o8)7%hkn
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 # Allow all hosts for development; set explicit hosts in production via env
-ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '*').split(',')]
+ALLOWED_HOSTS = ['*'] if DEBUG else os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # Django REST Framework + JWT
 REST_FRAMEWORK = {
