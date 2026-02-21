@@ -123,8 +123,9 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # CORS middleware must be first
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -132,8 +133,6 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files efficiently in production
 ]
 
 ROOT_URLCONF = 'main.urls'
@@ -165,14 +164,24 @@ _database_url = os.getenv('DATABASE_URL')
 if _database_url:
     # Production: Use Neon PostgreSQL
     try:
+        import urllib.parse
+        # Handle special characters in password
+        parsed = urllib.parse.urlparse(_database_url)
         DATABASES = {
-            'default': dj_database_url.parse(
-                _database_url,
-                conn_max_age=600,
-                ssl_require=True,
-            )
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': parsed.path[1:],
+                'USER': parsed.username,
+                'PASSWORD': parsed.password,
+                'HOST': parsed.hostname,
+                'PORT': parsed.port or 5432,
+                'CONN_MAX_AGE': 600,
+                'OPTIONS': {
+                    'sslmode': 'require',
+                },
+            }
         }
-        print(f"✓ Using PostgreSQL/Neon: {DATABASES['default'].get('ENGINE')}")
+        print(f"✓ Using PostgreSQL/Neon: {parsed.hostname}")
     except Exception as e:
         if DEBUG:
             print(f"⚠ PostgreSQL failed, using SQLite: {e}")
@@ -233,28 +242,42 @@ STATIC_URL = 'static/'
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
+if DEBUG:
+    CORS_ALLOWED_ORIGINS.append('http://localhost:5173')
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF settings for cross-origin requests
-CSRF_TRUSTED_ORIGINS = [FRONTEND_URL]
-
-# In development, use 'Lax' since we're on localhost (same domain)
-# In production with HTTPS, can use 'None' for true cross-origin
+CSRF_TRUSTED_ORIGINS = [
+    FRONTEND_URL,
+    'https://scopio-webapp.onrender.com',
+]
 if DEBUG:
-    # Development settings - both on localhost, no HTTPS
+    CSRF_TRUSTED_ORIGINS.append('http://localhost:5173')
+
+# Cookie settings for cross-domain authentication
+if DEBUG:
+    # Development: localhost same-origin
     CSRF_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SAMESITE = 'Lax'  # Django admin needs this to work
+    SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_DOMAIN = None
 else:
-    # Production settings - HTTPS required
+    # Production: cross-domain HTTPS
     CSRF_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = True
+    # Don't set SESSION_COOKIE_DOMAIN - let browser handle it
+    SESSION_COOKIE_DOMAIN = None
 
-CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read the CSRF token
-SESSION_COOKIE_HTTPONLY = True  # Security: Don't expose session cookie to JS
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
+SESSION_COOKIE_HTTPONLY = True  # Security: Don't expose session to JS
+CSRF_COOKIE_NAME = 'csrftoken'
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_AGE = 86400 * 7  # 7 days
+SESSION_SAVE_EVERY_REQUEST = True  # Prevent cold-start session loss
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store in PostgreSQL
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # Default authentication

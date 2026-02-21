@@ -1,2 +1,2 @@
-release: cd Backend && python manage.py migrate && python setup_production.py
-web: cd Backend && gunicorn main.wsgi:application --bind 0.0.0.0:8000
+release: cd Backend && python manage.py migrate --noinput && python setup_production.py
+web: cd Backend && gunicorn main.wsgi:application --workers 2 --threads 4 --timeout 60 --bind 0.0.0.0:$PORT --log-level info --access-logfile - --error-logfile -

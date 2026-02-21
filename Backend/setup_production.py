@@ -4,28 +4,34 @@ Run migrations and setup production environment (Django Site for OAuth).
 Call this after deploying to Render.
 """
 import os
-import django
+import sys
 
+# Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
+import django
 django.setup()
 
 from django.contrib.sites.models import Site
-from django.core.management import call_command
-
-# Run migrations
-print("Running migrations...")
-call_command('migrate')
 
 # Setup Site for OAuth
 site_domain = os.getenv('SITE_DOMAIN', 'scopio-webapp.onrender.com')
 site_name = os.getenv('SITE_NAME', 'Scopio')
 
-print(f"Setting up Site: {site_domain} ({site_name})")
-site, created = Site.objects.update_or_create(
-    id=1,
-    defaults={
-        'domain': site_domain,
-        'name': site_name,
-    }
-)
-print(f"Site {'created' if created else 'updated'}: {site.domain}")
+print(f"Setting up Django Site: {site_domain} ({site_name})")
+
+try:
+    site = Site.objects.get(id=1)
+    site.domain = site_domain
+    site.name = site_name
+    site.save()
+    print(f"✓ Site updated: {site.domain}")
+except Site.DoesNotExist:
+    site = Site.objects.create(
+        id=1,
+        domain=site_domain,
+        name=site_name,
+    )
+    print(f"✓ Site created: {site.domain}")
+
+print("✓ Production setup complete")
+sys.exit(0)
