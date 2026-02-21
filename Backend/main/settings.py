@@ -32,7 +32,8 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-*oki0j(n=i3o8)7%hkn
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 # Allow all hosts for development; set explicit hosts in production via env
-ALLOWED_HOSTS = ['*'] if DEBUG else os.getenv('ALLOWED_HOSTS', '').split(',')
+_env_hosts = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
+ALLOWED_HOSTS = ['*'] if DEBUG else ['scopio-webapp.onrender.com', *_env_hosts]
 
 # Django REST Framework + JWT
 REST_FRAMEWORK = {
@@ -152,13 +153,22 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-DATABASES = {
-    'default': dj_database_url.parse(
-        "postgresql://neondb_owner:npg_1PFVp6gXeQjy@ep-mute-sun-a741ku8q-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+_database_url = os.getenv('DATABASE_URL')
+if _database_url:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            _database_url,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -196,7 +206,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # CORS: restrict in production, allow dev origin by default
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app')
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 CORS_ALLOW_CREDENTIALS = True
