@@ -451,4 +451,44 @@
   .article-detail-footer {
     padding: 25px 20px;
   }
+   .back-top-right,
+  .back-button {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    font-size: 0; /* hide the text label */
+    overflow: hidden;
+  }
+
+  .back-top-right,
+  .back-button {
+    background: var(--accent-primary);
+    color: #fff;
+    border: 2px solid var(--accent-primary);
+    box-shadow: 0 10px 26px rgba(139,92,246,0.16);
+  }
+
+  .back-top-right::before,
+  .back-button::before {
+    content: '←';
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 0.4;
+    height: 50%;
+    display: inline-block;
+    color: #fff;
+  }
+
+  /* Slightly reduce border thickness to keep visual balance */
+  .back-top-right,
+  .back-button { border-width: 2px; }
+
+  /* Keep hover transform subtle on small screens */
+  .back-top-right:hover,
+  .back-button:hover { transform: none; box-shadow: 0 12px 28px rgba(139,92,246,0.18); }
 }
