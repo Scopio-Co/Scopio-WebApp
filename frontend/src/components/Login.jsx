@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Auth.css';
+import googleIcon from '../assets/img/Google.svg';
 
 const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -61,6 +62,16 @@ const Login = ({ onLoginSuccess }) => {
     // Add forgot password logic here
   };
 
+  const handleSocialLogin = (provider) => {
+    if (provider === 'Google') {
+      // Redirect to backend Google OAuth endpoint
+      const backendURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      window.location.href = `${backendURL}/glogin/google/start/`;
+    } else {
+      console.log(`${provider} login not yet implemented`);
+    }
+  };
+
   return (
     <div className="auth-container-login">
       <div className="auth-content-login">
@@ -104,6 +115,18 @@ const Login = ({ onLoginSuccess }) => {
               <button type="submit" className="auth-button primary login-button">
                 Log in
               </button>
+
+              <div className="social-login">
+                <div className="social-media">
+                  <button
+                    type="button"
+                    className="social-button google"
+                    onClick={() => handleSocialLogin('Google')}
+                  >
+                    <img src={googleIcon} alt="Google" className='social-icon'/>
+                  </button>
+                </div>
+              </div>
             </form>
 
           </div>
