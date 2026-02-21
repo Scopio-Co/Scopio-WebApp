@@ -113,8 +113,6 @@
   rgb(0, 0, 0) 40%,
   transparent 100%
 );
-  /* Ensure overlay does not block clicks on the video/iframe */
-  pointer-events: none;
 
 }
 

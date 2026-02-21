@@ -4,8 +4,6 @@ import Login from './Login';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import googleIcon from '../assets/img/Google.svg';
 import githubIcon from '../assets/img/Github.svg';
-import api from '../api';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
 
 const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [formData, setFormData] = useState({
@@ -20,7 +18,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
 
   const [errors, setErrors] = useState({});
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: '' });
 
   const handleInputChange = (e) => {
@@ -60,80 +57,46 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
     return newErrors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      setLoading(true);
-      try {
-        // Register user with Django backend
-        await api.post('/api/user/register/', {
-          username: formData.username,
-          email: formData.email,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          password: formData.password
-        });
-
-        // Auto-login after successful registration
-        const loginResponse = await api.post('/api/token/', {
-          username: formData.username,
-          password: formData.password
-        });
-
-        // Store tokens
-        localStorage.setItem(ACCESS_TOKEN, loginResponse.data.access);
-        localStorage.setItem(REFRESH_TOKEN, loginResponse.data.refresh);
-
-        // Toast notification on success
-        setToast({ visible: true, message: 'Created User Account' });
-
-        // Navigate to Welcome page after brief toast
-        setTimeout(() => {
-          setToast({ visible: false, message: '' });
-          if (typeof onSwitchToWelcome === 'function') {
-            onSwitchToWelcome();
-          }
-        }, 1000);
-      } catch (error) {
-        console.error('Signup error:', error);
-        if (error.response && error.response.data) {
-          // Backend validation errors
-          const backendErrors = {};
-          Object.keys(error.response.data).forEach(key => {
-            // Map backend field names to frontend field names
-            if (key === 'first_name') {
-              backendErrors.firstName = error.response.data[key][0];
-            } else if (key === 'last_name') {
-              backendErrors.lastName = error.response.data[key][0];
-            } else {
-              backendErrors[key] = Array.isArray(error.response.data[key])
-                ? error.response.data[key][0]
-                : error.response.data[key];
-            }
-          });
-          setErrors(backendErrors);
-        } else {
-          setErrors({
-            general: 'Unable to connect to server. Please try again.'
-          });
+      // Handle successful form submission
+      console.log('Signup form submitted:', formData);
+      // show toast notification
+      setToast({ visible: true, message: 'Created User Account' });
+      
+      // Wait 1 second before navigating to show the toast
+      setTimeout(() => {
+        setToast({ visible: false, message: '' });
+        // You can add your signup logic here (API call, etc.)
+        // After successful signup, navigate to Welcome if parent provided handler
+        if (typeof onSwitchToWelcome === 'function') {
+          onSwitchToWelcome();
         }
-      } finally {
-        setLoading(false);
-      }
+      }, 1000);
     } else {
       setErrors(newErrors);
     }
   };
 
   const handleSocialLogin = (provider) => {
-    if (provider === 'Google') {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      window.location.href = `${apiUrl}/glogin/google/start/`;
-      return;
-    }
     console.log(`${provider} login clicked`);
+    // Add social login logic here
+  };
+
+  const handleLoginSuccess = () => {
+    // show toast notification for login
+    setToast({ visible: true, message: 'Login successfully' });
+    // Wait 1 second before navigating to show the toast
+    setTimeout(() => {
+      setToast({ visible: false, message: '' });
+      if (typeof onSwitchToWelcome === 'function') {
+        onSwitchToWelcome();
+      }
+      setShowLoginModal(false);
+    }, 1000);
   };
 
   return (
@@ -141,11 +104,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
       <div className="auth-content">
         <div className="auth-form-section">
           <form className="auth-form" onSubmit={handleSubmit}>
-            {errors.general && (
-              <div className="error-message" style={{ marginBottom: '1rem', textAlign: 'center' }}>
-                {errors.general}
-              </div>
-            )}
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <input
@@ -154,7 +112,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                 value={formData.email}
                 onChange={handleInputChange}
                 className={errors.email ? 'error' : ''}
-                disabled={loading}
               />
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
@@ -167,7 +124,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                 value={formData.username}
                 onChange={handleInputChange}
                 className={errors.username ? 'error' : ''}
-                disabled={loading}
               />
               {errors.username && <span className="error-message">{errors.username}</span>}
             </div>
@@ -181,7 +137,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   className={errors.firstName ? 'error' : ''}
-                  disabled={loading}
                 />
                 {errors.firstName && <span className="error-message">{errors.firstName}</span>}
               </div>
@@ -193,7 +148,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   className={errors.lastName ? 'error' : ''}
-                  disabled={loading}
                 />
                 {errors.lastName && <span className="error-message">{errors.lastName}</span>}
               </div>
@@ -207,7 +161,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                 value={formData.password}
                 onChange={handleInputChange}
                 className={errors.password ? 'error' : ''}
-                disabled={loading}
               />
               {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
@@ -220,7 +173,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 className={errors.confirmPassword ? 'error' : ''}
-                disabled={loading}
               />
               {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
             </div>
@@ -234,7 +186,6 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                   value="male"
                   checked={formData.gender === 'male'}
                   onChange={handleInputChange}
-                  disabled={loading}
                 />
                 <label htmlFor="male">Male</label>
               </div>
@@ -246,14 +197,13 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
                   value="female"
                   checked={formData.gender === 'female'}
                   onChange={handleInputChange}
-                  disabled={loading}
                 />
                 <label htmlFor="female">Female</label>
               </div>
             </div>
 
-            <button type="submit" className="auth-button primary" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create account'}
+            <button type="submit" className="auth-button primary">
+              Create account
             </button>
 
             <div className="social-login">
@@ -301,14 +251,8 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
       {/* Login Modal Overlay */}
       {showLoginModal && (
         <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            
-            <Login onLoginSuccess={() => {
-              setShowLoginModal(false);
-              if (onSwitchToWelcome) {
-                onSwitchToWelcome();
-              }
-            }} />
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <Login onLoginSuccess={handleLoginSuccess} />
           </div>
         </div>
       )}

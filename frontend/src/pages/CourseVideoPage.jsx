@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { fetchVideos } from '../api';
 import './CourseVideoPage.css';
 import courseVideoImage from '../assets/img/course video.webp';
 import Footer from '../components/Footer';
@@ -11,9 +10,6 @@ import xIcon from '../assets/img/x.svg';
 const CourseVideoPage = ({ selectedCourse, onBack }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [currentLessonIndex, setCurrentLessonIndex] = useState(null);
-  const [videos, setVideos] = useState([]);
-  const [videosError, setVideosError] = useState(null);
-  const [loadingVideos, setLoadingVideos] = useState(true);
 
   useEffect(() => {
     // ensure main content container is scrolled to top when opening this page
@@ -25,51 +21,17 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
   }, []);
 
-  // Derive lesson list from backend videos
-  const lessons = videos.map((v, idx) => ({
-    id: v.id,
-    title: v.title,
-    duration: '',
-    completed: false,
-    time: new Date(v.added).toLocaleString(),
-    url: v.url,
-  }));
-
-  // Load videos on mount
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const data = await fetchVideos();
-        if (isMounted) setVideos(data);
-      } catch (e) {
-        if (isMounted) setVideosError(e?.message || 'Failed to load videos');
-      } finally {
-        if (isMounted) setLoadingVideos(false);
-      }
-    })();
-    return () => { isMounted = false; };
-  }, []);
-
-  // Convert known provider URLs to embeddable URLs (YouTube only for now)
-  const toEmbedUrl = (url) => {
-    try {
-      const u = new URL(url);
-      // https://www.youtube.com/watch?v=VIDEO_ID
-      if (u.hostname.includes('youtube.com')) {
-        const vid = u.searchParams.get('v');
-        if (vid) return `https://www.youtube.com/embed/${vid}`;
-      }
-      // https://youtu.be/VIDEO_ID
-      if (u.hostname === 'youtu.be') {
-        const vid = u.pathname.replace('/', '');
-        if (vid) return `https://www.youtube.com/embed/${vid}`;
-      }
-    } catch (_) {
-      // fallthrough
-    }
-    return null;
-  };
+  const lessons = [
+    { id: 1, title: "Introduction to React JS", duration: "1:45 min", completed: true, time: "451.02" },
+    { id: 2, title: "Node Installation", duration: "2:30 min", completed: true, time: "452.10" },
+    { id: 3, title: "Components", duration: "3:15 min", completed: true, time: "453.00" },
+    { id: 4, title: "Lifecycle", duration: "2:45 min", completed: true, time: "453.45" },
+    { id: 5, title: "State Management", duration: "4:20 min", completed: false, time: "454.30" },
+    { id: 6, title: "Node Installation", duration: "1:58 min", completed: false, time: "455.00" },
+    { id: 7, title: "Node Installation", duration: "2:15 min", completed: false, time: "455.30" },
+    { id: 8, title: "Node Installation", duration: "3:00 min", completed: false, time: "456.00" },
+    { id: 9, title: "Node Installation", duration: "2:45 min", completed: false, time: "456.45" },
+  ];
 
   const discussions = [
     {
@@ -114,47 +76,18 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
           <div className="video-lessons-container">
             {/* Video Player */}
             <div className="video-player">
-              {currentLessonIndex === null ? (
-                <>
-                  <img src={courseVideoImage} alt={selectedCourse?.title || 'Course Video'} />
-                  <button
-                    type="button"
-                    className="play-center"
-                    onClick={() => setCurrentLessonIndex(0)}
-                    aria-label="Play first video"
-                    disabled={loadingVideos || lessons.length === 0}
-                  >
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 5v14l11-7L8 5z" fill="#fff"/>
-                    </svg>
-                  </button>
-                </>
-              ) : (
-                (() => {
-                  const url = lessons[currentLessonIndex]?.url;
-                  const embed = url ? toEmbedUrl(url) : null;
-                  return embed ? (
-                    <iframe
-                      title={lessons[currentLessonIndex]?.title || 'Video'}
-                      width="100%"
-                      height="100%"
-                      src={embed}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="fallback-video">
-                      <img src={courseVideoImage} alt={selectedCourse?.title || 'Course Video'} />
-                      {url && (
-                        <a href={url} target="_blank" rel="noreferrer" className="open-video-link">
-                          Open Video
-                        </a>
-                      )}
-                    </div>
-                  );
-                })()
-              )}
+              <img src={courseVideoImage} alt={selectedCourse?.title || 'Course Video'} />
+
+              <button
+                type="button"
+                className="play-center"
+                onClick={() => setCurrentLessonIndex(0)}
+                aria-label="Play video"
+              >
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 5v14l11-7L8 5z" fill="#fff"/>
+                </svg>
+              </button>
 
               <div className="video-overlay">
                 {currentLessonIndex !== null && (
@@ -174,12 +107,6 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
               </div>
 
               <div className="lessons-scroll-container">
-                {loadingVideos && (
-                  <div className="lessons-loading">Loading videos…</div>
-                )}
-                {videosError && (
-                  <div className="lessons-error">{videosError}</div>
-                )}
                 <div className="lessons-list">
                 {lessons.map((lesson, index) => (
                   <div
@@ -198,7 +125,7 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
                       <p className="lesson-title">{lesson.title}</p>
                     </div>
                     <div className="lesson-meta">
-                      {lesson.duration && <p className="lesson-duration">{lesson.duration}</p>}
+                      <p className="lesson-duration">{lesson.duration}</p>
                       <p className="lesson-xp">{lesson.time}</p>
                     </div>
                   </div>
