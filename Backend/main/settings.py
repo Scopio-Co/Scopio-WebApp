@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+import json
 import dj_database_url
 
 load_dotenv()  # Load environment variables from .env file
@@ -51,6 +52,27 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
+# Resolve Google OAuth credentials from env or a local JSON file
+def _get_google_oauth_creds():
+    cid = os.getenv('GOOGLE_CLIENT_ID', '')
+    secret = os.getenv('GOOGLE_CLIENT_SECRET', '')
+    if cid and secret:
+        return cid, secret
+    json_path = os.getenv('GOOGLE_OAUTH_JSON_PATH', str(BASE_DIR / 'google-oauth-client.json'))
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        block = data.get('web') or data.get('installed') or data
+        cid2 = block.get('client_id', '')
+        sec2 = block.get('client_secret', '')
+        if cid2 and sec2:
+            return cid2, sec2
+    except Exception:
+        pass
+    return cid, secret
+
+GOOGLE_CLIENT_ID_VAL, GOOGLE_CLIENT_SECRET_VAL = _get_google_oauth_creds()
+
 # Application definition
 SITE_ID = 1
 INSTALLED_APPS = [
@@ -85,6 +107,12 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
+        },
+        # Configure app credentials via environment to avoid DB SocialApp
+        'APP': {
+            'client_id': GOOGLE_CLIENT_ID_VAL,
+            'secret': GOOGLE_CLIENT_SECRET_VAL,
+            'key': ''
         }
     }
 }
