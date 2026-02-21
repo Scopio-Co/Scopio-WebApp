@@ -34,7 +34,7 @@ function App() {
   const [authError, setAuthError] = useState(null)
 
   useEffect(() => {
-    // Check for OAuth callback errors in URL
+    // Check for OAuth callback errors in URL (query params)
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
     const message = urlParams.get('message');
@@ -51,6 +51,29 @@ function App() {
       }
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Parse OAuth callback tokens from URL hash (#access=TOKEN&refresh=TOKEN)
+    const hash = window.location.hash.substring(1); // Remove '#'
+    if (hash) {
+      const hashParams = new URLSearchParams(hash);
+      const accessToken = hashParams.get('access');
+      const refreshToken = hashParams.get('refresh');
+      
+      if (accessToken && refreshToken) {
+        // Store tokens in localStorage
+        localStorage.setItem('access', accessToken);
+        localStorage.setItem('refresh', refreshToken);
+        
+        console.log('✓ OAuth tokens stored successfully');
+        
+        // Show Welcome page (user is now logged in)
+        setShowHome(false);
+        setShowWelcome(true);
+        
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
   }, []);
 
