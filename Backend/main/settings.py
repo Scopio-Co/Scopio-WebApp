@@ -163,6 +163,7 @@ if _database_url:
         )
     }
 else:
+    # Local development fallback
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -206,7 +207,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # CORS: restrict in production, allow dev origin by default
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 CORS_ALLOW_CREDENTIALS = True
