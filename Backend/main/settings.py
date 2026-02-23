@@ -156,52 +156,39 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-# In Render: DATABASE_URL is set, uses PostgreSQL/Neon
-# Locally: Uses SQLite if DATABASE_URL not set
+# Uses PostgreSQL hosted on NeonDB
+# DATABASE_URL environment variable is required
 
 _database_url = os.getenv('DATABASE_URL')
 
-if _database_url:
-    # Production: Use Neon PostgreSQL
-    try:
-        import urllib.parse
-        # Handle special characters in password
-        parsed = urllib.parse.urlparse(_database_url)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': parsed.path[1:],
-                'USER': parsed.username,
-                'PASSWORD': parsed.password,
-                'HOST': parsed.hostname,
-                'PORT': parsed.port or 5432,
-                'CONN_MAX_AGE': 600,
-                'OPTIONS': {
-                    'sslmode': 'require',
-                },
-            }
-        }
-        print(f"✓ Using PostgreSQL/Neon: {parsed.hostname}")
-    except Exception as e:
-        if DEBUG:
-            print(f"⚠ PostgreSQL failed, using SQLite: {e}")
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': BASE_DIR / 'db.sqlite3',
-                }
-            }
-        else:
-            raise RuntimeError(f"❌ Failed to parse DATABASE_URL: {e}")
-else:
-    # Local development: Use SQLite
+if not _database_url:
+    raise RuntimeError(
+        "❌ DATABASE_URL environment variable is required. "
+        "Configure your PostgreSQL connection string from NeonDB."
+    )
+
+# Use Neon PostgreSQL
+try:
+    import urllib.parse
+    # Handle special characters in password
+    parsed = urllib.parse.urlparse(_database_url)
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed.path[1:],
+            'USER': parsed.username,
+            'PASSWORD': parsed.password,
+            'HOST': parsed.hostname,
+            'PORT': parsed.port or 5432,
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
         }
     }
-    print("Using SQLite (local development)")
+    print(f"✓ Using PostgreSQL/Neon: {parsed.hostname}")
+except Exception as e:
+    raise RuntimeError(f"❌ Failed to parse DATABASE_URL: {e}")
 
 
 # Password validation

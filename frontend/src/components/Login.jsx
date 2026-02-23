@@ -115,6 +115,7 @@ const Login = ({ onLoginSuccess }) => {
                   value={formData.emailOrUsername}
                   onChange={handleInputChange}
                   className={errors.emailOrUsername ? 'error' : ''}
+                  disabled={isLoading}
                 />
                 {errors.emailOrUsername && <span className="error-message">{errors.emailOrUsername}</span>}
               </div>
@@ -127,35 +128,22 @@ const Login = ({ onLoginSuccess }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   className={errors.password ? 'error' : ''}
+                  disabled={isLoading}
                 />
                 {errors.password && <span className="error-message">{errors.password}</span>}
               </div>
 
               <div className="form-options">
-                <button
-                  type="button"
-                  className="forgot-password-link"
+                <button type="button" className="forgot-password-link"
                   onClick={handleForgotPassword} disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Log in'}
-                  Forgot password?
+                  Forgot Password?!
                 </button>
               </div>
 
-              <button type="submit" className="auth-button primary login-button">
-                Log in
+              <button type="submit" className="auth-button primary login-button" disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Log in'}
               </button>
 
-              <div className="social-login">
-                <div className="social-media">
-                  <button
-                    type="button"
-                    className="social-button google"
-                    onClick={() => handleSocialLogin('Google')}
-                  >
-                    <img src={googleIcon} alt="Google" className='social-icon'/>
-                  </button>
-                </div>
-              </div>
             </form>
 
           </div>
