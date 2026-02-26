@@ -4,6 +4,7 @@ import RatingComponent from './RatingComponent';
 import defaultCourseImage from '../assets/img/course_card.webp';
 
 const CourseCard = ({ 
+  id,
   image = defaultCourseImage, 
   title = "Mangal Sutra - Introduction to run longer",
   duration = "5 hours, 48 minutes",
@@ -39,6 +40,7 @@ const CourseCard = ({
   };
 
   const courseData = {
+    id,
     image,
     title,
     duration,

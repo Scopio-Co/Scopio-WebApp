@@ -4,6 +4,7 @@ import './ExplorePage.css';
 import CourseCard from '../components/CourseCard';
 import Footer from '../components/Footer';
 import courseCardImage from '../assets/img/course_card.webp';
+import api from '../api';
 
 const ExplorePage = ({ onCourseClick }) => {
   const scrollRef1 = useRef(null);
@@ -12,6 +13,71 @@ const ExplorePage = ({ onCourseClick }) => {
   const scrollRef4 = useRef(null);
   const scrollRef5 = useRef(null);
   const scrollRef6 = useRef(null);
+
+  // State for courses from API
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [usingFallback, setUsingFallback] = useState(false);
+
+  // Fallback dummy courses for when API is unavailable
+  const dummyCourses = [
+    {
+      id: null,
+      image: courseCardImage,
+      imageFilter: 'hue-rotate(-10deg) saturate(115%)',
+      title: "Demo Course - React Fundamentals",
+      duration: "5 hours, 48 minutes",
+      rating: 4.7,
+      description: "This is a demo course. Real courses from your database will appear here when backend is connected.",
+      progress: 0,
+      authorName: "Demo Instructor",
+      authorTitle: "Sample Teacher"
+    }
+  ];
+
+  // Fetch courses from backend
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/api/video/courses/');
+        
+        // Transform API data to CourseCard format
+        if (response.data && response.data.length > 0) {
+          const transformedCourses = response.data.map((course) => ({
+            id: course.id,
+            image: course.thumbnail_url || courseCardImage,
+            title: course.title,
+            duration: course.total_duration || `${course.total_lessons || 0} lessons`,
+            rating: parseFloat(course.rating) || 0,
+            description: course.description || '',
+            progress: course.progress_percentage || 0,
+            authorName: course.instructor_name || 'Instructor',
+            authorTitle: course.instructor_title || ''
+          }));
+          
+          setCourses(transformedCourses);
+          setUsingFallback(false);
+          setError(null);
+        } else {
+          // No courses in DB, use dummy data
+          setCourses(dummyCourses);
+          setUsingFallback(true);
+        }
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        console.log('Using fallback dummy data instead');
+        setCourses(dummyCourses);
+        setUsingFallback(true);
+        setError(null); // Don't show error, just use fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const handleScroll = (ref, direction) => {
     if (ref.current) {
@@ -22,75 +88,6 @@ const ExplorePage = ({ onCourseClick }) => {
       ref.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
-
-  const courses = [
-    {
-      image: courseCardImage,
-      imageFilter: 'hue-rotate(-10deg) saturate(115%)',
-      title: "Mangal Sutra - Introduction to run longer",
-      duration: "5 hours, 48 minutes",
-      rating: 4.7,
-      description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide to cover long distances within limited stamina.",
-      progress: 75,
-      authorName: "Ashva Rishenth",
-      authorTitle: "Lover @Kanyakumari"
-    },
-    {
-      image: courseCardImage,
-      imageFilter: 'hue-rotate(25deg) saturate(120%)',
-      title: "CSS - Basics to Advanced",
-      duration: "5 hours, 48 minutes",
-      rating: 4.5,
-      description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide to cover long distances.",
-      progress: 60,
-      authorName: "Ashva Rishenth",
-      authorTitle: "Lover @Kanyakumari"
-    },
-    {
-      image: courseCardImage,
-      imageFilter: 'hue-rotate(60deg) saturate(118%) brightness(1.05)',
-      title: "JavaScript - From Zero to Hero",
-      duration: "5 hours, 48 minutes",
-      rating: 4.8,
-      description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide.",
-      progress: 90,
-      authorName: "Ashva Rishenth",
-      authorTitle: "Lover @Kanyakumari"
-    },
-    {
-      image: courseCardImage,
-      imageFilter: 'hue-rotate(120deg) saturate(110%)',
-      title: "React - Building Interactive UIs",
-      duration: "5 hours, 48 minutes",
-      rating: 4.6,
-      description: "Robust training of how to run longer with your mangal sutra.",
-      progress: 45,
-      authorName: "Ashva Rishenth",
-      authorTitle: "Lover @Kanyakumari"
-    },
-    {
-      image: courseCardImage,
-      imageFilter: 'hue-rotate(180deg) saturate(115%) brightness(0.95)',
-      title: "Backend Development with Node.js",
-      duration: "5 hours, 48 minutes",
-      rating: 4.9,
-      description: "Robust training of how to run longer with your mangal sutra. Complete beginners guide to cover long distances.",
-      progress: 80,
-      authorName: "Ashva Rishenth",
-      authorTitle: "Lover @Kanyakumari"
-    },
-    {
-      image: courseCardImage,
-      imageFilter: 'hue-rotate(230deg) saturate(120%)',
-      title: "Introduction to Database Management",
-      duration: "5 hours, 48 minutes",
-      rating: 4.4,
-      description: "Robust training of how to run longer with your mangal sutra.",
-      progress: 55,
-      authorName: "Ashva Rishenth",
-      authorTitle: "Lover @Kanyakumari"
-    }
-  ];
 
   // Filter courses by search term (case-insensitive)
   const [searchTerm, setSearchTerm] = useState('');
@@ -203,9 +200,32 @@ const ExplorePage = ({ onCourseClick }) => {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
+            <p>Loading courses...</p>
+          </div>
+        )}
+
+        {/* Fallback Notice */}
+        {usingFallback && !loading && (
+          <div style={{
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            margin: '0 20px 24px',
+            color: '#856404',
+            fontSize: '14px'
+          }}>
+            📌 Showing demo courses. Real courses from your database will appear after starting the backend server.
+          </div>
+        )}
+
         {/* Course Sections */}
-        <div className="explore-sections">
-          {searchTerm.trim() ? (
+        {!loading && (
+          <div className="explore-sections">
+            {searchTerm.trim() ? (
             <div className="explore-section">
               <h2 className="section-title">Search Results</h2>
               <div className="section-container">
@@ -219,7 +239,25 @@ const ExplorePage = ({ onCourseClick }) => {
                     <div className="courses-scroll-container" ref={scrollRef1}>
                       <div className="courses-row">
                         {filteredCourses.map((course, index) => (
-                          <CourseCard key={`search-${index}`} {...course} onCourseClick={onCourseClick} />
+                          <div key={`search-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                            <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                            {!course.id && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '12px',
+                                right: '12px',
+                                backgroundColor: '#ffc107',
+                                color: '#000',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                zIndex: 10
+                              }}>
+                                DEMO
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -248,7 +286,25 @@ const ExplorePage = ({ onCourseClick }) => {
                   <div className="courses-scroll-container" ref={scrollRef1}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard key={`latest-${index}`} {...course} onCourseClick={onCourseClick} />
+                        <div key={`latest-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                          {!course.id && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '12px',
+                              right: '12px',
+                              backgroundColor: '#ffc107',
+                              color: '#000',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              zIndex: 10
+                            }}>
+                              DEMO
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -272,7 +328,25 @@ const ExplorePage = ({ onCourseClick }) => {
                   <div className="courses-scroll-container" ref={scrollRef2}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard key={`section2-${index}`} {...course} onCourseClick={onCourseClick} />
+                        <div key={`section2-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                          {!course.id && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '12px',
+                              right: '12px',
+                              backgroundColor: '#ffc107',
+                              color: '#000',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              zIndex: 10
+                            }}>
+                              DEMO
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -296,7 +370,25 @@ const ExplorePage = ({ onCourseClick }) => {
                   <div className="courses-scroll-container" ref={scrollRef3}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard key={`section3-${index}`} {...course} onCourseClick={onCourseClick} />
+                        <div key={`section3-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                          {!course.id && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '12px',
+                              right: '12px',
+                              backgroundColor: '#ffc107',
+                              color: '#000',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              zIndex: 10
+                            }}>
+                              DEMO
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -320,7 +412,25 @@ const ExplorePage = ({ onCourseClick }) => {
                   <div className="courses-scroll-container" ref={scrollRef4}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard key={`section4-${index}`} {...course} onCourseClick={onCourseClick} />
+                        <div key={`section4-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                          {!course.id && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '12px',
+                              right: '12px',
+                              backgroundColor: '#ffc107',
+                              color: '#000',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              zIndex: 10
+                            }}>
+                              DEMO
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -344,7 +454,25 @@ const ExplorePage = ({ onCourseClick }) => {
                   <div className="courses-scroll-container" ref={scrollRef5}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard key={`section5-${index}`} {...course} onCourseClick={onCourseClick} />
+                        <div key={`section5-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                          {!course.id && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '12px',
+                              right: '12px',
+                              backgroundColor: '#ffc107',
+                              color: '#000',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              zIndex: 10
+                            }}>
+                              DEMO
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -368,7 +496,25 @@ const ExplorePage = ({ onCourseClick }) => {
                   <div className="courses-scroll-container" ref={scrollRef6}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <CourseCard key={`section6-${index}`} {...course} onCourseClick={onCourseClick} />
+                        <div key={`section6-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                          {!course.id && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '12px',
+                              right: '12px',
+                              backgroundColor: '#ffc107',
+                              color: '#000',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              zIndex: 10
+                            }}>
+                              DEMO
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -381,7 +527,8 @@ const ExplorePage = ({ onCourseClick }) => {
               </div>
             </>
           )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

@@ -64,12 +64,16 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 35px;
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 .video-player img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Centered play button to indicate video */
@@ -90,10 +94,11 @@
   border: 1px solid var(--border-primary);
   transition: transform 0.12s ease, background 0.12s ease;
   box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  z-index:10;
-  padding:0;
+  z-index: 20;
+  padding: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  pointer-events: auto;
 }
 
 .video-player .play-center:hover {
@@ -114,26 +119,26 @@
   right: 0;
   padding: 8rem 2rem 2rem 2rem;
   background: linear-gradient(
-  to top,
-  rgb(0, 0, 0) 0%,
-  rgb(0, 0, 0) 40%,
-  transparent 100%
-);
-
+    to top,
+    rgb(0, 0, 0) 0%,
+    rgb(0, 0, 0) 40%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 5;
 }
 
 .video-overlay h2 {
-  color: white;
-  font-size: 2rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.video-subtitle {
-  color: #cfa0fa;
   font-size: 1.2rem;
   font-weight: 500;
   margin: 0;
+  color: white;
+}
+
+.video-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0.5rem 0 0 0;
 }
 
 /* Discussions and Overview Container - Bottom */
