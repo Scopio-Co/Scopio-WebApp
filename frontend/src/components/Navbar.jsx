@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 import profileAvatar from '../assets/img/Ellipse 8.png';
 
-const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard, setShowProfile, setShowCourseVideo, setShowArticles, setShowArticleDetail, showCourseVideo, mobileOpen, setMobileOpen }) => {
+const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard, setShowProfile, setShowCourseVideo, setShowArticles, setShowArticleDetail, showCourseVideo, mobileOpen, setMobileOpen, isAuthenticated }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -39,6 +39,8 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
   }, [showCourseVideo]);
 
   const handleProfileClick = () => {
+    if (!isAuthenticated) return; // Don't allow profile access if not logged in
+    
     if (setShowProfile) {
       setActivePage('Profile');
       setShowProfile(true);
@@ -58,75 +60,38 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
   };
 
   const handleNavItemClick = (item) => {
-    if (item === "Home" && setShowHome) {
+    if (item === "Home") {
       setActivePage('Home');
-      setShowHome(true);
-      if (setShowCourseVideo) setShowCourseVideo(false);
-      setShowLearning(false);
-      setShowExplore(false);
-      setShowWelcome(false);
-      if (setShowLeaderboard) setShowLeaderboard(false);
-      if (setShowProfile) setShowProfile(false);
-      if (setShowArticles) setShowArticles(false);
-      if (setShowArticleDetail) setShowArticleDetail(false);
-      // ensure the main content scrolls to top when navigating
+      // If authenticated, go to Welcome page, otherwise go to login/signup
+      if (isAuthenticated && setShowWelcome) {
+        setShowWelcome();
+      } else if (setShowHome) {
+        setShowHome();
+      }
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
       setMobileOpen(false);
     } else if (item === "Learning" && setShowLearning) {
       setActivePage('Learning');
-      setShowLearning(true);
-      if (setShowCourseVideo) setShowCourseVideo(false);
-      setShowHome(false);
-      setShowExplore(false);
-      setShowWelcome(false);
-      if (setShowLeaderboard) setShowLeaderboard(false);
-      if (setShowProfile) setShowProfile(false);
-      if (setShowArticles) setShowArticles(false);
-      if (setShowArticleDetail) setShowArticleDetail(false);
+      setShowLearning();
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
       setMobileOpen(false);
     } else if (item === "Explore" && setShowExplore) {
       setActivePage('Explore');
-      setShowExplore(true);
-      if (setShowCourseVideo) setShowCourseVideo(false);
-      setShowHome(false);
-      setShowLearning(false);
-      setShowWelcome(false);
-      if (setShowLeaderboard) setShowLeaderboard(false);
-      if (setShowProfile) setShowProfile(false);
-      if (setShowArticles) setShowArticles(false);
-      if (setShowArticleDetail) setShowArticleDetail(false);
+      setShowExplore();
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
       setMobileOpen(false);
     } else if (item === "Leaderboards" && setShowLeaderboard) {
       setActivePage('Leaderboards');
-      setShowLeaderboard(true);
-      if (setShowCourseVideo) setShowCourseVideo(false);
-      setShowHome(false);
-      setShowLearning(false);
-      setShowExplore(false);
-      setShowWelcome(false);
-      if (setShowProfile) setShowProfile(false);
-      if (setShowArticles) setShowArticles(false);
-      if (setShowArticleDetail) setShowArticleDetail(false);
+      setShowLeaderboard();
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      // close mobile navbar when navigating
       setMobileOpen(false);
     } else if (item === "Articles" && setShowArticles) {
       setActivePage('Articles');
-      setShowArticles(true);
-      if (setShowCourseVideo) setShowCourseVideo(false);
-      setShowHome(false);
-      setShowLearning(false);
-      setShowExplore(false);
-      setShowWelcome(false);
-      if (setShowLeaderboard) setShowLeaderboard(false);
-      if (setShowProfile) setShowProfile(false);
-      if (setShowArticleDetail) setShowArticleDetail(false);
+      setShowArticles();
       const mainEl = document.querySelector('.main-content');
       if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
       setMobileOpen(false);

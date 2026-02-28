@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating
 
 
 # ========== INLINE ADMINS ==========
@@ -107,6 +107,17 @@ class UserNotesAdmin(admin.ModelAdmin):
     list_filter = ['course', 'updated_at']
     search_fields = ['user__username', 'course__title', 'notes_text']
     readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ['user', 'course', 'rating', 'created_at']
+    list_filter = ['rating', 'course', 'created_at']
+    search_fields = ['user__username', 'course__title']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'course')
 
 
 # Keep old Video model registered for backward compatibility

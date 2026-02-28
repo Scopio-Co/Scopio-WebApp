@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating
 
 
 # ========== DEPRECATED (Backward Compatibility) ==========
@@ -43,13 +43,26 @@ class LessonMinimalSerializer(serializers.ModelSerializer):
 # ========== DISCUSSION SERIALIZERS ==========
 class DiscussionSerializer(serializers.ModelSerializer):
     """Discussion/comments for courses"""
+    author_name = serializers.CharField(required=False, allow_blank=True)
+    author_role = serializers.CharField(required=False, allow_blank=True)
+    
     class Meta:
         model = Discussion
         fields = [
             'id', 'course', 'user', 'author_name', 'author_role',
             'comment', 'likes_count', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['user', 'created_at', 'updated_at']
+        read_only_fields = ['user', 'created_at', 'updated_at', 'likes_count']
+    
+    def create(self, validated_data):
+        """Auto-populate author info from user if not provided"""
+        user = self.context['request'].user
+        if not validated_data.get('author_name'):
+            validated_data['author_name'] = user.get_full_name() or user.username
+        if not validated_data.get('author_role'):
+            validated_data['author_role'] = 'Student'
+        validated_data['user'] = user
+        return super().create(validated_data)
 
 
 # ========== RESOURCE SERIALIZERS ==========
@@ -99,6 +112,9 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     resources = ResourceSerializer(many=True, read_only=True)
     total_lessons = serializers.IntegerField(read_only=True)
     progress_info = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    user_rating = serializers.SerializerMethodField()
+    total_ratings = serializers.SerializerMethodField()
     
     class Meta:
         model = Course
@@ -106,7 +122,8 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'thumbnail_url',
             'instructor_name', 'instructor_title', 'instructor_bio',
             'instructor_avatar_url', 'instructor_social_links',
-            'what_you_learn', 'prerequisites', 'rating', 'total_duration',
+            'what_you_learn', 'prerequisites', 'rating', 'average_rating', 
+            'user_rating', 'total_ratings', 'total_duration',
             'total_lessons', 'progress_info',
             'lessons', 'discussions', 'resources',
             'is_published', 'created_at', 'updated_at'
@@ -128,6 +145,24 @@ class CourseDetailSerializer(serializers.ModelSerializer):
                 'text': f"{completed}/{total} completed"
             }
         return {'completed': 0, 'total': obj.lessons.count(), 'text': '0/0 completed'}
+    
+    def get_average_rating(self, obj):
+        """Calculate average rating from all user ratings"""
+        from django.db.models import Avg
+        avg = obj.ratings.aggregate(Avg('rating'))['rating__avg']
+        return round(avg, 1) if avg else 0.0
+    
+    def get_user_rating(self, obj):
+        """Get current user's rating for this course"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user_rating = obj.ratings.filter(user=request.user).first()
+            return user_rating.rating if user_rating else None
+        return None
+    
+    def get_total_ratings(self, obj):
+        """Get total number of ratings"""
+        return obj.ratings.count()
 
 
 # ========== PROGRESS SERIALIZERS ==========
@@ -144,6 +179,29 @@ class UserProgressSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['user', 'created_at', 'updated_at']
 
+
+
+# ========== RATING SERIALIZERS ==========
+class RatingSerializer(serializers.ModelSerializer):
+    """User ratings for courses"""
+    class Meta:
+        model = Rating
+        fields = [
+            'id', 'user', 'course', 'rating',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        """Auto-populate user from request"""
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+    
+    def validate_rating(self, value):
+        """Ensure rating is between 1 and 5"""
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5")
+        return value
 
 # ========== NOTES SERIALIZERS ==========
 class UserNotesSerializer(serializers.ModelSerializer):

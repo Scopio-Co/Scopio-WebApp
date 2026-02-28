@@ -164,6 +164,29 @@ class UserNotes(models.Model):
         return f"{self.user.username}'s notes - {self.course.title}"
 
 
+class Rating(models.Model):
+    """User ratings for courses"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_ratings')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='ratings')
+    
+    # Rating value (1-5)
+    rating = models.PositiveSmallIntegerField(
+        help_text="Rating from 1 to 5 stars",
+        choices=[(i, f"{i} Star{'s' if i > 1 else ''}") for i in range(1, 6)]
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'course']
+        verbose_name_plural = "Ratings"
+    
+    def __str__(self):
+        return f"{self.user.username} rated {self.course.title}: {self.rating} stars"
+
+
 # Keep old Video model for backward compatibility (can be removed later)
 class Video(models.Model):
     """DEPRECATED: Use Lesson model instead. Kept for backward compatibility."""

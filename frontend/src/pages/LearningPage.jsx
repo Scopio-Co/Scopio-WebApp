@@ -34,23 +34,27 @@ const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
+        console.log('🔍 Fetching courses from API...');
         const response = await api.get('/api/video/courses/');
+        console.log('✓ Received courses:', response.data);
         
         if (response.data && response.data.length > 0) {
           setCourses(response.data);
           setUsingFallback(false);
           setError(null);
+          console.log(`✓ Loaded ${response.data.length} course(s) from database`);
         } else {
-          // No courses in DB, use dummy data
-          setCourses(dummyCourses);
-          setUsingFallback(true);
+          // No courses in DB
+          console.warn('⚠️ No courses found in database');
+          setCourses([]);
+          setUsingFallback(false);
         }
       } catch (err) {
-        console.error('Error fetching courses:', err);
-        console.log('Using fallback dummy data instead');
-        setCourses(dummyCourses);
-        setUsingFallback(true);
-        setError(null); // Don't show error, just use fallback
+        console.error('❌ Error fetching courses:', err);
+        console.error('Error details:', err.response?.data || err.message);
+        setError('Failed to load courses. Please check your connection.');
+        setCourses([]);
+        setUsingFallback(false);
       } finally {
         setLoading(false);
       }
@@ -86,31 +90,30 @@ const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
             </div>
           )}
 
-          {!loading && courses.length === 0 && (
+          {!loading && courses.length === 0 && !error && (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
               <p>No courses available yet</p>
               <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>Create courses in Django admin to see them here</p>
             </div>
           )}
 
+          {!loading && error && (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#ff4444' }}>
+              <p>{error}</p>
+              <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>Make sure the backend server is running at http://127.0.0.1:8000</p>
+            </div>
+          )}
+
           {!loading && courses.length > 0 && (
             <>
-              {usingFallback && (
-                <div style={{ textAlign: 'center', padding: '20px', marginBottom: '20px', background: 'var(--bg-tertiary)', borderRadius: '10px', color: 'var(--text-tertiary)', border: '1px solid var(--border-primary)' }}>
-                  <p style={{ margin: '0', fontSize: '0.9rem' }}>
-                    📌 Showing demo courses. Connect to backend at <code>http://127.0.0.1:8000</code> to see real courses.
-                  </p>
-                </div>
-              )}
               <div className="course-grid">
                 {courses.map((course, index) => (
                   <div 
                     key={course.id || `demo-${index}`} 
                     className="course-card" 
-                    onClick={() => course.id && onCourseClick && onCourseClick(course)}
+                    onClick={() => onCourseClick && onCourseClick(course)}
                     style={{ 
-                      cursor: course.id && onCourseClick ? 'pointer' : 'default',
-                      opacity: course.id ? 1 : 0.7
+                      cursor: onCourseClick ? 'pointer' : 'default'
                     }}
                   >
                     <div className="course-image-card">
@@ -124,7 +127,6 @@ const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
                     <div className="course-info">
                       <h3 className="course-title">
                         {course.title}
-                        {!course.id && <span style={{ fontSize: '0.7rem', marginLeft: '8px', padding: '2px 8px', background: 'var(--border-primary)', borderRadius: '4px' }}>DEMO</span>}
                       </h3>
                       <div className="course-progress">
                         <span className="progress-text">{course.progress_percentage}% Completed</span>

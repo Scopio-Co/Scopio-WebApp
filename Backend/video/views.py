@@ -2,7 +2,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes
+from django.db.models import Avg
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating
 from .serializers import (
     VideoSerializer,
     CourseListSerializer,
@@ -11,7 +12,8 @@ from .serializers import (
     DiscussionSerializer,
     ResourceSerializer,
     UserProgressSerializer,
-    UserNotesSerializer
+    UserNotesSerializer,
+    RatingSerializer
 )
 
 
@@ -268,3 +270,55 @@ class UserNotesViewSet(viewsets.ModelViewSet):
         """Auto-set user when creating notes"""
         serializer.save(user=self.request.user)
 
+
+# ========== RATING VIEWS ==========
+class RatingViewSet(viewsets.ModelViewSet):
+    """
+    Course Rating ViewSet (authenticated users only)
+    
+    Users can rate each course once (1-5 stars)
+    Filter by course: GET /api/video/ratings/?course={course_id}
+    """
+    serializer_class = RatingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Show all ratings or filter by course"""
+        queryset = Rating.objects.select_related('course', 'user')
+        
+        course_id = self.request.query_params.get('course', None)
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+        
+        return queryset
+    
+    def perform_create(self, serializer):
+        """Auto-set user when creating rating"""
+        serializer.save(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        """Create or update rating (one rating per user per course)"""
+        course_id = request.data.get('course')
+        rating_value = request.data.get('rating')
+        
+        if not course_id or not rating_value:
+            return Response(
+                {'error': 'Course and rating are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if user already rated this course
+        existing_rating = Rating.objects.filter(
+            user=request.user,
+            course_id=course_id
+        ).first()
+        
+        if existing_rating:
+            # Update existing rating
+            existing_rating.rating = rating_value
+            existing_rating.save()
+            serializer = self.get_serializer(existing_rating)
+            return Response(serializer.data)
+        
+        # Create new rating
+        return super().create(request, *args, **kwargs)

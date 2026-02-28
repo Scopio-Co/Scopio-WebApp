@@ -7,7 +7,8 @@ from .views import (
     DiscussionViewSet,
     ResourceViewSet,
     UserProgressViewSet,
-    UserNotesViewSet
+    UserNotesViewSet,
+    RatingViewSet
 )
 
 router = DefaultRouter()
@@ -22,6 +23,7 @@ router.register(r'discussions', DiscussionViewSet, basename='discussion')
 router.register(r'resources', ResourceViewSet, basename='resource')
 router.register(r'progress', UserProgressViewSet, basename='user-progress')
 router.register(r'notes', UserNotesViewSet, basename='user-notes')
+router.register(r'ratings', RatingViewSet, basename='rating')
 
 urlpatterns = [
     path('', include(router.urls)),

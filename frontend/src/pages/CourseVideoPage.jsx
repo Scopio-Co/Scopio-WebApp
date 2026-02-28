@@ -41,6 +41,10 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [newDiscussion, setNewDiscussion] = useState('');
+  const [submittingDiscussion, setSubmittingDiscussion] = useState(false);
+  const [userRating, setUserRating] = useState(null);
+  const [hoverRating, setHoverRating] = useState(0);
 
   // Fetch course data from API
   useEffect(() => {
@@ -55,6 +59,7 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
         setLoading(true);
         const response = await api.get(`/api/video/courses/${selectedCourse.id}/`);
         setCourseData(response.data);
+        setUserRating(response.data.user_rating);
         setError(null);
       } catch (err) {
         console.error('Error fetching course details:', err);
@@ -76,6 +81,52 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
     // fallback to window
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
   }, []);
+
+  // Handle discussion submission
+  const handleDiscussionSubmit = async (e) => {
+    e.preventDefault();
+    if (!newDiscussion.trim()) return;
+
+    try {
+      setSubmittingDiscussion(true);
+      const response = await api.post('/api/video/discussions/', {
+        course: selectedCourse.id,
+        comment: newDiscussion
+      });
+
+      // Update local state with new discussion
+      setCourseData(prev => ({
+        ...prev,
+        discussions: [...(prev.discussions || []), response.data]
+      }));
+
+      setNewDiscussion('');
+    } catch (err) {
+      console.error('Error submitting discussion:', err);
+      alert('Failed to submit discussion. Please try again.');
+    } finally {
+      setSubmittingDiscussion(false);
+    }
+  };
+
+  // Handle rating submission
+  const handleRatingSubmit = async (rating) => {
+    try {
+      await api.post('/api/video/ratings/', {
+        course: selectedCourse.id,
+        rating: rating
+      });
+
+      setUserRating(rating);
+
+      // Refresh course data to get updated average rating
+      const response = await api.get(`/api/video/courses/${selectedCourse.id}/`);
+      setCourseData(response.data);
+    } catch (err) {
+      console.error('Error submitting rating:', err);
+      alert('Failed to submit rating. Please try again.');
+    }
+  };
 
   // Use real data from API or fallback to dummy data
   const lessons = courseData?.lessons || [
@@ -112,7 +163,8 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
   const courseTitle = courseData?.title || selectedCourse?.title || 'Course Name';
   const courseDuration = courseData?.total_duration || selectedCourse?.duration || '3 Components';
   const courseDescription = courseData?.description || 'In this comprehensive lesson, you will learn fundamental concepts.';
-  const courseRating = courseData?.rating ? parseFloat(courseData.rating) : 4.3;
+  const courseRating = courseData?.average_rating ? parseFloat(courseData.average_rating) : 0.0;
+  const totalRatings = courseData?.total_ratings || 0;
   const whatLearn = courseData?.what_you_learn ? 
     (Array.isArray(courseData.what_you_learn) ? courseData.what_you_learn : 
       (typeof courseData.what_you_learn === 'string' ? courseData.what_you_learn.split('\n').filter(item => item.trim()) : 
@@ -260,6 +312,45 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
                   <p className="discussion-count">{discussions.length}</p>
                 </div>
                 
+                {/* Discussion Input Form */}
+                <form onSubmit={handleDiscussionSubmit} style={{ marginBottom: '20px', padding: '0 15px' }}>
+                  <textarea
+                    value={newDiscussion}
+                    onChange={(e) => setNewDiscussion(e.target.value)}
+                    placeholder="Share your thoughts about this course..."
+                    style={{
+                      width: '100%',
+                      minHeight: '80px',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      color: 'var(--text-primary)',
+                      fontSize: '14px',
+                      fontFamily: 'inherit',
+                      resize: 'vertical',
+                      marginBottom: '10px'
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={submittingDiscussion || !newDiscussion.trim()}
+                    style={{
+                      padding: '8px 20px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: submittingDiscussion || !newDiscussion.trim() ? 'not-allowed' : 'pointer',
+                      opacity: submittingDiscussion || !newDiscussion.trim() ? 0.6 : 1
+                    }}
+                  >
+                    {submittingDiscussion ? 'Posting...' : 'Post Discussion'}
+                  </button>
+                </form>
+                
                 <div className="discussions-list">
                   {discussions.map((discussion) => (
                     <div key={discussion.id} className="discussion-item">
@@ -338,33 +429,46 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
                         </ul>
                       </div>
                       <div className="rating-display">
-                        <span className="rating-number">{courseRating.toFixed(1)}</span>
-                        <div className="stars">
+                        <div style={{ marginBottom: '10px' }}>
+                          <span className="rating-number">{courseRating.toFixed(1)}</span>
+                          <span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '5px' }}>
+                            ({totalRatings} rating{totalRatings !== 1 ? 's' : ''})
+                          </span>
+                        </div>
+                        <div className="stars" style={{ display: 'flex', gap: '4px' }}>
                           {[1, 2, 3, 4, 5].map((star) => {
-                            const filled = star <= Math.floor(courseRating);
-                            const partial = star === Math.ceil(courseRating) && courseRating % 1 !== 0;
+                            const isHovered = hoverRating >= star;
+                            const isRated = (userRating || 0) >= star;
+                            const shouldFill = isHovered || (!hoverRating && isRated);
                             
-                            if (filled) {
-                              return (
-                                <svg key={star} width="20" height="20" viewBox="0 0 24 24" fill="#FFD700">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                              );
-                            } else if (partial) {
-                              return (
-                                <svg key={star} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFD700" strokeWidth="2">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                              );
-                            } else {
-                              return (
-                                <svg key={star} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFD700" strokeWidth="2">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                              );
-                            }
+                            return (
+                              <svg 
+                                key={star} 
+                                width="24" 
+                                height="24" 
+                                viewBox="0 0 24 24" 
+                                fill={shouldFill ? "#FFD700" : "none"}
+                                stroke="#FFD700"
+                                strokeWidth="2"
+                                style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                                onMouseEnter={() => setHoverRating(star)}
+                                onMouseLeave={() => setHoverRating(0)}
+                                onClick={() => handleRatingSubmit(star)}
+                              >
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                              </svg>
+                            );
                           })}
                         </div>
+                        {userRating ? (
+                          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
+                            You rated: {userRating} star{userRating !== 1 ? 's' : ''}
+                          </p>
+                        ) : (
+                          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
+                            Click to rate this course
+                          </p>
+                        )}
                       </div>
                     </div>
                   </>

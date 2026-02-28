@@ -1,7 +1,7 @@
 // (axios) interceptors - intercept requests, auto-add auth headers
 
 import axios from "axios";
-import { ACCESS_TOKEN } from "./constants";
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
 // Helper function to get CSRF token from cookies
 function getCsrfToken() {
@@ -107,6 +107,16 @@ export async function login(username, password) {
     username,
     password,
   });
+  
+  // Store tokens in localStorage
+  if (data.access) {
+    localStorage.setItem(ACCESS_TOKEN, data.access);
+  }
+  if (data.refresh) {
+    localStorage.setItem(REFRESH_TOKEN, data.refresh);
+  }
+  
+  console.log('✓ Login tokens stored successfully');
   return data;
 }
 

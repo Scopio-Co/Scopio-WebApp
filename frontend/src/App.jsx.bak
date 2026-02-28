@@ -113,10 +113,10 @@ function App() {
         // Store tokens in localStorage
         localStorage.setItem('access', hashAccessToken);
         localStorage.setItem('refresh', hashRefreshToken);
-        
-        // Update authentication state
+        Update authentication state
         setIsAuthenticated(true);
         
+        // 
         console.log('✓ OAuth tokens stored successfully (from hash)');
         
         // Show Welcome page (user is now logged in)
@@ -129,97 +129,28 @@ function App() {
     }
   }, []);
 
-  // Protected navigation function - checks authentication before allowing page access
-  const navigateToProtectedPage = (pageType, additionalActions) => {
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      console.warn('⚠ Access denied: User not authenticated');
-      setAuthError('Please log in to access this page');
-      return;
-    }
-
-    // Hide all pages first
-    setShowHome(false);
-    setShowWelcome(false);
-    setShowLearning(false);
-    setShowExplore(false);
-    setShowLeaderboard(false);
-    setShowCourseVideo(false);
-    setShowArticles(false);
-    setShowArticleDetail(false);
-
-    // Execute any additional actions (like setting course/article data)
-    if (additionalActions && typeof additionalActions === 'function') {
-      additionalActions();
-    }
-
-    // Show the requested page
-    switch (pageType) {
-      case 'welcome':
-        setShowWelcome(true);
-        break;
-      case 'learning':
-        setShowLearning(true);
-        break;
-      case 'explore':
-        setShowExplore(true);
-        break;
-      case 'leaderboard':
-        setShowLeaderboard(true);
-        break;
-      case 'course':
-        setShowCourseVideo(true);
-        break;
-      case 'articles':
-        setShowArticles(true);
-        break;
-      case 'articleDetail':
-        setShowArticleDetail(true);
-        break;
-      default:
-        setShowWelcome(true);
-    }
-
-    // Scroll to top
-    const mainEl = document.querySelector('.main-content');
-    if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-  };
-
-  // Callback for successful login/signup
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-    setShowHome(false);
-    setShowWelcome(true);
-  };
-
   const handleLogout = () => {
     // Clear tokens from localStorage
     localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    
     // Update authentication state
     setIsAuthenticated(false);
     
-    // Show login page
-    setShowWelcome(false);
-    setShowLearning(false);
-    setShowExplore(false);
-    setShowLeaderboard(false);
-    setShowHome(true);
-    setShowCourseVideo(false);
-    setShowArticles(false);
-    setShowArticleDetail(false);
-  };
-
-  const handleCourseClick = (course) => {
-    navigateToProtectedPage('course', () => {
+    setShowWelcome(false)
+    setShowLearning(false)
+    setShowExplore(false)
+    setShowLeaderboard(false)
+    setShowHome(true)
+    setShowCourseVideo(false)
+    setShowArticles(false)
+    setShowArticleDetail(false)
+  }navigateToProtectedPage('course', () => {
       setSelectedCourse(course || null);
     });
-  };
+  }
 
   const handleBackFromCourse = () => {
     navigateToProtectedPage('welcome');
-  };
+  }
 
   const handleArticleClick = (article) => {
     navigateToProtectedPage('articleDetail', () => {
@@ -229,7 +160,7 @@ function App() {
       if (mainEl) mainEl.scrollTop = 0;
       window.scrollTo({ top: 0, behavior: 'auto' });
     });
-  };
+  }
 
   const handleBackFromArticleDetail = () => {
     navigateToProtectedPage('articles', () => {
@@ -238,11 +169,11 @@ function App() {
       if (mainEl) mainEl.scrollTop = 0;
       window.scrollTo({ top: 0, behavior: 'auto' });
     });
-  };
+  }
 
   const handleBackFromArticles = () => {
     navigateToProtectedPage('welcome');
-  };
+  }
 
   // Show loading screen while checking authentication
   if (isCheckingAuth) {
@@ -253,6 +184,69 @@ function App() {
         </div>
       </div>
     );
+      case 'explore':
+        setShowExplore(true);
+        break;
+      case 'leaderboard':
+        setShowLeaderboard(true);
+        break;
+      case 'course':
+        setShowCourseVideo(true);
+        break;() => navigateToProtectedPage('learning')}
+          setShowExplore={() => navigateToProtectedPage('explore')}
+          setShowLeaderboard={() => navigateToProtectedPage('leaderboard')}
+          setShowWelcome={() => navigateToProtectedPage('welcome')}
+          setShowCourseVideo={setShowCourseVideo}
+          setShowArticles={() => navigateToProtectedPage('articles')}
+          setShowArticleDetail={setShowArticleDetail}
+          showCourseVideo={showCourseVideo}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
+          isAuthenticated={isAuthenticated
+    setShowCourseVideo(false)
+    setShowArticles(false)
+    setShowArticleDetail(false)
+  }
+
+  const handleCourseClick = (course) => {
+    setSelectedCourse(course || null)
+    setShowCourseVideo(true)
+    setShowWelcome(false)
+    setShowLearning(false)
+    setShowExplore(false)
+    setShowLeaderboard(false)
+    setShowHome(false)
+    setShowArticles(false)
+    setShowArticleDetail(false)
+  }
+
+  const handleBackFromCourse = () => {
+    setShowCourseVideo(false)
+    setShowWelcome(true)
+  }
+
+  const handleArticleClick = (article) => {
+    setSelectedArticle(article)
+    setShowArticleDetail(true)
+    setShowArticles(false)
+    // ensure the main content (and window) scrolls to top when opening an article
+    const mainEl = document.querySelector('.main-content');
+    if (mainEl) mainEl.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  const handleBackFromArticleDetail = () => {
+    setShowArticleDetail(false)
+    setShowArticles(true)
+    // scroll back to top when returning to the articles list
+    const mainEl = document.querySelector('.main-content');
+    if (mainEl) mainEl.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  const handleBackFromArticles = () => {
+    setShowArticles(false)
+    setShowWelcome(true)
   }
 
   return (
@@ -261,18 +255,16 @@ function App() {
         <Navbar 
           onLogout={handleLogout} 
           setShowHome={setShowHome}
-          setShowLearning={() => navigateToProtectedPage('learning')}
-          setShowExplore={() => navigateToProtectedPage('explore')}
-          setShowLeaderboard={() => navigateToProtectedPage('leaderboard')}
+          setShowLearning={setShowLearning}
+          setShowExplore={setShowExplore}
+          setShowLeaderboard={setShowLeaderboard}
           setShowWelcome={setShowWelcome}
-          setShowProfile={null}
           setShowCourseVideo={setShowCourseVideo}
-          setShowArticles={() => navigateToProtectedPage('articles')}
+          setShowArticles={setShowArticles}
           setShowArticleDetail={setShowArticleDetail}
           showCourseVideo={showCourseVideo}
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
-          isAuthenticated={isAuthenticated}
         />
       </div>
       <div className="main-content">
