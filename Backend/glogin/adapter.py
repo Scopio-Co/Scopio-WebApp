@@ -1,7 +1,10 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned
+from django.shortcuts import redirect
+from django.conf import settings
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -70,3 +73,14 @@ class SocialAdapter(DefaultSocialAccountAdapter):
             logger.info(f"✓ Social login connected to user: {existing_user.email}")
         except Exception as e:
             logger.exception(f"Error in pre_social_login: {str(e)}")
+
+    def authentication_error(self, request, provider_id, error=None, exception=None, extra_context=None):
+        """Override to redirect authentication errors to frontend instead of showing Django page"""
+        logger.error(f"Authentication error for {provider_id}: {error}")
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        error_message = str(error) if error else "Authentication failed"
+        return redirect(f"{frontend_url}/?error=auth_failed&message={error_message}")
+
+    def is_open_for_signup(self, request, sociallogin):
+        """Always allow signup for social logins"""
+        return True

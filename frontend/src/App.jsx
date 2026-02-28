@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import reactLogo from './assets/img/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -15,25 +16,38 @@ import LearningPage from './pages/LearningPage'
 import ExplorePage from './pages/ExplorePage'
 import LeaderboardPage from './pages/LeaderboardPage';
 import CourseVideoPage from './pages/CourseVideoPage';
-import ArticlePage from './pages/ArticlePage';
-import ArticleDetailPage from './pages/ArticleDetailPage';
+import ArticlePage from './pages/ArticlePage'
+import ArticleDetailPage from './pages/ArticleDetailPage'
+import ProtectedRoute from './components/ProtectedRoute';
 
+// ScrollToTop component for smooth navigation
+function ScrollToTop() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [location.pathname]);
+
+  return null;
+}
+
+// Main App component with authentication wrapper
 function App() {
-  const [count, setCount] = useState(0)
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
+
+// AppContent component handles authentication and routing
+function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [showWelcome, setShowWelcome] = useState(false)
-  const [showLearning, setShowLearning] = useState(false)
-  const [showExplore, setShowExplore] = useState(false)
-  const [showLeaderboard, setShowLeaderboard] = useState(false)
-  const [showHome, setShowHome] = useState(true)
-  const [showCourseVideo, setShowCourseVideo] = useState(false)
-  const [showArticles, setShowArticles] = useState(false)
-  const [showArticleDetail, setShowArticleDetail] = useState(false)
-  const [selectedCourse, setSelectedCourse] = useState(null)
-  const [selectedArticle, setSelectedArticle] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [authError, setAuthError] = useState(null)
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Check authentication status on mount and persist across refreshes
   useEffect(() => {
@@ -44,14 +58,9 @@ function App() {
       if (accessToken && refreshToken) {
         console.log('✓ User is authenticated (tokens found)');
         setIsAuthenticated(true);
-        // If authenticated, show Welcome page instead of login
-        setShowHome(false);
-        setShowWelcome(true);
       } else {
         console.log('⚠ No authentication tokens found');
         setIsAuthenticated(false);
-        setShowHome(true);
-        setShowWelcome(false);
       }
       setIsCheckingAuth(false);
     };
@@ -78,12 +87,9 @@ function App() {
       // Update authentication state
       setIsAuthenticated(true);
       
-      // Show Welcome page (user is now logged in)
-      setShowHome(false);
-      setShowWelcome(true);
-      
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Navigate to home page and clean URL
+      window.history.replaceState({}, document.title, '/home');
+      navigate('/home', { replace: true });
       return;
     }
     
@@ -98,8 +104,6 @@ function App() {
       } else {
         setAuthError(`Authentication error: ${error}`);
       }
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     // Also check URL hash for backward compatibility
@@ -119,77 +123,17 @@ function App() {
         
         console.log('✓ OAuth tokens stored successfully (from hash)');
         
-        // Show Welcome page (user is now logged in)
-        setShowHome(false);
-        setShowWelcome(true);
-        
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Navigate to home page and clean URL
+        window.history.replaceState({}, document.title, '/home');
+        navigate('/home', { replace: true });
       }
     }
-  }, []);
-
-  // Protected navigation function - checks authentication before allowing page access
-  const navigateToProtectedPage = (pageType, additionalActions) => {
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      console.warn('⚠ Access denied: User not authenticated');
-      setAuthError('Please log in to access this page');
-      return;
-    }
-
-    // Hide all pages first
-    setShowHome(false);
-    setShowWelcome(false);
-    setShowLearning(false);
-    setShowExplore(false);
-    setShowLeaderboard(false);
-    setShowCourseVideo(false);
-    setShowArticles(false);
-    setShowArticleDetail(false);
-
-    // Execute any additional actions (like setting course/article data)
-    if (additionalActions && typeof additionalActions === 'function') {
-      additionalActions();
-    }
-
-    // Show the requested page
-    switch (pageType) {
-      case 'welcome':
-        setShowWelcome(true);
-        break;
-      case 'learning':
-        setShowLearning(true);
-        break;
-      case 'explore':
-        setShowExplore(true);
-        break;
-      case 'leaderboard':
-        setShowLeaderboard(true);
-        break;
-      case 'course':
-        setShowCourseVideo(true);
-        break;
-      case 'articles':
-        setShowArticles(true);
-        break;
-      case 'articleDetail':
-        setShowArticleDetail(true);
-        break;
-      default:
-        setShowWelcome(true);
-    }
-
-    // Scroll to top
-    const mainEl = document.querySelector('.main-content');
-    if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-  };
+  }, [navigate]);
 
   // Callback for successful login/signup
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    setShowHome(false);
-    setShowWelcome(true);
+    navigate('/home');
   };
 
   const handleLogout = () => {
@@ -200,49 +144,19 @@ function App() {
     // Update authentication state
     setIsAuthenticated(false);
     
-    // Show login page
-    setShowWelcome(false);
-    setShowLearning(false);
-    setShowExplore(false);
-    setShowLeaderboard(false);
-    setShowHome(true);
-    setShowCourseVideo(false);
-    setShowArticles(false);
-    setShowArticleDetail(false);
+    // Navigate to login page
+    navigate('/');
   };
 
-  const handleCourseClick = (course) => {
-    navigateToProtectedPage('course', () => {
-      setSelectedCourse(course || null);
-    });
-  };
-
-  const handleBackFromCourse = () => {
-    navigateToProtectedPage('welcome');
-  };
-
-  const handleArticleClick = (article) => {
-    navigateToProtectedPage('articleDetail', () => {
-      setSelectedArticle(article);
-      // ensure the main content (and window) scrolls to top when opening an article
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTop = 0;
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    });
-  };
-
-  const handleBackFromArticleDetail = () => {
-    navigateToProtectedPage('articles', () => {
-      // scroll back to top when returning to the articles list
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTop = 0;
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    });
-  };
-
-  const handleBackFromArticles = () => {
-    navigateToProtectedPage('welcome');
-  };
+  // Home page with signup/login or welcome based on auth
+  const HomePage = () => (
+    <>
+      {isAuthenticated ? <Welcome /> : <Signup onSwitchToWelcome={handleLoginSuccess} />}
+      <HeroSlider />
+      <TopPicks />
+      <Footer />
+    </>
+  );
 
   // Show loading screen while checking authentication
   if (isCheckingAuth) {
@@ -257,19 +171,10 @@ function App() {
 
   return (
     <div className="app-layout">
+      <ScrollToTop />
       <div className="navbar-section">
         <Navbar 
           onLogout={handleLogout} 
-          setShowHome={setShowHome}
-          setShowLearning={() => navigateToProtectedPage('learning')}
-          setShowExplore={() => navigateToProtectedPage('explore')}
-          setShowLeaderboard={() => navigateToProtectedPage('leaderboard')}
-          setShowWelcome={setShowWelcome}
-          setShowProfile={null}
-          setShowCourseVideo={setShowCourseVideo}
-          setShowArticles={() => navigateToProtectedPage('articles')}
-          setShowArticleDetail={setShowArticleDetail}
-          showCourseVideo={showCourseVideo}
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
           isAuthenticated={isAuthenticated}
@@ -287,44 +192,86 @@ function App() {
             </span>
           </button>
         </div>
-        {showArticleDetail ? (
-          <ArticleDetailPage article={selectedArticle} onBack={handleBackFromArticleDetail} />
-        ) : showArticles ? (
-          <ArticlePage onArticleClick={handleArticleClick} />
-        ) : showCourseVideo ? (
-          <CourseVideoPage selectedCourse={selectedCourse} onBack={handleBackFromCourse} />
-        ) : showExplore ? (
-          <ExplorePage onLogout={handleLogout} onCourseClick={handleCourseClick} />
-        ) : showLearning ? (
-          <LearningPage onLogout={handleLogout} onCourseClick={handleCourseClick} />
-        ) : showLeaderboard ? (
-          <LeaderboardPage onLogout={handleLogout} />
-        ) : showWelcome ? (
-          <>
-            <Welcome />
-            <HeroSlider />
-            <TopPicks onCourseClick={handleCourseClick} />
-            <Footer />
-          </>
-        ) : showHome ? (
-          <>
-            <Signup onSwitchToWelcome={handleLoginSuccess} />
-            <HeroSlider />
-            <TopPicks onCourseClick={handleCourseClick} />
-            <Footer />
-          </>
-        ) : (
-          <>
-            <Signup onSwitchToWelcome={handleLoginSuccess} />
-            <HeroSlider />
-            <TopPicks onCourseClick={handleCourseClick} />
-            <Footer />
-          </>
-        )}
+        <Routes>
+          {/* Public route - Login/Signup or Welcome */}
+          <Route path="/" element={<HomePage />} />
+          
+          {/* Protected routes */}
+          <Route 
+            path="/home" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <>
+                  <Welcome />
+                  <HeroSlider />
+                  <TopPicks />
+                  <Footer />
+                </>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/learning" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <LearningPage onLogout={handleLogout} />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/explore" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <ExplorePage onLogout={handleLogout} />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/leaderboard" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <LeaderboardPage onLogout={handleLogout} />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/course/:courseId" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <CourseVideoPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/articles" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <ArticlePage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/articles/:articleId" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <ArticleDetailPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </div>
       <ErrorPopup error={authError} onClose={() => setAuthError(null)} />
     </div>
-  )
+  );
 }
 
 export default App

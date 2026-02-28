@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import './CourseVideoPage.css';
 import courseVideoImage from '../assets/img/course video.webp';
 import Footer from '../components/Footer';
@@ -34,7 +35,9 @@ const getVideoEmbedUrl = (url) => {
   return null;
 };
 
-const CourseVideoPage = ({ selectedCourse, onBack }) => {
+const CourseVideoPage = () => {
+  const { courseId } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [courseData, setCourseData] = useState(null);
@@ -49,15 +52,15 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
   // Fetch course data from API
   useEffect(() => {
     const fetchCourseData = async () => {
-      if (!selectedCourse?.id) {
-        setError('No course selected');
+      if (!courseId) {
+        setError('No course ID provided');
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const response = await api.get(`/api/video/courses/${selectedCourse.id}/`);
+        const response = await api.get(`/api/video/courses/${courseId}/`);
         setCourseData(response.data);
         setUserRating(response.data.user_rating);
         setError(null);
@@ -70,7 +73,7 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
     };
 
     fetchCourseData();
-  }, [selectedCourse?.id]);
+  }, [courseId]);
 
   useEffect(() => {
     // ensure main content container is scrolled to top when opening this page
@@ -196,7 +199,7 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
       <div className="course-video-page">
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
           <p>{error}</p>
-          <button onClick={onBack} style={{ marginTop: '20px', padding: '10px 20px' }}>Go Back</button>
+          <button onClick={() => navigate(-1)} style={{ marginTop: '20px', padding: '10px 20px' }}>Go Back</button>
         </div>
       </div>
     );

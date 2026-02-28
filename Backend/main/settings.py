@@ -140,7 +140,7 @@ ROOT_URLCONF = 'main.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Add custom templates directory
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -285,6 +285,8 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for social login
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
 SOCIALACCOUNT_ADAPTER = 'glogin.adapter.SocialAdapter'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+LOGIN_ERROR_URL = '/glogin/error/'  # Redirect authentication errors to custom handler
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './CourseCard.css';
 import RatingComponent from './RatingComponent';
 import defaultCourseImage from '../assets/img/course_card.webp';
@@ -13,12 +14,12 @@ const CourseCard = ({
   progress = 80,
   authorName = "Ashva Rishemh",
   authorTitle = "Lover @Kanyakumari",
-  imageFilter = '',
-  onCourseClick
+  imageFilter = ''
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const buttonRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleMouseEnter = () => {
     if (buttonRef.current) {
@@ -77,7 +78,7 @@ const CourseCard = ({
       )}
 
       {/* Main Course Card */}
-      <div className="course-card-main" onClick={() => onCourseClick && onCourseClick(courseData)} style={{ cursor: onCourseClick ? 'pointer' : 'default' }}>
+      <div className="course-card-main" onClick={() => id && navigate(`/course/${id}`)} style={{ cursor: id ? 'pointer' : 'default' }}>
         <div className="card-image-section">
           <img
             src={image}

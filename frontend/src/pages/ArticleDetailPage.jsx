@@ -1,13 +1,19 @@
 import React from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import './ArticleDetailPage.css';
 
-const ArticleDetailPage = ({ article, onBack }) => {
+const ArticleDetailPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { articleId } = useParams();
+  const article = location.state?.article;
+
   if (!article) {
     return (
       <div className="article-detail-page">
         <div className="article-detail-error">
           <h2>Article not found</h2>
-          <button onClick={onBack} className="back-button">
+          <button onClick={() => navigate('/articles')} className="back-button">
             ← Back to Articles
           </button>
         </div>
@@ -17,7 +23,7 @@ const ArticleDetailPage = ({ article, onBack }) => {
 
   return (
     <div className="article-detail-page">
-      <button onClick={onBack} className="back-top-right" aria-label="Back to articles">
+      <button onClick={() => navigate('/articles')} className="back-top-right" aria-label="Back to articles">
         ← Back to Articles
       </button>
       <div className="article-detail-container">

@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import courseCardImage from '../assets/img/course_card.webp';
 import api from '../api';
 
-const ExplorePage = ({ onCourseClick }) => {
+const ExplorePage = () => {
   const scrollRef1 = useRef(null);
   const scrollRef2 = useRef(null);
   const scrollRef3 = useRef(null);
@@ -240,7 +240,7 @@ const ExplorePage = ({ onCourseClick }) => {
                       <div className="courses-row">
                         {filteredCourses.map((course, index) => (
                           <div key={`search-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
-                            <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
+                            <CourseCard {...course} />
                             {!course.id && (
                               <div style={{
                                 position: 'absolute',

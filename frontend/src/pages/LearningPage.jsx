@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LearningPage.css';
 import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
@@ -6,11 +7,12 @@ import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
 import api from '../api';
 
-const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
+const LearningPage = ({ onLogout, isLoading }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usingFallback, setUsingFallback] = useState(false);
+  const navigate = useNavigate();
 
   // Fallback dummy courses for when API is unavailable
   const dummyCourses = [
@@ -111,9 +113,9 @@ const LearningPage = ({ onLogout, onCourseClick, isLoading }) => {
                   <div 
                     key={course.id || `demo-${index}`} 
                     className="course-card" 
-                    onClick={() => onCourseClick && onCourseClick(course)}
+                    onClick={() => navigate(`/course/${course.id}`)}
                     style={{ 
-                      cursor: onCourseClick ? 'pointer' : 'default'
+                      cursor: 'pointer'
                     }}
                   >
                     <div className="course-image-card">

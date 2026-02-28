@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ArticlePage.css';
 import article1 from '../assets/img/articles/article 1.1.png';
 import article2 from '../assets/img/articles/article 2.1.png';
@@ -7,7 +8,8 @@ import article4 from '../assets/img/articles/article 4.1.png';
 import article5 from '../assets/img/articles/article 5.1.png';
 import article6 from '../assets/img/articles/article 6.1.png';
 import article12 from '../assets/img/articles/article 1.2.webp';
-const ArticlePage = ({ onArticleClick }) => {
+const ArticlePage = () => {
+  const navigate = useNavigate();
   const articles = [
     {
       id: 1,
@@ -1450,7 +1452,7 @@ Commonly used in MQTT systems and highly scalable for large IoT deployments.</p>
             <div 
             key={article.id} 
             className={`bento-item bento-item-${article.id}`}
-            onClick={() => onArticleClick(article)}
+            onClick={() => navigate(`/articles/${article.id}`, { state: { article } })}
             >
             <img src={article.image} alt={article.title} />
             <div className="bento-overlay">

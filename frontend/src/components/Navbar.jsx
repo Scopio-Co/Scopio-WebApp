@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import profileAvatar from '../assets/img/Ellipse 8.png';
 
-const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setShowWelcome, setShowLeaderboard, setShowProfile, setShowCourseVideo, setShowArticles, setShowArticleDetail, showCourseVideo, mobileOpen, setMobileOpen, isAuthenticated }) => {
+const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
   });
 
-  const [activePage, setActivePage] = useState('Home');
   const [toast, setToast] = useState({ visible: false, message: '' });
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -30,72 +32,43 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
       setIsDarkMode(isDark);
       document.body.classList.toggle("dark-mode", isDark);
     }
-    // reflect course page in active state
-    if (showCourseVideo) setActivePage('Course');
   }, []);
 
-  useEffect(() => {
-    if (showCourseVideo) setActivePage('Course');
-  }, [showCourseVideo]);
-
-  const handleProfileClick = () => {
-    if (!isAuthenticated) return; // Don't allow profile access if not logged in
-    
-    if (setShowProfile) {
-      setActivePage('Profile');
-      setShowProfile(true);
-      if (setShowCourseVideo) setShowCourseVideo(false);
-      setShowHome(false);
-      setShowLearning(false);
-      setShowExplore(false);
-      setShowWelcome(false);
-      if (setShowLeaderboard) setShowLeaderboard(false);
-      if (setShowArticles) setShowArticles(false);
-      if (setShowArticleDetail) setShowArticleDetail(false);
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      // close mobile navbar when navigating
-      setMobileOpen(false);
-    }
+  // Get active page from URL location
+  const getActivePage = () => {
+    const path = location.pathname;
+    if (path === '/home' || path === '/') return 'Home';
+    if (path === '/learning') return 'Learning';
+    if (path === '/explore') return 'Explore';
+    if (path === '/leaderboard') return 'Leaderboards';
+    if (path === '/articles' || path.startsWith('/articles/')) return 'Articles';
+    if (path.startsWith('/course/')) return 'Course';
+    return 'Home';
   };
 
   const handleNavItemClick = (item) => {
+    // If authenticated, go to home page, otherwise go to login/signup root
     if (item === "Home") {
-      setActivePage('Home');
-      // If authenticated, go to Welcome page, otherwise go to login/signup
-      if (isAuthenticated && setShowWelcome) {
-        setShowWelcome();
-      } else if (setShowHome) {
-        setShowHome();
-      }
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      setMobileOpen(false);
-    } else if (item === "Learning" && setShowLearning) {
-      setActivePage('Learning');
-      setShowLearning();
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      setMobileOpen(false);
-    } else if (item === "Explore" && setShowExplore) {
-      setActivePage('Explore');
-      setShowExplore();
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      setMobileOpen(false);
-    } else if (item === "Leaderboards" && setShowLeaderboard) {
-      setActivePage('Leaderboards');
-      setShowLeaderboard();
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      setMobileOpen(false);
-    } else if (item === "Articles" && setShowArticles) {
-      setActivePage('Articles');
-      setShowArticles();
-      const mainEl = document.querySelector('.main-content');
-      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
-      setMobileOpen(false);
+      navigate(isAuthenticated ? '/home' : '/', { replace: false });
+    } else if (item === "Learning") {
+      navigate('/learning', { replace: false });
+    } else if (item === "Explore") {
+      navigate('/explore', { replace: false });
+    } else if (item === "Leaderboards") {
+      navigate('/leaderboard', { replace: false });
+    } else if (item === "Articles") {
+      navigate('/articles', { replace: false });
     }
+    
+    // Scroll to top and close mobile menu
+    const mainEl = document.querySelector('.main-content');
+    if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+    setMobileOpen(false);
+  };
+
+  const handleProfileClick = () => {
+    // For now, just close mobile menu - profile page can be implemented later
+    setMobileOpen(false);
   };
 
   const navigationItems = [
@@ -155,7 +128,7 @@ const Navbar = ({ onLogout, setShowHome, setShowLearning, setShowExplore, setSho
             <li key={index} className="nav-item">
               <a 
                 href="#" 
-                className={`nav-link ${activePage === item ? 'active' : ''}`}
+                className={`nav-link ${getActivePage() === item ? 'active' : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
                   handleNavItemClick(item);
