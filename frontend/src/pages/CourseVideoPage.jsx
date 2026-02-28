@@ -16,14 +16,14 @@ const getVideoEmbedUrl = (url) => {
   const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
   const youtubeMatch = url.match(youtubeRegex);
   if (youtubeMatch && youtubeMatch[1]) {
-    return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&mute=1`;
   }
   
   // Vimeo URLs
   const vimeoRegex = /vimeo\.com\/(\d+)/;
   const vimeoMatch = url.match(vimeoRegex);
   if (vimeoMatch && vimeoMatch[1]) {
-    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
   }
   
   // If already an embed URL or direct video file
@@ -168,7 +168,7 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
           {/* Top Container: Video and Lessons */}
           <div className="video-lessons-container">
             {/* Video Player */}
-            <div className="video-player" style={{ position: 'relative', paddingTop: '56.25%', background: '#000' }}>
+            <div className="video-player">
               {isVideoPlaying && videoEmbedUrl ? (
                 <iframe
                   src={videoEmbedUrl}
@@ -186,71 +186,28 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
                   }}
                 />
               ) : (
-                <div 
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => setIsVideoPlaying(true)}
-                >
+                <>
                   <img 
                     src={currentLesson?.thumbnail_url || courseData?.thumbnail_url || courseVideoImage} 
                     alt={courseTitle}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
                   />
 
                   <button
                     type="button"
                     className="play-center"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsVideoPlaying(true);
-                    }}
+                    onClick={() => setIsVideoPlaying(true)}
                     aria-label="Play video"
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      background: 'rgba(0, 0, 0, 0.6)',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '80px',
-                      height: '80px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.3s ease'
-                    }}
                   >
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M8 5v14l11-7L8 5z" fill="#fff"/>
                     </svg>
                   </button>
 
-                  <div className="video-overlay" style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    padding: '20px',
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)'
-                  }}>
-                    <h2 style={{ margin: 0, color: '#fff', fontSize: '1.5rem' }}>Lesson {currentLessonIndex + 1}</h2>
-                    <p className="video-subtitle" style={{ margin: '5px 0 0', color: '#fff', fontSize: '1rem' }}>
-                      {currentLesson?.title || 'Lesson Title'}
-                    </p>
+                  <div className="video-overlay">
+                    <h2>Lesson {currentLessonIndex + 1}</h2>
+                    <p className="video-subtitle">{currentLesson?.title || 'Lesson Title'}</p>
                   </div>
-                </div>
+                </>
               )}
             </div>
 
