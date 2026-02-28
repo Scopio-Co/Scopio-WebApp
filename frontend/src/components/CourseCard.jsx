@@ -14,7 +14,8 @@ const CourseCard = ({
   progress = 80,
   authorName = "Ashva Rishemh",
   authorTitle = "Lover @Kanyakumari",
-  imageFilter = ''
+  imageFilter = '',
+  onCourseClick
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -78,7 +79,18 @@ const CourseCard = ({
       )}
 
       {/* Main Course Card */}
-      <div className="course-card-main" onClick={() => id && navigate(`/course/${id}`)} style={{ cursor: id ? 'pointer' : 'default' }}>
+      <div
+        className="course-card-main"
+        onClick={() => {
+          if (!id) return;
+          if (typeof onCourseClick === 'function') {
+            onCourseClick(id);
+            return;
+          }
+          navigate(`/course/${id}`);
+        }}
+        style={{ cursor: id ? 'pointer' : 'default' }}
+      >
         <div className="card-image-section">
           <img
             src={image}

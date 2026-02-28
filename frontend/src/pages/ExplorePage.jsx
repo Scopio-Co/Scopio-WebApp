@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import './ExplorePage.css';
 import CourseCard from '../components/CourseCard';
 import Footer from '../components/Footer';
@@ -7,6 +8,7 @@ import courseCardImage from '../assets/img/course_card.webp';
 import api from '../api';
 
 const ExplorePage = () => {
+  const navigate = useNavigate();
   const scrollRef1 = useRef(null);
   const scrollRef2 = useRef(null);
   const scrollRef3 = useRef(null);
@@ -78,6 +80,11 @@ const ExplorePage = () => {
 
     fetchCourses();
   }, []);
+
+  const onCourseClick = (courseId) => {
+    if (!courseId) return;
+    navigate(`/course/${courseId}`);
+  };
 
   const handleScroll = (ref, direction) => {
     if (ref.current) {

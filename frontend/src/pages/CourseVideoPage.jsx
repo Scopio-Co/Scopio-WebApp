@@ -93,7 +93,7 @@ const CourseVideoPage = () => {
     try {
       setSubmittingDiscussion(true);
       const response = await api.post('/api/video/discussions/', {
-        course: selectedCourse.id,
+        course: courseData.id,
         comment: newDiscussion
       });
 
@@ -116,14 +116,14 @@ const CourseVideoPage = () => {
   const handleRatingSubmit = async (rating) => {
     try {
       await api.post('/api/video/ratings/', {
-        course: selectedCourse.id,
+        course: courseData.id,
         rating: rating
       });
 
       setUserRating(rating);
 
       // Refresh course data to get updated average rating
-      const response = await api.get(`/api/video/courses/${selectedCourse.id}/`);
+      const response = await api.get(`/api/video/courses/${courseData.id}/`);
       setCourseData(response.data);
     } catch (err) {
       console.error('Error submitting rating:', err);
@@ -163,8 +163,8 @@ const CourseVideoPage = () => {
   ];
 
   // Extract course info from API data or fallback
-  const courseTitle = courseData?.title || selectedCourse?.title || 'Course Name';
-  const courseDuration = courseData?.total_duration || selectedCourse?.duration || '3 Components';
+  const courseTitle = courseData?.title || 'Course Name';
+  const courseDuration = courseData?.total_duration || '3 Components';
   const courseDescription = courseData?.description || 'In this comprehensive lesson, you will learn fundamental concepts.';
   const courseRating = courseData?.average_rating ? parseFloat(courseData.average_rating) : 0.0;
   const totalRatings = courseData?.total_ratings || 0;
