@@ -3,6 +3,9 @@ import './LeaderboardPage.css';
 import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import streakBadge from '../assets/img/streak-badge.svg';
+import goldBadge from '../assets/img/Scopio/gold-badge.png';
+import silverBadge from '../assets/img/Scopio/silver-badge.png';
+import bronzeBadge from '../assets/img/Scopio/bronze-badge.png';
 
 const LeaderboardPage = ({ isLoading }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -257,15 +260,23 @@ const LeaderboardPage = ({ isLoading }) => {
                     style={{ background: entry.bgColor }}
                   >
                     <td className="rank-cell">
-                      <div 
-                        className="rank-badge"
-                        style={{ 
-                          background: getRankBadgeColor(entry.rank),
-                          border: entry.rank ? '2px solid rgba(255, 255, 255, 0.72)' : 'none'
-                        }}
-                      >
-                        {entry.rank}
-                      </div>
+                      {entry.rank === 1 ? (
+                        <img src={goldBadge} alt="Gold Badge" className="rank-badge-img" />
+                      ) : entry.rank === 2 ? (
+                        <img src={silverBadge} alt="Silver Badge" className="rank-badge-img" />
+                      ) : entry.rank === 3 ? (
+                        <img src={bronzeBadge} alt="Bronze Badge" className="rank-badge-img" />
+                      ) : (
+                        <div 
+                          className="rank-badge"
+                          style={{ 
+                            background: getRankBadgeColor(entry.rank),
+                            border: entry.rank ? '2px solid rgba(255, 255, 255, 0.72)' : 'none'
+                          }}
+                        >
+                          {entry.rank}
+                        </div>
+                      )}
                     </td>
                     <td className="learner-cell">
                       <div className="learner-info">
