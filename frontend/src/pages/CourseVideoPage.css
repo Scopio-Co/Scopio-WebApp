@@ -554,6 +554,44 @@
   margin: 0;
 }
 
+/* Lesson Completion Indicator */
+.lesson-completed-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4ECB71;
+  animation: scaleIn 0.3s ease;
+}
+
+.lesson-completed-mark svg {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Completed lesson styling */
+.lesson-item.completed {
+  opacity: 0.85;
+}
+
+.lesson-item.completed .lesson-title {
+  color: #4ECB71;
+}
+
 /* Resources, Notes, Tutor Content */
 .resources-content {
   padding: 0;
@@ -1298,41 +1336,6 @@
 .enrollment-modal-cancel:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* Lesson Complete Section */
-.lesson-complete-section {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  padding: 15px 0;
-  border-top: 1px solid var(--border-primary);
-}
-
-.mark-complete-btn {
-  display: flex;
-  align-items: center;
-  padding: 12px 24px;
-  background: #A749FF;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-family: inter;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(167, 73, 255, 0.3);
-}
-
-.mark-complete-btn:hover {
-  background: #9032d4;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(167, 73, 255, 0.4);
-}
-
-.mark-complete-btn:active {
-  transform: translateY(0);
 }
 
 /* XP Notification */

@@ -61,6 +61,9 @@ const CourseVideoPage = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [xpEarned, setXpEarned] = useState(0);
   const [showXpNotification, setShowXpNotification] = useState(false);
+  const [videoWatchedTime, setVideoWatchedTime] = useState(0); // Track video playback in seconds
+  const [completedLessons, setCompletedLessons] = useState(new Set()); // Track completed lesson IDs
+  const [autoCompletingLessonId, setAutoCompletingLessonId] = useState(null);
 
   // Fetch course data from API
   useEffect(() => {
@@ -141,6 +144,36 @@ const CourseVideoPage = () => {
     checkEnrollment();
   }, [courseId]);
 
+  // Track video playback time (must watch 2+ minutes before can mark complete)
+  useEffect(() => {
+    if (!isVideoPlaying) return;
+
+    // Increment watch time every second when video is playing
+    const interval = setInterval(() => {
+      setVideoWatchedTime(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isVideoPlaying]);
+
+  // Reset watch-time when switching lessons
+  useEffect(() => {
+    setVideoWatchedTime(0);
+  }, [currentLessonIndex]);
+
+  // Load completed lessons status
+  useEffect(() => {
+    if (!courseData || !courseData.lessons) return;
+
+    const completed = new Set();
+    courseData.lessons.forEach(lesson => {
+      if (lesson.completed) {
+        completed.add(lesson.id);
+      }
+    });
+    setCompletedLessons(completed);
+  }, [courseData]);
+
   // Handle play button - check enrollment
   const handlePlayClick = () => {
     if (!isEnrolled) {
@@ -172,15 +205,19 @@ const CourseVideoPage = () => {
   };
 
   // Mark current lesson as complete and award XP
-  const markLessonComplete = async () => {
-    if (!courseData || !courseData.lessons || !courseData.lessons[currentLessonIndex]) {
+  const markLessonComplete = async (lessonId = null) => {
+    if (!courseData || !courseData.lessons || courseData.lessons.length === 0) {
       return;
     }
 
-    const currentLesson = courseData.lessons[currentLessonIndex];
+    const targetLesson = lessonId
+      ? courseData.lessons.find(lesson => lesson.id === lessonId)
+      : courseData.lessons[currentLessonIndex];
+
+    if (!targetLesson) return;
     
     try {
-      const response = await api.post(`/api/video/lessons/${currentLesson.id}/mark_complete/`);
+      const response = await api.post(`/api/video/lessons/${targetLesson.id}/mark_complete/`);
       console.log('✓ Lesson marked complete:', response.data);
       
       // XP awarded comes ONLY from database (lesson.time_xp), never random
@@ -188,6 +225,9 @@ const CourseVideoPage = () => {
       const lessonXpValue = response.data.lesson_xp_value;
       
       console.log(`  XP from database: ${lessonXpValue} → Awarded: ${xpAwarded}`);
+      
+      // Add lesson to completed set for visual indicator
+      setCompletedLessons(prev => new Set([...prev, targetLesson.id]));
       
       if (xpAwarded > 0) {
         setXpEarned(xpAwarded);
@@ -204,6 +244,28 @@ const CourseVideoPage = () => {
       alert('Failed to mark lesson complete. Please try again.');
     }
   };
+
+  // Auto-complete lesson after 2 minutes of playback (minimal UX: no extra button/countdown)
+  useEffect(() => {
+    if (!isEnrolled || !isVideoPlaying || videoWatchedTime < 120) return;
+    if (!courseData?.lessons?.[currentLessonIndex]) return;
+
+    const lessonId = courseData.lessons[currentLessonIndex].id;
+    if (completedLessons.has(lessonId) || autoCompletingLessonId === lessonId) return;
+
+    setAutoCompletingLessonId(lessonId);
+    markLessonComplete(lessonId).finally(() => {
+      setAutoCompletingLessonId(null);
+    });
+  }, [
+    isEnrolled,
+    isVideoPlaying,
+    videoWatchedTime,
+    courseData,
+    currentLessonIndex,
+    completedLessons,
+    autoCompletingLessonId
+  ]);
 
   // Handle discussion submission
   const handleDiscussionSubmit = async (e) => {
@@ -336,7 +398,7 @@ const CourseVideoPage = () => {
   const instructorTitle = courseData?.instructor_title || 'Web Dev @copestart';
   const instructorBio = courseData?.instructor_bio || 'Ben Hong is a Staff Developer Experience (DX) Engineer...';
   const totalLessons = lessons.length;
-  const completedLessons = lessons.filter(l => l.completed).length;
+  const completedLessonsCount = lessons.filter(l => l.completed).length;
   
   // Get current lesson's video URL
   const currentLesson = lessons[currentLessonIndex] || lessons[0];
@@ -439,28 +501,11 @@ const CourseVideoPage = () => {
               )}
             </div>
 
-            {/* Mark Lesson Complete Button */}
-            {isEnrolled && currentLesson && (
-              <div className="lesson-complete-section">
-                <button
-                  type="button"
-                  className="mark-complete-btn"
-                  onClick={markLessonComplete}
-                  title="Mark this lesson as completed to earn XP"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '8px'}}>
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
-                  </svg>
-                  Mark as Complete
-                </button>
-              </div>
-            )}
-
             {/* Course Lessons */}
             <div className="lessons-sidebar">
               <div className="lessons-header">
                 <h2>Course Lessons</h2>
-                <p className="progress-text">{completedLessons}/{totalLessons} completed</p>
+                <p className="progress-text">{completedLessonsCount}/{totalLessons} completed</p>
               </div>
 
               <div className="lessons-scroll-container">
@@ -468,7 +513,7 @@ const CourseVideoPage = () => {
                 {lessons.map((lesson, index) => (
                   <div
                     key={lesson.id}
-                    className={`lesson-item ${lesson.completed ? 'completed' : ''} ${currentLessonIndex === index ? 'active-lesson' : ''}`}
+                    className={`lesson-item ${completedLessons.has(lesson.id) ? 'completed' : ''} ${currentLessonIndex === index ? 'active-lesson' : ''}`}
                     onClick={() => {
                       setCurrentLessonIndex(index);
                       setIsVideoPlaying(false);
@@ -488,6 +533,13 @@ const CourseVideoPage = () => {
                       <p className="lesson-duration">{lesson.duration}</p>
                       <p className="lesson-xp">{lesson.time_xp || lesson.time}</p>
                     </div>
+                    {completedLessons.has(lesson.id) && (
+                      <div className="lesson-completed-mark">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#4ECB71"/>
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 ))}
                 </div>
