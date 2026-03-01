@@ -164,6 +164,28 @@ class UserNotes(models.Model):
         return f"{self.user.username}'s notes - {self.course.title}"
 
 
+class Enrollment(models.Model):
+    """Track which courses users are enrolled in"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enrollments')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
+    
+    # Enrollment tracking
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+    total_watch_time = models.PositiveIntegerField(default=0, help_text="Total watch time in seconds")
+    last_accessed = models.DateTimeField(auto_now=True)
+    
+    # Auto-enrollment threshold (30 seconds of viewing)
+    AUTO_ENROLL_THRESHOLD = 30  # seconds
+    
+    class Meta:
+        unique_together = ['user', 'course']
+        ordering = ['-last_accessed']
+        verbose_name_plural = "Enrollments"
+    
+    def __str__(self):
+        return f"{self.user.username} enrolled in {self.course.title}"
+
+
 class Rating(models.Model):
     """User ratings for courses"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_ratings')

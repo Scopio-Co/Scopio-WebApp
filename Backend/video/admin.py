@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment
 
 
 # ========== INLINE ADMINS ==========
@@ -115,6 +115,17 @@ class RatingAdmin(admin.ModelAdmin):
     list_filter = ['rating', 'course', 'created_at']
     search_fields = ['user__username', 'course__title']
     readonly_fields = ['created_at', 'updated_at']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'course')
+
+
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ['user', 'course', 'enrolled_at', 'total_watch_time', 'last_accessed']
+    list_filter = ['enrolled_at', 'course']
+    search_fields = ['user__username', 'course__title']
+    readonly_fields = ['enrolled_at', 'last_accessed']
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user', 'course')

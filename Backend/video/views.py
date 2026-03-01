@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Avg
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment
 from .serializers import (
     VideoSerializer,
     CourseListSerializer,
@@ -13,7 +13,8 @@ from .serializers import (
     ResourceSerializer,
     UserProgressSerializer,
     UserNotesSerializer,
-    RatingSerializer
+    RatingSerializer,
+    EnrollmentSerializer
 )
 
 
@@ -322,3 +323,60 @@ class RatingViewSet(viewsets.ModelViewSet):
         
         # Create new rating
         return super().create(request, *args, **kwargs)
+
+
+# ========== ENROLLMENT VIEWS ==========
+class EnrollmentViewSet(viewsets.ModelViewSet):
+    """
+    Course Enrollment ViewSet (authenticated users only)
+    
+    Auto-enrolls users after 30 seconds of viewing
+    GET /api/video/enrollments/ - Get user's enrolled courses
+    POST /api/video/enrollments/ - Enroll in a course (with watch time tracking)
+    """
+    serializer_class = EnrollmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Only show current user's enrollments"""
+        return Enrollment.objects.filter(
+            user=self.request.user
+        ).select_related('course').order_by('-last_accessed')
+    
+    def perform_create(self, serializer):
+        """Auto-set user when creating enrollment"""
+        serializer.save(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        """Create or update enrollment with watch time tracking"""
+        course_id = request.data.get('course')
+        watch_time = int(request.data.get('watch_time', 0))  # seconds
+        
+        if not course_id:
+            return Response(
+                {'error': 'Course ID is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if enrollment already exists
+        enrollment, created = Enrollment.objects.get_or_create(
+            user=request.user,
+            course_id=course_id,
+            defaults={'total_watch_time': watch_time}
+        )
+        
+        if not created:
+            # Update watch time for existing enrollment
+            enrollment.total_watch_time += watch_time
+            enrollment.save()
+        
+        serializer = self.get_serializer(enrollment)
+        return Response(
+            {
+                **serializer.data,
+                'created': created,
+                'message': 'Enrolled in course' if created else 'Watch time updated'
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
+

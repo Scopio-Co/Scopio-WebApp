@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment
 
 
 # ========== DEPRECATED (Backward Compatibility) ==========
@@ -215,3 +215,27 @@ class UserNotesSerializer(serializers.ModelSerializer):
             'notes_text', 'created_at', 'updated_at'
         ]
         read_only_fields = ['user', 'created_at', 'updated_at']
+
+
+# ========== ENROLLMENT SERIALIZERS ==========
+class EnrollmentSerializer(serializers.ModelSerializer):
+    """User course enrollments"""
+    course_title = serializers.CharField(source='course.title', read_only=True)
+    course_thumbnail = serializers.URLField(source='course.thumbnail_url', read_only=True)
+    course_description = serializers.CharField(source='course.description', read_only=True)
+    instructor_name = serializers.CharField(source='course.instructor_name', read_only=True)
+    instructor_title = serializers.CharField(source='course.instructor_title', read_only=True)
+    total_duration = serializers.CharField(source='course.total_duration', read_only=True)
+    rating = serializers.DecimalField(source='course.rating', max_digits=3, decimal_places=1, read_only=True)
+    total_lessons = serializers.IntegerField(source='course.total_lessons', read_only=True)
+    
+    class Meta:
+        model = Enrollment
+        fields = [
+            'id', 'user', 'course', 'course_title', 'course_thumbnail',
+            'course_description', 'instructor_name', 'instructor_title',
+            'total_duration', 'rating', 'total_lessons',
+            'enrolled_at', 'total_watch_time', 'last_accessed'
+        ]
+        read_only_fields = ['user', 'enrolled_at', 'last_accessed']
+

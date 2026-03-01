@@ -56,6 +56,9 @@ const CourseVideoPage = () => {
   const [notesError, setNotesError] = useState('');
   const [notesId, setNotesId] = useState(null);
   const [notesMode, setNotesMode] = useState('edit'); // 'edit' or 'preview'
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
 
   // Fetch course data from API
   useEffect(() => {
@@ -115,6 +118,56 @@ const CourseVideoPage = () => {
     // fallback to window
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
   }, []);
+
+  // Check if user is already enrolled
+  useEffect(() => {
+    if (!courseId) return;
+    
+    const checkEnrollment = async () => {
+      try {
+        const response = await api.get('/api/video/enrollments/');
+        const isUserEnrolled = response.data.some(enrollment => enrollment.course === parseInt(courseId));
+        setIsEnrolled(isUserEnrolled);
+      } catch (err) {
+        // If 401, user is not authenticated, so not enrolled
+        if (err.response?.status === 401) {
+          setIsEnrolled(false);
+        }
+      }
+    };
+    
+    checkEnrollment();
+  }, [courseId]);
+
+  // Handle play button - check enrollment
+  const handlePlayClick = () => {
+    if (!isEnrolled) {
+      setShowEnrollModal(true);
+    } else {
+      setIsVideoPlaying(true);
+    }
+  };
+
+  // Enroll user in course
+  const enrollInCourse = async () => {
+    try {
+      setEnrolling(true);
+      const response = await api.post('/api/video/enrollments/', {
+        course: parseInt(courseId),
+        watch_time: 1
+      });
+      
+      console.log('✓ Enrolled in course:', response.data);
+      setIsEnrolled(true);
+      setShowEnrollModal(false);
+      setIsVideoPlaying(true); // Auto-play after enrollment
+    } catch (err) {
+      console.error('Error enrolling in course:', err);
+      alert('Failed to enroll. Please try again.');
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   // Handle discussion submission
   const handleDiscussionSubmit = async (e) => {
@@ -320,7 +373,7 @@ const CourseVideoPage = () => {
                   <button
                     type="button"
                     className="play-center"
-                    onClick={() => setIsVideoPlaying(true)}
+                    onClick={handlePlayClick}
                     aria-label="Play video"
                   >
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -680,6 +733,63 @@ const CourseVideoPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Enrollment Modal */}
+      {showEnrollModal && (
+        <div className="enrollment-modal-overlay">
+          <div className="enrollment-modal">
+            <button
+              type="button"
+              className="enrollment-modal-close"
+              onClick={() => setShowEnrollModal(false)}
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+
+            <div className="enrollment-modal-content">
+              <h2 className="enrollment-modal-title">Unlock This Course</h2>
+              
+              <div className="enrollment-modal-course-info">
+                <img 
+                  src={courseData?.thumbnail_url || courseVideoImage} 
+                  alt={courseTitle}
+                  className="enrollment-modal-image"
+                />
+                <div className="enrollment-modal-details">
+                  <h3>{courseTitle}</h3>
+                  <span className="enrollment-instructor">{instructorName}</span>
+                  <span className="enrollment-duration">{courseDuration}</span>
+                </div>
+              </div>
+
+              <p className="enrollment-modal-description">
+                Enroll now to unlock full access to all lessons, discussions, notes, and resources.
+              </p>
+
+              <div className="enrollment-modal-actions">
+                <button
+                  type="button"
+                  className="enrollment-modal-cancel"
+                  onClick={() => setShowEnrollModal(false)}
+                  disabled={enrolling}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="enrollment-modal-enroll"
+                  onClick={enrollInCourse}
+                  disabled={enrolling}
+                >
+                  {enrolling ? 'Enrolling...' : 'Enroll Now'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

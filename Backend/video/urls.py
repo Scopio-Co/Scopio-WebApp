@@ -8,7 +8,8 @@ from .views import (
     ResourceViewSet,
     UserProgressViewSet,
     UserNotesViewSet,
-    RatingViewSet
+    RatingViewSet,
+    EnrollmentViewSet
 )
 
 router = DefaultRouter()
@@ -24,6 +25,7 @@ router.register(r'resources', ResourceViewSet, basename='resource')
 router.register(r'progress', UserProgressViewSet, basename='user-progress')
 router.register(r'notes', UserNotesViewSet, basename='user-notes')
 router.register(r'ratings', RatingViewSet, basename='rating')
+router.register(r'enrollments', EnrollmentViewSet, basename='enrollment')
 
 urlpatterns = [
     path('', include(router.urls)),

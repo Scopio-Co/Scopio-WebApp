@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
+import profilePic from '../assets/img/profilePic (2).png';
 import api from '../api';
 
 const LearningPage = ({ onLogout, isLoading }) => {
@@ -31,38 +32,60 @@ const LearningPage = ({ onLogout, isLoading }) => {
     }
   ];
 
-  // Fetch courses from backend
+  // Fetch enrolled courses from backend
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchEnrolledCourses = async () => {
       try {
         setLoading(true);
-        console.log('🔍 Fetching courses from API...');
-        const response = await api.get('/api/video/courses/');
-        console.log('✓ Received courses:', response.data);
+        console.log('🔍 Fetching enrolled courses from API...');
+        const response = await api.get('/api/video/enrollments/');
+        console.log('✓ Received enrollments:', response.data);
         
         if (response.data && response.data.length > 0) {
-          setCourses(response.data);
+          // Transform enrollment data to course format
+          const enrolledCourses = response.data.map((enrollment) => ({
+            id: enrollment.course,
+            title: enrollment.course_title,
+            description: enrollment.course_description,
+            thumbnail_url: enrollment.course_thumbnail,
+            instructor_name: enrollment.instructor_name,
+            instructor_title: enrollment.instructor_title,
+            rating: enrollment.rating,
+            total_duration: enrollment.total_duration,
+            progress_percentage: 0, // TODO: Calculate from progress API
+            total_lessons: enrollment.total_lessons,
+            is_published: true
+          }));
+          
+          setCourses(enrolledCourses);
           setUsingFallback(false);
           setError(null);
-          console.log(`✓ Loaded ${response.data.length} course(s) from database`);
+          console.log(`✓ Loaded ${enrolledCourses.length} enrolled course(s)`);
         } else {
-          // No courses in DB
-          console.warn('⚠️ No courses found in database');
+          // No enrollments yet
+          console.warn('⚠️ No enrolled courses found');
           setCourses([]);
           setUsingFallback(false);
         }
       } catch (err) {
-        console.error('❌ Error fetching courses:', err);
+        console.error('❌ Error fetching enrolled courses:', err);
         console.error('Error details:', err.response?.data || err.message);
-        setError('Failed to load courses. Please check your connection.');
-        setCourses([]);
+        
+        // If user is not authenticated, don't show error
+        if (err.response?.status === 401) {
+          setCourses([]);
+          setError(null);
+        } else {
+          setError('Failed to load courses. Please check your connection.');
+          setCourses([]);
+        }
         setUsingFallback(false);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    fetchEnrolledCourses();
   }, []);
 
   // Function to extract percentage from progress text
@@ -93,9 +116,20 @@ const LearningPage = ({ onLogout, isLoading }) => {
           )}
 
           {!loading && courses.length === 0 && !error && (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
-              <p>No courses available yet</p>
-              <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>Create courses in Django admin to see them here</p>
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <img src={profilePic} alt="Start Learning" className="empty-state-profile" />
+              </div>
+              <h2 className="empty-state-title">Start Your Learning Journey</h2>
+              <p className="empty-state-description">
+                You haven't enrolled in any courses yet. Explore our course catalog and start learning today!
+              </p>
+              <button 
+                className="explore-courses-btn" 
+                onClick={() => navigate('/explore')}
+              >
+                Explore Courses
+              </button>
             </div>
           )}
 
