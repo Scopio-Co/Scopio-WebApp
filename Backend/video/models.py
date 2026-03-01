@@ -233,6 +233,30 @@ class UserXP(models.Model):
         return self.total_xp
 
 
+class DailyXP(models.Model):
+    """Track daily XP for streak calculation"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_xp')
+    date = models.DateField(help_text="Date of XP earned")
+    xp_earned = models.PositiveIntegerField(default=0, help_text="XP earned on this day")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'date']
+        ordering = ['-date']
+        verbose_name_plural = "Daily XP"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.date}: {self.xp_earned} XP"
+    
+    @property
+    def meets_streak_threshold(self):
+        """Check if daily XP meets the streak threshold of 150 XP"""
+        return self.xp_earned >= 150
+
+
 # Keep old Video model for backward compatibility (can be removed later)
 class Video(models.Model):
     """DEPRECATED: Use Lesson model instead. Kept for backward compatibility."""

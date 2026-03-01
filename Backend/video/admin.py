@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
 
 
 # ========== INLINE ADMINS ==========
@@ -137,6 +137,18 @@ class UserXPAdmin(admin.ModelAdmin):
     list_filter = ['created_at', 'updated_at']
     search_fields = ['user__username']
     readonly_fields = ['created_at', 'updated_at']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
+
+@admin.register(DailyXP)
+class DailyXPAdmin(admin.ModelAdmin):
+    list_display = ['user', 'date', 'xp_earned', 'meets_streak_threshold', 'created_at']
+    list_filter = ['date', 'created_at']
+    search_fields = ['user__username']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-date', 'user']
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user')

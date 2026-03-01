@@ -1,5 +1,5 @@
 import './Welcome.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from './calendar.jsx';
 import profilePic from '../assets/img/profilePic.png';
 import badge1 from '../assets/img/Award 4.png';
@@ -10,15 +10,40 @@ import clockIcon from '../assets/img/timer.png';
 import targetIcon from '../assets/img/progress.png';
 import flameIcon from '../assets/img/fire.png';
 import achievementIcon from '../assets/img/achieved.png';
+import api from '../api';
 
 const WelcomeDashboard = () => {
 
   const [stats, setStats] = useState({
-    learningHours: 12,
-    streakDays: 120,
-    progress: 78,
-    achievements: 28
+    learningHours: 0,
+    streakDays: 0,
+    progress: 0,
+    achievements: 0
   });
+
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user statistics on component mount
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await api.get('/api/video/user-stats/');
+        console.log('✓ User stats fetched:', response.data);
+        setStats({
+          learningHours: response.data.learning_hours || 0,
+          streakDays: response.data.streak_days || 0,
+          progress: response.data.progress || 0,
+          achievements: response.data.achievements || 0
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error('❌ Failed to fetch user stats:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, []);
 
   const updateStat = (statName, value) => {
     setStats(prevStats => ({

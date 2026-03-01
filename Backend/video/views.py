@@ -1,9 +1,11 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
-from django.db.models import Avg
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP
+from django.db.models import Avg, Sum
+from django.db import models
+from datetime import date, timedelta
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
 from .serializers import (
     VideoSerializer,
     CourseListSerializer,
@@ -15,7 +17,8 @@ from .serializers import (
     UserNotesSerializer,
     RatingSerializer,
     EnrollmentSerializer,
-    UserXPSerializer
+    UserXPSerializer,
+    DailyXPSerializer
 )
 
 
@@ -206,6 +209,15 @@ class LessonViewSet(viewsets.ModelViewSet):
             if xp_awarded > 0:
                 user_xp, _ = UserXP.objects.get_or_create(user=request.user)
                 user_xp.add_xp(xp_awarded)
+                
+                # Track daily XP for streak calculation
+                today = date.today()
+                daily_xp, _ = DailyXP.objects.get_or_create(
+                    user=request.user,
+                    date=today
+                )
+                daily_xp.xp_earned += xp_awarded
+                daily_xp.save()
         else:
             # Lesson already completed, no new XP
             progress.save()
@@ -467,4 +479,67 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
         )
+
+
+# ========== USER STATISTICS ENDPOINT ==========
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def user_stats(request):
+    """
+    Calculate and return user statistics for dashboard:
+    - learning_hours: Total time spent watching courses (in hours)
+    - streak_days: Consecutive days with at least 150 XP
+    - progress: Overall completion percentage
+    - achievements: Total completed lessons
+    """
+    user = request.user
+    
+    # 1. Calculate learning hours from total watch time
+    total_watch_time = Enrollment.objects.filter(user=user).aggregate(
+        total=Sum('total_watch_time')
+    )['total'] or 0
+    learning_hours = round(total_watch_time / 3600, 1)  # Convert seconds to hours
+    
+    # 2. Calculate current streak (consecutive days with 150+ XP)
+    streak_days = 0
+    today = date.today()
+    check_date = today
+    
+    # Check backwards from today for consecutive days with 150+ XP
+    while True:
+        daily_xp = DailyXP.objects.filter(
+            user=user,
+            date=check_date,
+            xp_earned__gte=150  # Streak threshold
+        ).first()
+        
+        if daily_xp:
+            streak_days += 1
+            check_date -= timedelta(days=1)
+        else:
+            # If today has no XP yet, check yesterday to maintain streak
+            if check_date == today and streak_days == 0:
+                check_date -= timedelta(days=1)
+                continue
+            break
+    
+    # 3. Calculate progress (percentage of completed lessons)
+    total_lessons = Lesson.objects.count()
+    completed_lessons = UserProgress.objects.filter(
+        user=user,
+        completed=True
+    ).count()
+    progress = int((completed_lessons / total_lessons * 100)) if total_lessons > 0 else 0
+    
+    # 4. Calculate achievements (completed lessons count)
+    achievements = completed_lessons
+    
+    return Response({
+        'learning_hours': learning_hours,
+        'streak_days': streak_days,
+        'progress': progress,
+        'achievements': achievements,
+        'total_xp': UserXP.objects.filter(user=user).first().total_xp if UserXP.objects.filter(user=user).exists() else 0
+    })
 

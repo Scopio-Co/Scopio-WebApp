@@ -9,7 +9,8 @@ from .views import (
     UserProgressViewSet,
     UserNotesViewSet,
     RatingViewSet,
-    EnrollmentViewSet
+    EnrollmentViewSet,
+    user_stats
 )
 
 router = DefaultRouter()
@@ -29,4 +30,5 @@ router.register(r'enrollments', EnrollmentViewSet, basename='enrollment')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('user-stats/', user_stats, name='user-stats'),
 ]

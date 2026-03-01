@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
 
 
 # ========== DEPRECATED (Backward Compatibility) ==========
@@ -282,3 +282,18 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             ).count()
             return completed
         return 0
+
+
+# ========== DAILY XP SERIALIZER ==========
+class DailyXPSerializer(serializers.ModelSerializer):
+    """Track daily XP for streak calculation"""
+    username = serializers.CharField(source='user.username', read_only=True)
+    meets_streak_threshold = serializers.BooleanField(read_only=True)
+    
+    class Meta:
+        model = DailyXP
+        fields = [
+            'id', 'user', 'username', 'date', 'xp_earned',
+            'meets_streak_threshold', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
