@@ -48,6 +48,11 @@ const CourseVideoPage = () => {
   const [submittingDiscussion, setSubmittingDiscussion] = useState(false);
   const [userRating, setUserRating] = useState(null);
   const [hoverRating, setHoverRating] = useState(0);
+  const [userNotes, setUserNotes] = useState('');
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
+  const [notesError, setNotesError] = useState('');
+  const [notesId, setNotesId] = useState(null);
 
   // Fetch course data from API
   useEffect(() => {
@@ -73,6 +78,29 @@ const CourseVideoPage = () => {
     };
 
     fetchCourseData();
+  }, [courseId]);
+
+  // Fetch user notes from API
+  useEffect(() => {
+    if (!courseId) return;
+
+    const fetchUserNotes = async () => {
+      try {
+        setNotesLoading(true);
+        const response = await api.get(`/api/video/notes/?course=${courseId}`);
+        if (response.data && response.data.length > 0) {
+          setUserNotes(response.data[0].notes_text || '');
+          setNotesId(response.data[0].id);
+        }
+      } catch (err) {
+        console.error('Error fetching notes:', err);
+        // Don't show error, just leave notes empty
+      } finally {
+        setNotesLoading(false);
+      }
+    };
+
+    fetchUserNotes();
   }, [courseId]);
 
   useEffect(() => {
@@ -128,6 +156,45 @@ const CourseVideoPage = () => {
     } catch (err) {
       console.error('Error submitting rating:', err);
       alert('Failed to submit rating. Please try again.');
+    }
+  };
+
+  // Handle notes save
+  const handleNotesSave = async () => {
+    try {
+      setNotesError('');
+      setNotesSaved(false);
+      
+      if (notesId) {
+        // Update existing notes
+        await api.put(`/api/video/notes/${notesId}/`, {
+          notes_text: userNotes,
+          course: courseData.id
+        });
+      } else {
+        // Create new notes
+        const response = await api.post('/api/video/notes/', {
+          course: courseData.id,
+          notes_text: userNotes
+        });
+        setNotesId(response.data.id);
+      }
+      
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 3000); // Show success message for 3 seconds
+    } catch (err) {
+      console.error('Error saving notes:', err);
+      setNotesError('Failed to save notes. Please try again.');
+      setTimeout(() => setNotesError(''), 3000);
+    }
+  };
+
+  // Handle notes reset
+  const handleNotesReset = () => {
+    if (window.confirm('Are you sure you want to clear all notes?')) {
+      setUserNotes('');
+      setNotesSaved(false);
+      setNotesError('');
     }
   };
 
@@ -496,14 +563,40 @@ const CourseVideoPage = () => {
                 {activeTab === 'notes' && (
                   <div className="notes-content">
                     <h3>My Notes:</h3>
+                    {notesLoading && <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Loading notes...</p>}
                     <textarea 
                       className="notes-textarea" 
-                      placeholder="Markdown supported"
+                      placeholder="Markdown and plain text supported"
+                      value={userNotes}
+                      onChange={(e) => setUserNotes(e.target.value)}
+                      disabled={notesLoading}
                     ></textarea>
                     <div className="notes-actions">
-                      <button className="notes-reset-btn">Reset</button>
-                      <button className="notes-save-btn">Save</button>
+                      <button 
+                        className="notes-reset-btn"
+                        onClick={handleNotesReset}
+                        disabled={notesLoading}
+                      >
+                        Clear
+                      </button>
+                      <button 
+                        className="notes-save-btn"
+                        onClick={handleNotesSave}
+                        disabled={notesLoading}
+                      >
+                        {notesLoading ? 'Saving...' : 'Save Notes'}
+                      </button>
                     </div>
+                    {notesSaved && (
+                      <p style={{ color: '#4ade80', fontSize: '0.9rem', marginTop: '10px' }}>
+                        ✓ Notes saved successfully
+                      </p>
+                    )}
+                    {notesError && (
+                      <p style={{ color: '#ff4444', fontSize: '0.9rem', marginTop: '10px' }}>
+                        ✗ {notesError}
+                      </p>
+                    )}
                   </div>
                 )}
                 {activeTab === 'tutor' && (

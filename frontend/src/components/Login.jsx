@@ -54,16 +54,20 @@ const Login = ({ onLoginSuccess }) => {
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
       try {
+        console.log('🔐 [Login] Submitting login form...');
         // Call the login API
         await login(formData.emailOrUsername, formData.password);
-        console.log('Login successful');
+        console.log('✓ [Login] Login API successful');
         
         // notify parent about successful login so it can show toast / navigate
         if (typeof onLoginSuccess === 'function') {
+          console.log('✓ [Login] Calling onLoginSuccess callback');
           onLoginSuccess();
+        } else {
+          console.log('⚠️ [Login] onLoginSuccess callback not provided');
         }
       } catch (error) {
-        console.error('Login failed:', error);
+        console.error('❌ [Login] Login failed:', error);
         // Display error message from backend
         const errorMessage = error.response?.data?.detail || 
                            error.response?.data?.error ||

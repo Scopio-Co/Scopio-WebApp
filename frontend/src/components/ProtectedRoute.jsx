@@ -21,9 +21,18 @@ const ProtectedRoute = ({ children, isAuthenticated, isCheckingAuth }) => {
 
   // Handle unauthenticated access
   useEffect(() => {
+    console.log('🔐 [ProtectedRoute] State Check:', {
+      isAuthenticated,
+      isCheckingAuth,
+      hasShownModal,
+      shouldShowModal: !isAuthenticated && !isCheckingAuth && !hasShownModal
+    });
+    
     if (!isAuthenticated && !isCheckingAuth && !hasShownModal) {
+      console.log('⚠️ [ProtectedRoute] User not authenticated, will show modal');
       // Small delay to ensure component is mounted
       const timer = setTimeout(() => {
+        console.log('⚠️ [ProtectedRoute] Showing authentication modal');
         setShowModal(true);
         setHasShownModal(true);
       }, 100);

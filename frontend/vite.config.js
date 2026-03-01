@@ -7,6 +7,10 @@ export default defineConfig({
   server: {
     host: 'localhost',
     port: 5173,
-    strictPort: true,
+    strictPort: true, // Enforce 5173 ONLY - no fallback to 5177
+    hmr: {
+      host: 'localhost',
+      port: 5173
+    }
   },
 })

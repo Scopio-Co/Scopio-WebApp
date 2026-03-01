@@ -112,13 +112,15 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
+            'prompt': 'consent',
         },
-        # Configure app credentials via environment to avoid DB SocialApp
         'APP': {
             'client_id': GOOGLE_CLIENT_ID_VAL,
             'secret': GOOGLE_CLIENT_SECRET_VAL,
             'key': ''
-        }
+        },
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v2',
     }
 }
 
@@ -280,6 +282,8 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Enforce stronger defaults in production
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for social login

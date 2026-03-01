@@ -139,8 +139,16 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             access = resp.data.get("access")
             refresh = resp.data.get("refresh")
             logger.info(f"✓ Login successful: {username}")
-            # Build minimal response and set cookies
-            response = JsonResponse({"detail": "login successful"})
+            logger.info(f"✓ Tokens generated - access length: {len(access) if access else 0}, refresh length: {len(refresh) if refresh else 0}")
+            
+            # Return response WITH tokens in body AND set cookies
+            response = Response({
+                "access": access,
+                "refresh": refresh,
+                "detail": "login successful"
+            }, status=status.HTTP_200_OK)
+            
+            # Also set cookies for backward compatibility
             _set_auth_cookies(response, access, refresh)
             return response
         except Exception as e:

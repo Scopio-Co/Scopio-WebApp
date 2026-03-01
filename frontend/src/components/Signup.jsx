@@ -159,16 +159,28 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   };
 
   const handleLoginSuccess = () => {
-    // show toast notification for login
-    setToast({ visible: true, message: 'Login successfully' });
-    // Wait 1 second before navigating to show the toast
+    console.log('✓ [Signup] Login success callback triggered');
+    console.log('✓ [Signup] Verifying tokens in storage:', {
+      access: !!localStorage.getItem('access'),
+      refresh: !!localStorage.getItem('refresh')
+    });
+    
+    // Show toast notification
+    setToast({ visible: true, message: 'Login successful!' });
+    
+    // Hide login modal immediately
+    setShowLoginModal(false);
+    
+    // Call parent's callback to update auth state - THIS MUST HAPPEN IMMEDIATELY
+    if (typeof onSwitchToWelcome === 'function') {
+      console.log('✓ [Signup] Calling onSwitchToWelcome callback');
+      onSwitchToWelcome();
+    }
+    
+    // Hide toast after delay (non-blocking, optional)
     setTimeout(() => {
       setToast({ visible: false, message: '' });
-      if (typeof onSwitchToWelcome === 'function') {
-        onSwitchToWelcome();
-      }
-      setShowLoginModal(false);
-    }, 1000);
+    }, 2000);
   };
 
   return (

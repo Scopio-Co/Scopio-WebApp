@@ -33,11 +33,14 @@ api.interceptors.request.use(
       return config;
     }
     
-    // Attach JWT token
+    // Attach JWT token from localStorage only
     const token = localStorage.getItem(ACCESS_TOKEN);
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔐 [API] Attached auth token to request:', config.url);
+    } else {
+      console.warn('⚠️ [API] No auth token found for request:', config.url);
     }
     
     // Attach CSRF token for unsafe methods
@@ -103,20 +106,42 @@ export async function fetchVideos() {
 
 // Login API call
 export async function login(username, password) {
+  console.log('🔐 [API] Calling login endpoint...');
   const { data } = await api.post('/api/auth/login/', {
     username,
     password,
   });
   
-  // Store tokens in localStorage
+  console.log('✓ [API] Login response received:', { 
+    hasAccess: !!data.access, 
+    hasRefresh: !!data.refresh,
+    accessLength: data.access?.length || 0,
+    refreshLength: data.refresh?.length || 0
+  });
+  
+  // Store tokens in localStorage (primary storage)
   if (data.access) {
     localStorage.setItem(ACCESS_TOKEN, data.access);
+    console.log('✓ [API] Access token stored in localStorage');
   }
   if (data.refresh) {
     localStorage.setItem(REFRESH_TOKEN, data.refresh);
+    console.log('✓ [API] Refresh token stored in localStorage');
   }
   
-  console.log('✓ Login tokens stored successfully');
+  // Verify tokens were actually stored
+  const verifyAccess = localStorage.getItem(ACCESS_TOKEN);
+  const verifyRefresh = localStorage.getItem(REFRESH_TOKEN);
+  console.log('✓ [API] Tokens verified in storage:', { 
+    accessStored: !!verifyAccess, 
+    refreshStored: !!verifyRefresh 
+  });
+  
+  if (!verifyAccess || !verifyRefresh) {
+    console.error('❌ [API] Failed to store tokens!');
+    throw new Error('Failed to store authentication tokens');
+  }
+  
   return data;
 }
 

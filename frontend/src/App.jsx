@@ -40,34 +40,56 @@ function App() {
   );
 }
 
+// Helper function to check if user is authenticated (synchronous)
+function isUserAuthenticated() {
+  try {
+    const accessToken = localStorage.getItem('access');
+    const refreshToken = localStorage.getItem('refresh');
+    
+    const isAuthenticated = !!(accessToken && refreshToken);
+    
+    console.log('🔐 [Auth] isUserAuthenticated check:', { 
+      isAuthenticated, 
+      hasAccessToken: !!accessToken, 
+      hasRefreshToken: !!refreshToken,
+      accessTokenLength: accessToken?.length || 0,
+      refreshTokenLength: refreshToken?.length || 0
+    });
+    
+    return isAuthenticated;
+  } catch (err) {
+    console.error('❌ [Auth] Error checking authentication:', err);
+    return false;
+  }
+}
+
 // AppContent component handles authentication and routing
 function AppContent() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [authError, setAuthError] = useState(null)
+  // Initialize auth state synchronously from localStorage to prevent logout on hard refresh
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const result = isUserAuthenticated();
+    console.log('📱 [App] Initial mount - isAuthenticated:', result);
+    return result;
+  });
+  
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check authentication status on mount and persist across refreshes
+  // Verify tokens persist correctly (run on mount and location change)
   useEffect(() => {
-    const checkAuth = () => {
-      const accessToken = localStorage.getItem('access');
-      const refreshToken = localStorage.getItem('refresh');
-      
-      if (accessToken && refreshToken) {
-        console.log('✓ User is authenticated (tokens found)');
-        setIsAuthenticated(true);
-      } else {
-        console.log('⚠ No authentication tokens found');
-        setIsAuthenticated(false);
-      }
-      setIsCheckingAuth(false);
-    };
+    console.log('🔄 [App] Checking auth persistence on mount/route change...');
+    const currentAuth = isUserAuthenticated();
+    
+    if (currentAuth !== isAuthenticated) {
+      console.log('⚠️ [App] Auth state mismatch - fixing:', { current: currentAuth, state: isAuthenticated });
+      setIsAuthenticated(currentAuth);
+    }
+  }, [location.pathname, isAuthenticated]);
 
-    checkAuth();
-  }, []);
-
+  // Handle OAuth callbacks
   useEffect(() => {
     // Check for OAuth callback in URL (query params)
     const urlParams = new URLSearchParams(window.location.search);
@@ -78,11 +100,11 @@ function AppContent() {
     
     // Handle OAuth success - tokens in query params
     if (accessToken && refreshToken) {
-      // Store tokens in localStorage
+      // Store tokens in localStorage only (more reliable)
       localStorage.setItem('access', accessToken);
       localStorage.setItem('refresh', refreshToken);
       
-      console.log('✓ OAuth tokens stored successfully');
+      console.log('✓ OAuth tokens stored successfully in localStorage');
       
       // Update authentication state
       setIsAuthenticated(true);
@@ -121,7 +143,7 @@ function AppContent() {
         // Update authentication state
         setIsAuthenticated(true);
         
-        console.log('✓ OAuth tokens stored successfully (from hash)');
+        console.log('✓ OAuth tokens stored successfully (from hash in localStorage)');
         
         // Navigate to home page and clean URL
         window.history.replaceState({}, document.title, '/home');
@@ -132,18 +154,46 @@ function AppContent() {
 
   // Callback for successful login/signup
   const handleLoginSuccess = () => {
+    console.log('✓ [App] handleLoginSuccess callback triggered');
+    
+    // Double-check tokens are in localStorage
+    const access = localStorage.getItem('access');
+    const refresh = localStorage.getItem('refresh');
+    
+    console.log('✓ [App] Checking tokens in handleLoginSuccess:', {
+      hasAccess: !!access,
+      hasRefresh: !!refresh,
+      accessLength: access?.length || 0,
+      refreshLength: refresh?.length || 0
+    });
+    
+    if (!access || !refresh) {
+      console.error('❌ [App] Tokens missing from localStorage!');
+      window.alert('Error: Authentication tokens not found. Please try logging in again.');
+      return;
+    }
+    
+    // Set authenticated state
+    console.log('✓ [App] Setting isAuthenticated to true');
     setIsAuthenticated(true);
+    
+    // Navigate to home
+    console.log('✓ [App] Navigating to /home');
     navigate('/home');
   };
 
   const handleLogout = () => {
+    console.log('🚪 [App] Logging out user...');
     // Clear tokens from localStorage
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
     
+    console.log('🚪 [App] Tokens cleared from localStorage');
+    
     // Update authentication state
     setIsAuthenticated(false);
     
+    console.log('🚪 [App] isAuthenticated set to false, navigating to home');
     // Navigate to login page
     navigate('/');
   };
@@ -163,7 +213,7 @@ function AppContent() {
     return (
       <div className="app-layout" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div style={{ textAlign: 'center', color: 'var(--text-primary)' }}>
-          <p>Loading...</p>
+          <p>Verifying session...</p>
         </div>
       </div>
     );
