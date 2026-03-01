@@ -13,6 +13,8 @@ const LearningPage = ({ onLogout, isLoading }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [userXP, setUserXP] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState(0);
   const navigate = useNavigate();
 
   // Fallback dummy courses for when API is unavailable
@@ -52,7 +54,8 @@ const LearningPage = ({ onLogout, isLoading }) => {
             instructor_title: enrollment.instructor_title,
             rating: enrollment.rating,
             total_duration: enrollment.total_duration,
-            progress_percentage: 0, // TODO: Calculate from progress API
+            progress_percentage: enrollment.progress_percentage, // Now from backend
+            completed_lessons: enrollment.completed_lessons, // Lessons completed
             total_lessons: enrollment.total_lessons,
             is_published: true
           }));
@@ -88,6 +91,23 @@ const LearningPage = ({ onLogout, isLoading }) => {
     fetchEnrolledCourses();
   }, []);
 
+  // Fetch user XP and stats
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await api.get('/api/video/courses/user_stats/');
+        console.log('✓ User stats:', response.data);
+        setUserXP(response.data.total_xp || 0);
+        setCompletedLessons(response.data.total_lessons_completed || 0);
+      } catch (err) {
+        console.warn('Could not fetch user stats:', err.message);
+        // Don't show error for stats - it's not critical
+      }
+    };
+
+    fetchUserStats();
+  }, []);
+
   // Function to extract percentage from progress text
   const getProgressPercentage = (progressText) => {
     const match = progressText.match(/(\d+)%/);
@@ -99,7 +119,20 @@ const LearningPage = ({ onLogout, isLoading }) => {
       {/* Main Content */}
       <div className="learning-page-content">
         <div className="learning-page-header">
-          <h1 className="learning-page-title">Learning</h1>
+          <div className="learning-page-title-section">
+            <h1 className="learning-page-title">Learning</h1>
+            <div className="learning-stats">
+              <div className="stat-item">
+                <span className="stat-label">XP Earned</span>
+                <span className="stat-value">{userXP}</span>
+              </div>
+              <div className="stat-divider"></div>
+              <div className="stat-item">
+                <span className="stat-label">Lessons Completed</span>
+                <span className="stat-value">{completedLessons}</span>
+              </div>
+            </div>
+          </div>
           <div className="learning-page-sort">
             <button className="sort-button">Sort <svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 16 16" fill="none">
   <path d="M4.14225 13.8296V0H3.01725V13.8296L0.795375 11.6077L0 12.4031L3.18206 15.5852C3.28755 15.6906 3.4306 15.7499 3.57975 15.7499C3.7289 15.7499 3.87195 15.6906 3.97744 15.5852L7.1595 12.4031L6.36413 11.6077L4.14225 13.8296ZM15.0345 3.34687L11.8524 0.164812C11.747 0.05936 11.6039 0.000120163 11.4548 0.000120163C11.3056 0.000120163 11.1625 0.05936 11.0571 0.164812L7.875 3.34687L8.67037 4.14225L10.8923 1.92037V15.75H12.0173V1.92037L14.2391 4.14225L15.0345 3.34687Z"/>

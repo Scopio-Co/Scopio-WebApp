@@ -1299,3 +1299,92 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Lesson Complete Section */
+.lesson-complete-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid var(--border-primary);
+}
+
+.mark-complete-btn {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  background: #A749FF;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-family: inter;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(167, 73, 255, 0.3);
+}
+
+.mark-complete-btn:hover {
+  background: #9032d4;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(167, 73, 255, 0.4);
+}
+
+.mark-complete-btn:active {
+  transform: translateY(0);
+}
+
+/* XP Notification */
+.xp-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  animation: slideInRight 0.4s ease;
+}
+
+.xp-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  min-width: 260px;
+}
+
+.xp-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.xp-text h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: Eina03;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.xp-text p {
+  margin: 0;
+  color: #A749FF;
+  font-family: inter;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

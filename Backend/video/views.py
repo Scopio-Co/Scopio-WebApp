@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Avg
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP
 from .serializers import (
     VideoSerializer,
     CourseListSerializer,
@@ -14,7 +14,8 @@ from .serializers import (
     UserProgressSerializer,
     UserNotesSerializer,
     RatingSerializer,
-    EnrollmentSerializer
+    EnrollmentSerializer,
+    UserXPSerializer
 )
 
 
@@ -62,6 +63,18 @@ class CourseViewSet(viewsets.ModelViewSet):
         context['request'] = self.request
         return context
     
+    def get_queryset(self):
+        """Filter published courses for regular users, show all for admins"""
+        queryset = Course.objects.prefetch_related(
+            'lessons', 'discussions', 'resources'
+        )
+        
+        # Show only published courses to non-admin users
+        if not (self.request.user.is_authenticated and self.request.user.is_staff):
+            queryset = queryset.filter(is_published=True)
+        
+        return queryset
+    
     @action(detail=True, methods=['get'])
     def progress(self, request, pk=None):
         """Get detailed user progress for this course"""
@@ -92,6 +105,34 @@ class CourseViewSet(viewsets.ModelViewSet):
             'progress_percentage': int((completed_count / total_count * 100)) if total_count > 0 else 0,
             'progress_details': progress_serializer.data
         })
+    
+    @action(detail=False, methods=['get'])
+    def user_stats(self, request):
+        """Get current user's total XP and learning stats"""
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        user_xp, _ = UserXP.objects.get_or_create(user=request.user)
+        
+        # Count total lessons completed across all courses
+        total_completed = UserProgress.objects.filter(
+            user=request.user,
+            completed=True
+        ).count()
+        
+        # Get enrolled courses count
+        enrolled_courses = Enrollment.objects.filter(user=request.user).count()
+        
+        return Response({
+            'user_id': request.user.id,
+            'username': request.user.username,
+            'total_xp': user_xp.total_xp,
+            'total_lessons_completed': total_completed,
+            'enrolled_courses': enrolled_courses
+        })
 
 
 # ========== LESSON VIEWS ==========
@@ -117,7 +158,11 @@ class LessonViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def mark_complete(self, request, pk=None):
-        """Mark lesson as completed"""
+        """Mark lesson as completed and award XP from database only
+        
+        XP MUST come from lesson.time_xp field in database, NEVER random.
+        Only awards XP on first completion of a lesson.
+        """
         lesson = self.get_object()
         
         if not request.user.is_authenticated:
@@ -132,12 +177,46 @@ class LessonViewSet(viewsets.ModelViewSet):
             lesson=lesson
         )
         
-        progress.completed = True
-        progress.completed_at = timezone.now()
-        progress.save()
+        xp_awarded = 0
+        
+        # Only award XP if this is the first time marking complete
+        if not progress.completed:
+            progress.completed = True
+            progress.completed_at = timezone.now()
+            progress.save()
+            
+            # *** XP MUST come from lesson.time_xp field in database ***
+            # Extract XP from lesson's time_xp field (e.g., "450.00" -> 450)
+            # NO RANDOM GENERATION - only database values
+            if lesson.time_xp:
+                try:
+                    xp_value = float(lesson.time_xp)
+                    xp_awarded = int(xp_value)
+                    
+                    # Validate XP is positive (sanity check)
+                    if xp_awarded < 0:
+                        xp_awarded = 0
+                    
+                except (ValueError, TypeError):
+                    # If time_xp is invalid, award 0 XP
+                    xp_awarded = 0
+                    print(f"Warning: Invalid XP value in lesson {lesson.id}: {lesson.time_xp}")
+            
+            # Award XP to user (only if xp_awarded > 0)
+            if xp_awarded > 0:
+                user_xp, _ = UserXP.objects.get_or_create(user=request.user)
+                user_xp.add_xp(xp_awarded)
+        else:
+            # Lesson already completed, no new XP
+            progress.save()
         
         serializer = UserProgressSerializer(progress)
-        return Response(serializer.data)
+        return Response({
+            **serializer.data,
+            'xp_awarded': xp_awarded,
+            'lesson_title': lesson.title,
+            'lesson_xp_value': lesson.time_xp
+        })
     
     @action(detail=True, methods=['post'])
     def update_progress(self, request, pk=None):
@@ -358,6 +437,15 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        try:
+            # Verify course exists
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return Response(
+                {'error': f'Course with ID {course_id} does not exist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
         # Check if enrollment already exists
         enrollment, created = Enrollment.objects.get_or_create(
             user=request.user,
@@ -370,7 +458,7 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             enrollment.total_watch_time += watch_time
             enrollment.save()
         
-        serializer = self.get_serializer(enrollment)
+        serializer = self.get_serializer(enrollment, context={'request': request})
         return Response(
             {
                 **serializer.data,

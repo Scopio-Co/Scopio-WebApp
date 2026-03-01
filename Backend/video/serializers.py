@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP
 
 
 # ========== DEPRECATED (Backward Compatibility) ==========
@@ -29,7 +29,7 @@ class LessonMinimalSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'duration', 'time_xp', 'video_url', 'order', 'completed']
+        fields = ['id', 'title', 'duration', 'time_xp', 'video_url', 'thumbnail_url', 'order', 'completed']
     
     def get_completed(self, obj):
         """Check if current user completed this lesson"""
@@ -217,9 +217,23 @@ class UserNotesSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at', 'updated_at']
 
 
+# ========== USER XP SERIALIZER ==========
+class UserXPSerializer(serializers.ModelSerializer):
+    """Track user's total XP from lesson completions"""
+    username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = UserXP
+        fields = [
+            'id', 'user', 'username', 'total_xp',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['total_xp', 'created_at', 'updated_at']
+
+
 # ========== ENROLLMENT SERIALIZERS ==========
 class EnrollmentSerializer(serializers.ModelSerializer):
-    """User course enrollments"""
+    """User course enrollments with progress tracking"""
     course_title = serializers.CharField(source='course.title', read_only=True)
     course_thumbnail = serializers.URLField(source='course.thumbnail_url', read_only=True)
     course_description = serializers.CharField(source='course.description', read_only=True)
@@ -228,6 +242,8 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     total_duration = serializers.CharField(source='course.total_duration', read_only=True)
     rating = serializers.DecimalField(source='course.rating', max_digits=3, decimal_places=1, read_only=True)
     total_lessons = serializers.IntegerField(source='course.total_lessons', read_only=True)
+    progress_percentage = serializers.SerializerMethodField()
+    completed_lessons = serializers.SerializerMethodField()
     
     class Meta:
         model = Enrollment
@@ -235,7 +251,34 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             'id', 'user', 'course', 'course_title', 'course_thumbnail',
             'course_description', 'instructor_name', 'instructor_title',
             'total_duration', 'rating', 'total_lessons',
+            'progress_percentage', 'completed_lessons',
             'enrolled_at', 'total_watch_time', 'last_accessed'
         ]
         read_only_fields = ['user', 'enrolled_at', 'last_accessed']
-
+    
+    def get_progress_percentage(self, obj):
+        """Calculate user's progress percentage for this course"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            total = obj.course.lessons.count()
+            if total == 0:
+                return 0
+            completed = UserProgress.objects.filter(
+                user=request.user,
+                course=obj.course,
+                completed=True
+            ).count()
+            return int((completed / total) * 100)
+        return 0
+    
+    def get_completed_lessons(self, obj):
+        """Get count of completed lessons"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            completed = UserProgress.objects.filter(
+                user=request.user,
+                course=obj.course,
+                completed=True
+            ).count()
+            return completed
+        return 0

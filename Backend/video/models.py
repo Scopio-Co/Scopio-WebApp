@@ -209,6 +209,30 @@ class Rating(models.Model):
         return f"{self.user.username} rated {self.course.title}: {self.rating} stars"
 
 
+class UserXP(models.Model):
+    """Track user's total XP gained from lesson completions"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='xp_profile')
+    
+    # XP tracking
+    total_xp = models.PositiveIntegerField(default=0, help_text="Total XP earned from all lessons")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = "User XP"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.total_xp} XP"
+    
+    def add_xp(self, amount):
+        """Add XP to user's total"""
+        self.total_xp += int(amount)
+        self.save()
+        return self.total_xp
+
+
 # Keep old Video model for backward compatibility (can be removed later)
 class Video(models.Model):
     """DEPRECATED: Use Lesson model instead. Kept for backward compatibility."""
@@ -218,5 +242,3 @@ class Video(models.Model):
 
     def __str__(self):
         return str(self.title)
-    
-

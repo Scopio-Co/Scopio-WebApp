@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP
 
 
 # ========== INLINE ADMINS ==========
@@ -131,5 +131,14 @@ class EnrollmentAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related('user', 'course')
 
 
-# Keep old Video model registered for backward compatibility
-admin.site.register(Video)
+@admin.register(UserXP)
+class UserXPAdmin(admin.ModelAdmin):
+    list_display = ['user', 'total_xp', 'created_at', 'updated_at']
+    list_filter = ['created_at', 'updated_at']
+    search_fields = ['user__username']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
+

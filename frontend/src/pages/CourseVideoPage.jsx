@@ -59,6 +59,8 @@ const CourseVideoPage = () => {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
+  const [xpEarned, setXpEarned] = useState(0);
+  const [showXpNotification, setShowXpNotification] = useState(false);
 
   // Fetch course data from API
   useEffect(() => {
@@ -166,6 +168,40 @@ const CourseVideoPage = () => {
       alert('Failed to enroll. Please try again.');
     } finally {
       setEnrolling(false);
+    }
+  };
+
+  // Mark current lesson as complete and award XP
+  const markLessonComplete = async () => {
+    if (!courseData || !courseData.lessons || !courseData.lessons[currentLessonIndex]) {
+      return;
+    }
+
+    const currentLesson = courseData.lessons[currentLessonIndex];
+    
+    try {
+      const response = await api.post(`/api/video/lessons/${currentLesson.id}/mark_complete/`);
+      console.log('✓ Lesson marked complete:', response.data);
+      
+      // XP awarded comes ONLY from database (lesson.time_xp), never random
+      const xpAwarded = response.data.xp_awarded || 0;
+      const lessonXpValue = response.data.lesson_xp_value;
+      
+      console.log(`  XP from database: ${lessonXpValue} → Awarded: ${xpAwarded}`);
+      
+      if (xpAwarded > 0) {
+        setXpEarned(xpAwarded);
+        setShowXpNotification(true);
+        
+        // Auto-hide notification after 3 seconds
+        setTimeout(() => {
+          setShowXpNotification(false);
+        }, 3000);
+      }
+    } catch (err) {
+      console.error('Error marking lesson complete:', err);
+      // Don't fail silently - let user know
+      alert('Failed to mark lesson complete. Please try again.');
     }
   };
 
@@ -330,6 +366,20 @@ const CourseVideoPage = () => {
 
   return (
     <div className="course-video-page">
+      {/* XP Earned Notification */}
+      {showXpNotification && (
+        <div className="xp-notification">
+          <div className="xp-notification-content">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#A749FF"/>
+            </svg>
+            <div className="xp-text">
+              <h4>Lesson Completed!</h4>
+              <p>+{xpEarned} XP Earned</p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="course-video-container">
         {/* Header */}
           <div className="course-video-header">
@@ -388,6 +438,23 @@ const CourseVideoPage = () => {
                 </>
               )}
             </div>
+
+            {/* Mark Lesson Complete Button */}
+            {isEnrolled && currentLesson && (
+              <div className="lesson-complete-section">
+                <button
+                  type="button"
+                  className="mark-complete-btn"
+                  onClick={markLessonComplete}
+                  title="Mark this lesson as completed to earn XP"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '8px'}}>
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+                  </svg>
+                  Mark as Complete
+                </button>
+              </div>
+            )}
 
             {/* Course Lessons */}
             <div className="lessons-sidebar">
