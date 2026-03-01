@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './CourseVideoPage.css';
 import courseVideoImage from '../assets/img/course video.webp';
 import Footer from '../components/Footer';
@@ -53,6 +55,7 @@ const CourseVideoPage = () => {
   const [notesSaved, setNotesSaved] = useState(false);
   const [notesError, setNotesError] = useState('');
   const [notesId, setNotesId] = useState(null);
+  const [notesMode, setNotesMode] = useState('edit'); // 'edit' or 'preview'
 
   // Fetch course data from API
   useEffect(() => {
@@ -562,15 +565,47 @@ const CourseVideoPage = () => {
                 )}
                 {activeTab === 'notes' && (
                   <div className="notes-content">
-                    <h3>My Notes:</h3>
+                    <div className="notes-header">
+                      <h3>My Notes:</h3>
+                      <div className="notes-mode-toggle">
+                        <button
+                          className={`mode-toggle-btn ${notesMode === 'edit' ? 'active' : ''}`}
+                          onClick={() => setNotesMode('edit')}
+                          disabled={notesLoading}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className={`mode-toggle-btn ${notesMode === 'preview' ? 'active' : ''}`}
+                          onClick={() => setNotesMode('preview')}
+                          disabled={notesLoading}
+                        >
+                          Preview
+                        </button>
+                      </div>
+                    </div>
                     {notesLoading && <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Loading notes...</p>}
-                    <textarea 
-                      className="notes-textarea" 
-                      placeholder="Markdown and plain text supported"
-                      value={userNotes}
-                      onChange={(e) => setUserNotes(e.target.value)}
-                      disabled={notesLoading}
-                    ></textarea>
+                    {notesMode === 'edit' ? (
+                      <textarea 
+                        className="notes-textarea" 
+                        placeholder="Write your notes here... Supports Markdown:\n• # Heading\n• **bold** and *italic*\n• - Bullet points\n• 1. Numbered lists\n• [links](url)\n• > Quotes\n• \`code\`"
+                        value={userNotes}
+                        onChange={(e) => setUserNotes(e.target.value)}
+                        disabled={notesLoading}
+                      ></textarea>
+                    ) : (
+                      <div className="notes-preview markdown-body">
+                        {userNotes ? (
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {userNotes}
+                          </ReactMarkdown>
+                        ) : (
+                          <p style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+                            No notes yet. Switch to Edit mode to start writing.
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <div className="notes-actions">
                       <button 
                         className="notes-reset-btn"
