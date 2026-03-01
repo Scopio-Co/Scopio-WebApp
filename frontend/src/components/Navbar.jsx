@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
-import profileAvatar from '../assets/img/Ellipse 8.png';
+import profileAvatar from '../assets/img/profilePic (2).png';
+import api from '../api';
 
 const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   // ✅ Initialize dark mode state from localStorage
@@ -11,6 +12,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   });
 
   const [toast, setToast] = useState({ visible: false, message: '' });
+  const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -33,6 +35,26 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
       document.body.classList.toggle("dark-mode", isDark);
     }
   }, []);
+
+  // ✅ Fetch user data when authenticated
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await api.get('/api/auth/status/');
+          setUserData(response.data.user);
+          console.log('✓ User data fetched:', response.data.user);
+        } catch (error) {
+          console.error('❌ Failed to fetch user data:', error);
+          setUserData(null);
+        }
+      } else {
+        setUserData(null);
+      }
+    };
+
+    fetchUserData();
+  }, [isAuthenticated]);
 
   // Get active page from URL location
   const getActivePage = () => {
@@ -103,8 +125,8 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
             />
           </div>
           <div className="profile-text">
-            <h3>Profile</h3>
-            <p>Log in / Sign up</p>
+            <h3>{userData?.first_name || 'Profile'}</h3>
+            <p>{userData?.username || 'Log in / Sign up'}</p>
           </div>
         </div>
 
