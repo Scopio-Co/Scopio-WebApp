@@ -216,6 +216,9 @@ class UserXP(models.Model):
     # XP tracking
     total_xp = models.PositiveIntegerField(default=0, help_text="Total XP earned from all lessons")
     
+    # First-time user tracking
+    has_seen_welcome = models.BooleanField(default=False, help_text="Whether user has seen welcome page after signup")
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

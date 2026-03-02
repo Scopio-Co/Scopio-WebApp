@@ -10,7 +10,9 @@ from .views import (
     UserNotesViewSet,
     RatingViewSet,
     EnrollmentViewSet,
-    user_stats
+    user_stats,
+    daily_activity,
+    mark_welcome_seen
 )
 
 router = DefaultRouter()
@@ -31,4 +33,6 @@ router.register(r'enrollments', EnrollmentViewSet, basename='enrollment')
 urlpatterns = [
     path('', include(router.urls)),
     path('user-stats/', user_stats, name='user-stats'),
+    path('daily-activity/', daily_activity, name='daily-activity'),
+    path('mark-welcome-seen/', mark_welcome_seen, name='mark-welcome-seen'),
 ]

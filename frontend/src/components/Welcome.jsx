@@ -1,5 +1,6 @@
 import './Welcome.css';
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Calendar from './calendar.jsx';
 import profilePic from '../assets/img/profilePic.png';
 import badge1 from '../assets/img/Award 4.png';
@@ -13,6 +14,7 @@ import achievementIcon from '../assets/img/achieved.png';
 import api from '../api';
 
 const WelcomeDashboard = () => {
+  const navigate = useNavigate();
 
   const [stats, setStats] = useState({
     learningHours: 0,
@@ -22,6 +24,8 @@ const WelcomeDashboard = () => {
   });
 
   const [loading, setLoading] = useState(true);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const [greetingMessage, setGreetingMessage] = useState('Welcome Back!');
 
   // Fetch user statistics on component mount
   useEffect(() => {
@@ -29,13 +33,35 @@ const WelcomeDashboard = () => {
       try {
         const response = await api.get('/api/video/user-stats/');
         console.log('✓ User stats fetched:', response.data);
+        console.log('DEBUG - is_first_visit from API:', response.data.is_first_visit);
+        
         setStats({
           learningHours: response.data.learning_hours || 0,
           streakDays: response.data.streak_days || 0,
           progress: response.data.progress || 0,
           achievements: response.data.achievements || 0
         });
+        
+        // Set greeting based on first visit
+        const firstVisit = response.data.is_first_visit === true;
+        console.log('DEBUG - firstVisit calculated:', firstVisit);
+        
+        setIsFirstVisit(firstVisit);
+        const greeting = firstVisit ? 'Welcome to Scopio!' : 'Welcome Back!';
+        console.log('DEBUG - Setting greeting to:', greeting);
+        setGreetingMessage(greeting);
+        
         setLoading(false);
+        
+        // Mark welcome as seen if it's first visit
+        if (firstVisit) {
+          try {
+            await api.post('/api/video/mark-welcome-seen/');
+            console.log('✓ Welcome marked as seen');
+          } catch (error) {
+            console.error('❌ Failed to mark welcome as seen:', error);
+          }
+        }
       } catch (error) {
         console.error('❌ Failed to fetch user stats:', error);
         setLoading(false);
@@ -44,6 +70,14 @@ const WelcomeDashboard = () => {
 
     fetchUserStats();
   }, []);
+
+  // Handle streak update from calendar
+  const handleStreakUpdate = (newStreak) => {
+    setStats(prevStats => ({
+      ...prevStats,
+      streakDays: newStreak
+    }));
+  };
 
   const updateStat = (statName, value) => {
     setStats(prevStats => ({
@@ -60,16 +94,17 @@ const WelcomeDashboard = () => {
   };
 
 
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-wrapper">
-        <h1 className="dashboard-title">Welcome Back!</h1>
+        <h1 className="dashboard-title">{greetingMessage}</h1>
         
         <div className="dashboard-grid">
           <div className='left-column'>
           <div className="dashboard-column">
             {/* Learning Hours */}
-            <div className="stat-card">
+            <div className={`stat-card ${loading ? 'loading' : ''}`}>
               <div className="icon-circle icon-red">
                 <img 
                   src={clockIcon} 
@@ -78,13 +113,15 @@ const WelcomeDashboard = () => {
                 />
               </div>
               <div className="stat-content">
-                <div className="stat-value">{stats.learningHours} hr</div>
+                <div className={`stat-value ${loading ? 'loading-skeleton' : ''}`}>
+                  {loading ? '---' : `${stats.learningHours} hr`}
+                </div>
                 <div className="stat-label">of learning</div>
               </div>
             </div>
 
             {/* Streak Days */}
-            <div className="stat-card">
+            <div className={`stat-card ${loading ? 'loading' : ''}`}>
               <div className="icon-circle icon-orange">
                 <img 
                   src={flameIcon} 
@@ -93,8 +130,10 @@ const WelcomeDashboard = () => {
                 />
               </div>
               <div className="stat-content">
-                <div className="stat-value">{stats.streakDays}</div>
-                <div className="stat-label">days</div>
+                <div className={`stat-value ${loading ? 'loading-skeleton' : ''}`}>
+                  {loading ? '--' : stats.streakDays}
+                </div>
+                <div className="stat-label">days streak</div>
               </div>
             </div>
            
@@ -102,7 +141,7 @@ const WelcomeDashboard = () => {
 
           <div className="dashboard-column">
              {/* Progress */}
-            <div className="stat-card">
+            <div className={`stat-card ${loading ? 'loading' : ''}`}>
               <div className="icon-circle icon-red">
                 <img 
                   src= {targetIcon}
@@ -111,13 +150,15 @@ const WelcomeDashboard = () => {
                 />
               </div>
               <div className="stat-content">
-                <div className="stat-value">{stats.progress}</div>
+                <div className={`stat-value ${loading ? 'loading-skeleton' : ''}`}>
+                  {loading ? '--' : `${stats.progress}%`}
+                </div>
                 <div className="stat-label">progress</div>
               </div>
             </div>
 
             {/* Achievements */}
-            <div className="stat-card">
+            <div className={`stat-card ${loading ? 'loading' : ''}`}>
               <div className="icon-circle icon-indigo">
                 <img 
                   src={achievementIcon}
@@ -126,7 +167,9 @@ const WelcomeDashboard = () => {
                 />
               </div>
               <div className="stat-content">
-                <div className="stat-value">{stats.achievements}</div>
+                <div className={`stat-value ${loading ? 'loading-skeleton' : ''}`}>
+                  {loading ? '--' : stats.achievements}
+                </div>
                 <div className="stat-label">achieved</div>
               </div>
             </div>
@@ -134,7 +177,7 @@ const WelcomeDashboard = () => {
 
           <div className='calendar-row'>
             {/* Calendar */}
-            <Calendar/>
+            <Calendar onStreakUpdate={handleStreakUpdate} />
             <div className="menu-column">
               {/* Portfolio */}
               <div className="portfolio">
@@ -145,9 +188,15 @@ const WelcomeDashboard = () => {
               <div className="events">
                 <div className="menu-title">Events</div>
                 <div className="menu-list">
-                  <div className="menu-item"><a href="#"><li>Explore</li></a></div>
-                  <div className="menu-item"><a href="#"><li>Leaderboards</li></a></div>
-                  <div className="menu-item"><a href="#"><li>Hands ON</li></a></div>
+                  <div className="menu-item" onClick={() => navigate('/explore')}>
+                    <li style={{ cursor: 'pointer' }}>Explore</li>
+                  </div>
+                  <div className="menu-item" onClick={() => navigate('/leaderboard')}>
+                    <li style={{ cursor: 'pointer' }}>Leaderboards</li>
+                  </div>
+                  <div className="menu-item">
+                    <li style={{ cursor: 'pointer' }}>Hands ON</li>
+                  </div>
                 </div>
               </div>
             </div>

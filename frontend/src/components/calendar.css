@@ -1,10 +1,12 @@
 .streak-calendar {
   width: 304px;
-  height: 250px;
+  height: 320px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.90);
   padding: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .calendar-header {
@@ -51,6 +53,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
+  flex: 1;
 }
 
 .calendar-day {
@@ -90,4 +93,62 @@
   font-size: 14px;
   font-weight: 600;
   color: #ef4444;
+}
+
+/* Tooltip styles */
+.day-tooltip {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  min-width: 120px;
+}
+
+.tooltip-date {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.tooltip-xp {
+  color: #fbbf24;
+  font-weight: 500;
+}
+
+.tooltip-streak {
+  color: #ef4444;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Loading state */
+.calendar-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* Calendar day container for hover */
+.calendar-day-container {
+  position: relative;
+  cursor: pointer;
+}
+
+.calendar-day-container:hover .calendar-day.active {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .streak-calendar {
+    width: 100%;
+    max-width: 304px;
+  }
 }

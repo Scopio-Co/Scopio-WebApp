@@ -118,7 +118,10 @@ class CourseViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_401_UNAUTHORIZED
             )
         
-        user_xp, _ = UserXP.objects.get_or_create(user=request.user)
+        user_xp, _ = UserXP.objects.get_or_create(
+            user=request.user,
+            defaults={'has_seen_welcome': False}
+        )
         
         # Count total lessons completed across all courses
         total_completed = UserProgress.objects.filter(
@@ -207,7 +210,10 @@ class LessonViewSet(viewsets.ModelViewSet):
             
             # Award XP to user (only if xp_awarded > 0)
             if xp_awarded > 0:
-                user_xp, _ = UserXP.objects.get_or_create(user=request.user)
+                user_xp, _ = UserXP.objects.get_or_create(
+                    user=request.user,
+                    defaults={'has_seen_welcome': False}
+                )
                 user_xp.add_xp(xp_awarded)
                 
                 # Track daily XP for streak calculation
@@ -535,11 +541,135 @@ def user_stats(request):
     # 4. Calculate achievements (completed lessons count)
     achievements = completed_lessons
     
+    # 5. Get or create user XP profile for first-time check
+    user_xp, created = UserXP.objects.get_or_create(
+        user=user,
+        defaults={'has_seen_welcome': False}
+    )
+    is_first_visit = not user_xp.has_seen_welcome
+    
+    # Debug logging
+    print(f"DEBUG - User: {user.username}")
+    print(f"DEBUG - UserXP created: {created}")
+    print(f"DEBUG - has_seen_welcome: {user_xp.has_seen_welcome}")
+    print(f"DEBUG - is_first_visit: {is_first_visit}")
+    
     return Response({
         'learning_hours': learning_hours,
         'streak_days': streak_days,
         'progress': progress,
         'achievements': achievements,
-        'total_xp': UserXP.objects.filter(user=user).first().total_xp if UserXP.objects.filter(user=user).exists() else 0
+        'total_xp': user_xp.total_xp,
+        'is_first_visit': is_first_visit
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def daily_activity(request):
+    """
+    Get user's daily activity data for calendar visualization
+    Query params:
+    - month: Month number (1-12), defaults to current month
+    - year: Year (YYYY), defaults to current year
+    
+    Returns daily XP, completion status, and streak information
+    """
+    user = request.user
+    
+    # Parse month and year from query params
+    try:
+        month = int(request.GET.get('month', date.today().month))
+        year = int(request.GET.get('year', date.today().year))
+    except ValueError:
+        return Response(
+            {'error': 'Invalid month or year parameter'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Validate month
+    if month < 1 or month > 12:
+        return Response(
+            {'error': 'Month must be between 1 and 12'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Get first and last day of the month
+    from calendar import monthrange
+    _, last_day = monthrange(year, month)
+    start_date = date(year, month, 1)
+    end_date = date(year, month, last_day)
+    
+    # Fetch all daily XP records for the month
+    daily_records = DailyXP.objects.filter(
+        user=user,
+        date__gte=start_date,
+        date__lte=end_date
+    ).values('date', 'xp_earned')
+    
+    # Create a dictionary for easy lookup
+    daily_data = {}
+    for record in daily_records:
+        day_num = record['date'].day
+        daily_data[day_num] = {
+            'xp': record['xp_earned'],
+            'has_activity': record['xp_earned'] > 0,
+            'meets_streak': record['xp_earned'] >= 150
+        }
+    
+    # Calculate current streak for context
+    streak_days = 0
+    today = date.today()
+    check_date = today
+    
+    while True:
+        daily_xp = DailyXP.objects.filter(
+            user=user,
+            date=check_date,
+            xp_earned__gte=150
+        ).first()
+        
+        if daily_xp:
+            streak_days += 1
+            check_date -= timedelta(days=1)
+        else:
+            if check_date == today and streak_days == 0:
+                check_date -= timedelta(days=1)
+                continue
+            break
+    
+    return Response({
+        'month': month,
+        'year': year,
+        'days_in_month': last_day,
+        'daily_data': daily_data,
+        'current_streak': streak_days,
+        'streak_threshold': 150
+    })
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def mark_welcome_seen(request):
+    """
+    Mark that user has seen the welcome page (for first-time greeting)
+    """
+    user = request.user
+    user_xp, created = UserXP.objects.get_or_create(
+        user=user,
+        defaults={'has_seen_welcome': False}
+    )
+    
+    if not user_xp.has_seen_welcome:
+        user_xp.has_seen_welcome = True
+        user_xp.save()
+        return Response({
+            'success': True,
+            'message': 'Welcome marked as seen'
+        })
+    
+    return Response({
+        'success': True,
+        'message': 'Already marked as seen'
     })
 
