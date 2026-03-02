@@ -8,10 +8,12 @@ import base64
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name','password']
         extra_kwargs = {'password': {'write_only': True}}
+        #validates data before creating a user
 
     def validate_username(self, value):
+        """Check if username already exists."""
         if User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError(
                 "This username is already taken. Please choose a different username."
@@ -19,35 +21,41 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
+        """Check if email already exists (including OAuth accounts)."""
         if not value:
             raise serializers.ValidationError("Email is required.")
-
+        
+        # Check if email exists in User model
         if User.objects.filter(email__iexact=value).exists():
             existing_user = User.objects.get(email__iexact=value)
+            
+            # Check if this user has a Google OAuth account
             has_google_account = SocialAccount.objects.filter(
                 user=existing_user,
                 provider='google'
             ).exists()
-
+            
             if has_google_account:
                 raise serializers.ValidationError(
                     "This email is already registered with Google. "
                     "Please sign in using 'Continue with Google' instead."
                 )
-            raise serializers.ValidationError(
-                "This email is already registered. Please use a different email or log in."
-            )
-
+            else:
+                raise serializers.ValidationError(
+                    "This email is already registered. Please use a different email or log in."
+                )
+        
         return value
 
-    def create(self, validated_data):
-        return User.objects.create_user(
+    def create(self, validated_data): #after validating data, create a user
+        user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
             password=validated_data['password']
         )
+        return user
 
 
 class ProfileSettingsSerializer(serializers.Serializer):
@@ -58,6 +66,21 @@ class ProfileSettingsSerializer(serializers.Serializer):
     bio = serializers.CharField(required=False, allow_blank=True)
     profile_image = serializers.ImageField(required=False, allow_null=True, write_only=True)
     profile_image_url = serializers.CharField(read_only=True)
+
+    def validate_profile_image(self, value):
+        if value is None:
+            return value
+
+        max_size = 5 * 1024 * 1024
+        if value.size > max_size:
+            raise serializers.ValidationError("Profile image must be 5MB or smaller.")
+
+        allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+        content_type = getattr(value, 'content_type', '')
+        if content_type and content_type not in allowed_types:
+            raise serializers.ValidationError("Only JPG, PNG, WEBP, or GIF images are allowed.")
+
+        return value
 
     def validate_username(self, value):
         cleaned = value.strip()
@@ -74,21 +97,6 @@ class ProfileSettingsSerializer(serializers.Serializer):
         if exists.exists():
             raise serializers.ValidationError("This username is already taken. Please choose a different username.")
         return cleaned
-
-    def validate_profile_image(self, value):
-        if value is None:
-            return value
-
-        max_size = 5 * 1024 * 1024
-        if value.size > max_size:
-            raise serializers.ValidationError("Profile image must be 5MB or smaller.")
-
-        allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
-        content_type = getattr(value, 'content_type', '')
-        if content_type and content_type not in allowed_types:
-            raise serializers.ValidationError("Only JPG, PNG, WEBP, or GIF images are allowed.")
-
-        return value
 
     @staticmethod
     def to_representation_for(user: User, profile: UserProfile, request=None):

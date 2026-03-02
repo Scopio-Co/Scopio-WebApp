@@ -87,7 +87,6 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     if (path === '/leaderboard') return 'Leaderboards';
     if (path === '/settings') return 'Settings';
     if (path === '/articles' || path.startsWith('/articles/')) return 'Articles';
-    if (path === '/settings') return 'Settings';
     if (path.startsWith('/course/')) return 'Course';
     return 'Home';
   };
