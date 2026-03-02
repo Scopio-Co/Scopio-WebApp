@@ -175,7 +175,11 @@ class CookieTokenRefreshView(TokenRefreshView):
         resp = super().post(request, *args, **kwargs)
         access = resp.data.get("access")
         refresh = resp.data.get("refresh")
-        response = JsonResponse({"detail": "refresh successful"})
+        response = JsonResponse({
+            "detail": "refresh successful",
+            "access": access,
+            "refresh": refresh,
+        })
         _set_auth_cookies(response, access, refresh)
         return response
 

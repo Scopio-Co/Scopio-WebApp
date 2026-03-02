@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Avg, Sum
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.functions import Coalesce
 from datetime import date, timedelta
 from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
 from .serializers import (
@@ -489,6 +491,34 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
 
 # ========== USER STATISTICS ENDPOINT ==========
 
+STREAK_THRESHOLD = 150
+
+
+def calculate_current_streak_for_user(user):
+    """Calculate consecutive streak days with STREAK_THRESHOLD+ XP."""
+    streak_days = 0
+    today = date.today()
+    check_date = today
+
+    while True:
+        daily_xp = DailyXP.objects.filter(
+            user=user,
+            date=check_date,
+            xp_earned__gte=STREAK_THRESHOLD
+        ).first()
+
+        if daily_xp:
+            streak_days += 1
+            check_date -= timedelta(days=1)
+        else:
+            # If today has no XP yet, check yesterday to maintain streak
+            if check_date == today and streak_days == 0:
+                check_date -= timedelta(days=1)
+                continue
+            break
+
+    return streak_days
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def user_stats(request):
@@ -508,27 +538,7 @@ def user_stats(request):
     learning_hours = round(total_watch_time / 3600, 1)  # Convert seconds to hours
     
     # 2. Calculate current streak (consecutive days with 150+ XP)
-    streak_days = 0
-    today = date.today()
-    check_date = today
-    
-    # Check backwards from today for consecutive days with 150+ XP
-    while True:
-        daily_xp = DailyXP.objects.filter(
-            user=user,
-            date=check_date,
-            xp_earned__gte=150  # Streak threshold
-        ).first()
-        
-        if daily_xp:
-            streak_days += 1
-            check_date -= timedelta(days=1)
-        else:
-            # If today has no XP yet, check yesterday to maintain streak
-            if check_date == today and streak_days == 0:
-                check_date -= timedelta(days=1)
-                continue
-            break
+    streak_days = calculate_current_streak_for_user(user)
     
     # 3. Calculate progress (percentage of completed lessons)
     total_lessons = Lesson.objects.count()
@@ -618,25 +628,7 @@ def daily_activity(request):
         }
     
     # Calculate current streak for context
-    streak_days = 0
-    today = date.today()
-    check_date = today
-    
-    while True:
-        daily_xp = DailyXP.objects.filter(
-            user=user,
-            date=check_date,
-            xp_earned__gte=150
-        ).first()
-        
-        if daily_xp:
-            streak_days += 1
-            check_date -= timedelta(days=1)
-        else:
-            if check_date == today and streak_days == 0:
-                check_date -= timedelta(days=1)
-                continue
-            break
+    streak_days = calculate_current_streak_for_user(user)
     
     return Response({
         'month': month,
@@ -644,7 +636,36 @@ def daily_activity(request):
         'days_in_month': last_day,
         'daily_data': daily_data,
         'current_streak': streak_days,
-        'streak_threshold': 150
+        'streak_threshold': STREAK_THRESHOLD
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def leaderboard(request):
+    """
+    Leaderboard sorted by total XP descending.
+    XP source is UserXP.total_xp (awarded from lesson.time_xp on first completion).
+    """
+    users = User.objects.filter(is_active=True).annotate(
+        total_xp=Coalesce(models.F('xp_profile__total_xp'), 0)
+    ).order_by('-total_xp', 'date_joined', 'username')
+
+    leaderboard_rows = []
+    for rank, user in enumerate(users, start=1):
+        full_name = user.get_full_name().strip()
+        leaderboard_rows.append({
+            'rank': rank,
+            'user_id': user.id,
+            'name': full_name or user.username,
+            'username': user.username,
+            'total_xp': user.total_xp,
+            'streak_days': calculate_current_streak_for_user(user)
+        })
+
+    return Response({
+        'count': len(leaderboard_rows),
+        'results': leaderboard_rows
     })
 
 

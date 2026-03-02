@@ -102,7 +102,6 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     "Explore",
     "Articles",
     "Leaderboards",
-    "Hands ON",
     "Settings",
   ];
 
