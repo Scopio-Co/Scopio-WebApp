@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LeaderboardPage.css';
 import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import streakBadge from '../assets/img/streak-badge.svg';
 import api from '../api';
+import { LeaderboardPageSkeleton } from '../components/skeletons';
 
-const LeaderboardPage = ({ isLoading }) => {
+const LeaderboardPage = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -134,29 +136,10 @@ const LeaderboardPage = ({ isLoading }) => {
         {/* Leaderboard Table */}
         <div className="explore-sections">
 
-        <div className="leaderboard-table-container">
-          {showLoading ? (
-            <table className="leaderboard-table skeleton-table">
-              <thead>
-                <tr className="table-header-row">
-                  <th className="header-rank">Rank</th>
-                  <th className="header-learner">Learner</th>
-                  <th className="header-score">Score</th>
-                  <th className="header-streak">Streak</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <tr className="leaderboard-row skeleton-row" key={`skele-${i}`}>
-                    <td className="rank-cell"><div className="skeleton-line small" /></td>
-                    <td className="learner-cell"><div className="skeleton-line medium" /></td>
-                    <td className="score-cell"><div className="skeleton-line small" /></td>
-                    <td className="streak-cell"><div className="skeleton-line small" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
+        {isLoading ? (
+          <LeaderboardPageSkeleton />
+        ) : (
+          <div className="leaderboard-table-container">
             <table className="leaderboard-table">
               <thead>
                 <tr className="table-header-row">
@@ -206,8 +189,8 @@ const LeaderboardPage = ({ isLoading }) => {
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        )}
         </div>
 
         {/* Pagination */}

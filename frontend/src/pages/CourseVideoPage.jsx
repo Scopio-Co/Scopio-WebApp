@@ -10,6 +10,7 @@ import linkedinIcon from '../assets/img/Linkedin.svg';
 import whatsappIcon from '../assets/img/Whatsapp.svg';
 import xIcon from '../assets/img/x.svg';
 import api from '../api';
+import { CourseVideoSkeleton } from '../components/skeletons';
 
 // Helper function to extract video embed URL
 const getVideoEmbedUrl = (url) => {
@@ -122,6 +123,23 @@ const CourseVideoPage = () => {
     }
     // fallback to window
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
+
+    // Show skeleton loader for 2 seconds
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      // Scroll to top after state update
+      setTimeout(() => {
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+          mainContent.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 0);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Check if user is already enrolled
@@ -406,13 +424,7 @@ const CourseVideoPage = () => {
   const videoEmbedUrl = getVideoEmbedUrl(currentVideoUrl);
 
   if (loading) {
-    return (
-      <div className="course-video-page">
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
-          <p>Loading course...</p>
-        </div>
-      </div>
-    );
+    return <CourseVideoSkeleton />;
   }
 
   if (error && !courseData) {

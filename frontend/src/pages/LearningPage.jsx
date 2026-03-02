@@ -7,6 +7,7 @@ import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
 import profilePic from '../assets/img/profilePic (2).png';
 import api from '../api';
+import { LearningPageSkeleton } from '../components/skeletons';
 
 const LearningPage = ({ onLogout, isLoading }) => {
   const [courses, setCourses] = useState([]);
@@ -141,14 +142,13 @@ const LearningPage = ({ onLogout, isLoading }) => {
         </div>
 
         {/* Learning Design Content */}
+        {loading ? (
+          <LearningPageSkeleton />
+        ) : (
+        <>
         <div className="learning-design-container">
-          {loading && (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
-              <p>Loading your courses...</p>
-            </div>
-          )}
 
-          {!loading && courses.length === 0 && !error && (
+          {courses.length === 0 && !error && (
             <div className="empty-state">
               <div className="empty-state-icon">
                 <img src={profilePic} alt="Start Learning" className="empty-state-profile" />
@@ -166,14 +166,14 @@ const LearningPage = ({ onLogout, isLoading }) => {
             </div>
           )}
 
-          {!loading && error && (
+          {error && (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: '#ff4444' }}>
               <p>{error}</p>
               <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>Make sure the backend server is running at http://127.0.0.1:8000</p>
             </div>
           )}
 
-          {!loading && courses.length > 0 && (
+          {courses.length > 0 && (
             <>
               <div className="course-grid">
                 {courses.map((course, index) => (
@@ -224,10 +224,12 @@ const LearningPage = ({ onLogout, isLoading }) => {
             </>
           )}
         </div>
-          {/* Pagination */}
-          <div className="pagination-wrapper">
-            <Pagination currentPage={2} totalPages={3} onPageChange={() => { /* noop for now */ }} />
-          </div>
+        {/* Pagination */}
+        <div className="pagination-wrapper">
+          <Pagination currentPage={2} totalPages={3} onPageChange={() => { /* noop for now */ }} />
+        </div>
+        </>
+        )}
       </div>
 
       {/* Footer */}

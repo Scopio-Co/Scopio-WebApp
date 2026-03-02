@@ -6,6 +6,7 @@ import CourseCard from '../components/CourseCard';
 import Footer from '../components/Footer';
 import courseCardImage from '../assets/img/course_card.webp';
 import api from '../api';
+import { ExplorePageSkeleton } from '../components/skeletons';
 
 const ExplorePage = () => {
   const navigate = useNavigate();
@@ -230,9 +231,11 @@ const ExplorePage = () => {
         )}
 
         {/* Course Sections */}
-        {!loading && (
-          <div className="explore-sections">
-            {searchTerm.trim() ? (
+        {loading ? (
+          <ExplorePageSkeleton />
+        ) : (
+        <div className="explore-sections">
+          {searchTerm.trim() ? (
             <div className="explore-section">
               <h2 className="section-title">Search Results</h2>
               <div className="section-container">
@@ -534,7 +537,7 @@ const ExplorePage = () => {
               </div>
             </>
           )}
-          </div>
+        </div>
         )}
       </div>
 
