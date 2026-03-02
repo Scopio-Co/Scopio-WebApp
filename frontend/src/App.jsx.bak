@@ -175,16 +175,7 @@ function App() {
     navigateToProtectedPage('welcome');
   }
 
-  // Show loading screen while checking authentication
-  if (isCheckingAuth) {
-    return (
-      <div className="app-layout" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-primary)' }}>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-      case 'explore':
+  return (
         setShowExplore(true);
         break;
       case 'leaderboard':

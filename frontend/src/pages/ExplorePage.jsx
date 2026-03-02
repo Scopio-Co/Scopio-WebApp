@@ -208,13 +208,7 @@ const ExplorePage = () => {
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-tertiary)' }}>
-            <p>Loading courses...</p>
-          </div>
-        )}
-
+        
         {/* Fallback Notice */}
         {usingFallback && !loading && (
           <div style={{

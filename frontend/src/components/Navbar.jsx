@@ -109,7 +109,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     
     // Scroll to top and close mobile menu
     const mainEl = document.querySelector('.main-content');
-    if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+    if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
     setMobileOpen(false);
   };
 

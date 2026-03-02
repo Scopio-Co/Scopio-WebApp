@@ -124,22 +124,14 @@ const CourseVideoPage = () => {
     // fallback to window
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
 
-    // Show skeleton loader for 2 seconds
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      // Scroll to top after state update
-      setTimeout(() => {
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-          mainContent.scrollTop = 0;
-        }
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }, 0);
-    }, 2000);
-
-    return () => clearTimeout(timer);
+    // Scroll to top after mount
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, []);
 
   // Check if user is already enrolled
@@ -533,9 +525,15 @@ const CourseVideoPage = () => {
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="lesson-play-btn">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
-  <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 19.4 5.6 25 12.5 25C19.4 25 25 19.4 25 12.5C25 5.6 19.4 0 12.5 0ZM15.825 14.6625L14.225 15.5875L12.625 16.5125C10.5625 17.7 8.875 16.725 8.875 14.35V12.5V10.65C8.875 8.2625 10.5625 7.3 12.625 8.4875L14.225 9.4125L15.825 10.3375C17.8875 11.525 17.8875 13.475 15.825 14.6625Z" fill="#292D32"/>
-</svg>
+                      {completedLessons.has(lesson.id) ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#4ECB71"/>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 19.4 5.6 25 12.5 25C19.4 25 25 19.4 25 12.5C25 5.6 19.4 0 12.5 0ZM15.825 14.6625L14.225 15.5875L12.625 16.5125C10.5625 17.7 8.875 16.725 8.875 14.35V12.5V10.65C8.875 8.2625 10.5625 7.3 12.625 8.4875L14.225 9.4125L15.825 10.3375C17.8875 11.525 17.8875 13.475 15.825 14.6625Z" fill="#292D32"/>
+                        </svg>
+                      )}
                     </div>
                     <div className="lesson-content">
                       <p className="lesson-number">Lesson {index + 1}</p>
@@ -545,13 +543,6 @@ const CourseVideoPage = () => {
                       <p className="lesson-duration">{lesson.duration}</p>
                       <p className="lesson-xp">{lesson.time_xp || lesson.time}</p>
                     </div>
-                    {completedLessons.has(lesson.id) && (
-                      <div className="lesson-completed-mark">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#4ECB71"/>
-                        </svg>
-                      </div>
-                    )}
                   </div>
                 ))}
                 </div>

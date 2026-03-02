@@ -136,7 +136,7 @@ const LeaderboardPage = () => {
         {/* Leaderboard Table */}
         <div className="explore-sections">
 
-        {isLoading ? (
+        {isPageLoading ? (
           <LeaderboardPageSkeleton />
         ) : (
           <div className="leaderboard-table-container">

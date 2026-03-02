@@ -8,17 +8,6 @@ const ProtectedRoute = ({ children, isAuthenticated, isCheckingAuth }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Show loading while checking authentication
-  if (isCheckingAuth) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-primary)' }}>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Handle unauthenticated access
   useEffect(() => {
     console.log('🔐 [ProtectedRoute] State Check:', {

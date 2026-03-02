@@ -223,10 +223,6 @@ const Calendar = ({ onStreakUpdate }) => {
           )}
         </div>
       )}
-      
-      {loading && (
-        <div className="calendar-loading">Loading...</div>
-      )}
     </div>
   );
 };

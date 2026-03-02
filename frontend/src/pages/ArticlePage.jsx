@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ArticlePage.css';
+import { ArticlePageSkeleton } from '../components/skeletons';
 import article1 from '../assets/img/articles/article 1.1.png';
 import article2 from '../assets/img/articles/article 2.1.png';
 import article3 from '../assets/img/articles/article 3.1.png';
@@ -10,6 +11,7 @@ import article6 from '../assets/img/articles/article 6.1.png';
 import article12 from '../assets/img/articles/article 1.2.webp';
 const ArticlePage = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const articles = [
     {
       id: 1,
@@ -1441,27 +1443,41 @@ Commonly used in MQTT systems and highly scalable for large IoT deployments.</p>
     }
   ];
 
+  // Simulate loading articles
+  useEffect(() => {
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="article-page">
       <div className="learning-page-header article-page-header">
         <h1 className="learning-page-title">Articles</h1>
       </div>
       <div className="top-picks-container">
-      <div className="bento-grid">
-        {articles.map((article) => (
-            <div 
-            key={article.id} 
-            className={`bento-item bento-item-${article.id}`}
-            onClick={() => navigate(`/articles/${article.id}`, { state: { article } })}
-            >
-            <img src={article.image} alt={article.title} />
-            <div className="bento-overlay">
-              <h3>{article.title}</h3>
-            </div>
-            </div>
-        ))}
+        {loading ? (
+          <ArticlePageSkeleton />
+        ) : (
+          <div className="bento-grid">
+            {articles.map((article) => (
+              <div 
+                key={article.id} 
+                className={`bento-item bento-item-${article.id}`}
+                onClick={() => navigate(`/articles/${article.id}`, { state: { article } })}
+              >
+                <img src={article.image} alt={article.title} />
+                <div className="bento-overlay">
+                  <h3>{article.title}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-        </div>
     </div>
   );
 };
