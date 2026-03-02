@@ -15,6 +15,7 @@ import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
 import ExplorePage from './pages/ExplorePage'
 import LeaderboardPage from './pages/LeaderboardPage';
+import SettingsPage from './pages/SettingsPage';
 import CourseVideoPage from './pages/CourseVideoPage';
 import ArticlePage from './pages/ArticlePage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
@@ -287,6 +288,15 @@ function AppContent() {
                 <LeaderboardPage onLogout={handleLogout} />
               </ProtectedRoute>
             } 
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <SettingsPage onLogout={handleLogout} />
+              </ProtectedRoute>
+            }
           />
           
           <Route 

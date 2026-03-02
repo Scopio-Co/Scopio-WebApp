@@ -12,5 +12,6 @@ urlpatterns = [
     path('auth/refresh/', views.CookieTokenRefreshView.as_view(), name='cookie_token_refresh'),
     path('auth/logout/', views.cookie_logout, name='cookie_logout'),
     path('auth/status/', views.auth_status, name='auth_status'),
+    path('auth/profile/', views.auth_profile, name='auth_profile'),
     path('auth/csrf/', views.get_csrf_token, name='csrf_token'),
 ]

@@ -56,6 +56,28 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     fetchUserData();
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    const handleProfileUpdated = (event) => {
+      const updated = event?.detail || {};
+      const fullName = (updated.full_name || '').trim();
+      const [firstName = '', ...rest] = fullName.split(' ');
+      const lastName = rest.join(' ');
+
+      setUserData((prev) => ({
+        ...(prev || {}),
+        first_name: firstName,
+        last_name: lastName,
+        username: updated.username ?? prev?.username,
+        college: updated.college ?? prev?.college,
+        bio: updated.bio ?? prev?.bio,
+        profile_image_url: updated.profile_image_url ?? prev?.profile_image_url,
+      }));
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdated);
+    return () => window.removeEventListener('profile-updated', handleProfileUpdated);
+  }, []);
+
   // Get active page from URL location
   const getActivePage = () => {
     const path = location.pathname;
@@ -63,6 +85,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     if (path === '/learning') return 'Learning';
     if (path === '/explore') return 'Explore';
     if (path === '/leaderboard') return 'Leaderboards';
+    if (path === '/settings') return 'Settings';
     if (path === '/articles' || path.startsWith('/articles/')) return 'Articles';
     if (path === '/settings') return 'Settings';
     if (path.startsWith('/course/')) return 'Course';
@@ -121,13 +144,14 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
         <div className="profile-info">
           <div className="profile-avatar">
             <img
-              src={profileAvatar}
+              src={userData?.profile_image_url || profileAvatar}
               alt="Profile"
               className="avatar-image"
+              key={userData?.profile_image_url || 'default-profile-avatar'}
             />
           </div>
           <div className="profile-text">
-            <h3>{userData?.first_name || 'Profile'}</h3>
+            <h3>{(userData?.first_name || userData?.username || 'Profile')}</h3>
             <p>{userData?.username || 'Log in / Sign up'}</p>
           </div>
         </div>
