@@ -64,6 +64,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     if (path === '/explore') return 'Explore';
     if (path === '/leaderboard') return 'Leaderboards';
     if (path === '/articles' || path.startsWith('/articles/')) return 'Articles';
+    if (path === '/settings') return 'Settings';
     if (path.startsWith('/course/')) return 'Course';
     return 'Home';
   };
@@ -80,6 +81,8 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
       navigate('/leaderboard', { replace: false });
     } else if (item === "Articles") {
       navigate('/articles', { replace: false });
+    } else if (item === "Settings") {
+      navigate('/settings', { replace: false });
     }
     
     // Scroll to top and close mobile menu

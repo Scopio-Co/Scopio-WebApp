@@ -54,3 +54,47 @@ class UserSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """Serializer for updating user profile."""
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        read_only_fields = ['id']
+
+    def validate_username(self, value):
+        """Check if username already exists (excluding current user)."""
+        user = self.instance
+        if User.objects.filter(username__iexact=value).exclude(id=user.id).exists():
+            raise serializers.ValidationError(
+                "This username is already taken. Please choose a different username."
+            )
+        return value
+
+    def validate_email(self, value):
+        """Check if email already exists (excluding current user)."""
+        if not value:
+            raise serializers.ValidationError("Email is required.")
+        
+        user = self.instance
+        # Check if email exists in User model (excluding current user)
+        if User.objects.filter(email__iexact=value).exclude(id=user.id).exists():
+            existing_user = User.objects.get(email__iexact=value)
+            
+            # Check if this user has a Google OAuth account
+            has_google_account = SocialAccount.objects.filter(
+                user=existing_user,
+                provider='google'
+            ).exists()
+            
+            if has_google_account:
+                raise serializers.ValidationError(
+                    "This email is already registered with Google."
+                )
+            else:
+                raise serializers.ValidationError(
+                    "This email is already registered. Please use a different email."
+                )
+        
+        return value

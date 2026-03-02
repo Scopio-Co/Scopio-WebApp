@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.api_root, name='api-root'),
     path('users/', views.CreateUserView.as_view()),
     path('users/list/', views.users_list, name='users_list'),
+    path('users/profile/', views.UpdateUserProfileView.as_view(), name='update_profile'),
     # Authentication endpoints
     path('auth/login/', views.CookieTokenObtainPairView.as_view(), name='cookie_token_obtain_pair'),
     path('auth/refresh/', views.CookieTokenRefreshView.as_view(), name='cookie_token_refresh'),

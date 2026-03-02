@@ -18,6 +18,7 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import CourseVideoPage from './pages/CourseVideoPage';
 import ArticlePage from './pages/ArticlePage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
+import SettingsPage from './pages/SettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // ScrollToTop component for smooth navigation
@@ -311,6 +312,15 @@ function AppContent() {
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
                 <ArticleDetailPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
+                <SettingsPage />
               </ProtectedRoute>
             } 
           />

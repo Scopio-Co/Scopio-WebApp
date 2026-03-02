@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserProfileSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -226,3 +226,39 @@ def users_list(request):
         "total_users": users.count(),
         "users": list(users)
     }, status=status.HTTP_200_OK)
+
+
+class UpdateUserProfileView(generics.UpdateAPIView):
+    """Update user profile endpoint."""
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        """Return the current authenticated user."""
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        """Override update to provide better error messages."""
+        logger.info(f"Profile update attempt: {request.user.username}")
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            logger.info(f"✓ Profile updated: {serializer.data.get('username')}")
+            
+            return Response({
+                "message": "Profile updated successfully",
+                "user": serializer.data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"✗ Profile update failed: {str(e)}")
+            if hasattr(serializer, 'errors') and serializer.errors:
+                return Response({
+                    "errors": serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "detail": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
