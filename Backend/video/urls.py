@@ -12,7 +12,8 @@ from .views import (
     EnrollmentViewSet,
     user_stats,
     daily_activity,
-    mark_welcome_seen
+    mark_welcome_seen,
+    leaderboard
 )
 
 router = DefaultRouter()
@@ -35,4 +36,5 @@ urlpatterns = [
     path('user-stats/', user_stats, name='user-stats'),
     path('daily-activity/', daily_activity, name='daily-activity'),
     path('mark-welcome-seen/', mark_welcome_seen, name='mark-welcome-seen'),
+    path('leaderboard/', leaderboard, name='leaderboard'),
 ]

@@ -67,22 +67,70 @@ api.interceptors.response.use(
     const method = (config?.method || '').toUpperCase();
     const url = config?.url || '';
 
-    const isPublicVideoEndpoint = method === 'GET' && (url.startsWith('/api/video'));
     const notYetRetried = !config?._retry;
+    const isAuthEndpoint = url.startsWith('/api/auth/');
+    const isPublicVideoEndpoint =
+      method === 'GET' &&
+      (
+        url.startsWith('/api/video/videos/') ||
+        url.startsWith('/api/video/courses/')
+      );
 
-    if (status === 401 && isPublicVideoEndpoint && notYetRetried) {
-      // Retry once without Authorization header
-      const newConfig = { ...config, _retry: true, skipAuth: true };
-      if (newConfig.headers) {
-        delete newConfig.headers.Authorization;
+    if (status === 401 && notYetRetried) {
+      // For public endpoints, retry once without auth header
+      if (isPublicVideoEndpoint) {
+        const newConfig = { ...config, _retry: true, skipAuth: true };
+        if (newConfig.headers) {
+          delete newConfig.headers.Authorization;
+        }
+        try {
+          return await api.request(newConfig);
+        } catch (retryErr) {
+          return Promise.reject(retryErr);
+        }
       }
-      try {
-        return await api.request(newConfig);
-      } catch (retryErr) {
-        // Fall through to original error if retry fails
-        return Promise.reject(retryErr);
+
+      // For protected endpoints, try refresh flow once (but never for auth endpoints)
+      if (!isAuthEndpoint) {
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+
+        if (refreshToken) {
+          try {
+            const refreshResponse = await api.post(
+              '/api/auth/refresh/',
+              { refresh: refreshToken },
+              { skipAuth: true }
+            );
+
+            const newAccessToken = refreshResponse?.data?.access;
+            const newRefreshToken = refreshResponse?.data?.refresh;
+
+            if (newAccessToken) {
+              localStorage.setItem(ACCESS_TOKEN, newAccessToken);
+            }
+            if (newRefreshToken) {
+              localStorage.setItem(REFRESH_TOKEN, newRefreshToken);
+            }
+
+            const retryConfig = {
+              ...config,
+              _retry: true,
+              headers: {
+                ...(config.headers || {}),
+                Authorization: `Bearer ${newAccessToken || localStorage.getItem(ACCESS_TOKEN) || ''}`
+              }
+            };
+
+            return await api.request(retryConfig);
+          } catch (refreshError) {
+            localStorage.removeItem(ACCESS_TOKEN);
+            localStorage.removeItem(REFRESH_TOKEN);
+            return Promise.reject(refreshError);
+          }
+        }
       }
     }
+
     return Promise.reject(error);
   }
 );
