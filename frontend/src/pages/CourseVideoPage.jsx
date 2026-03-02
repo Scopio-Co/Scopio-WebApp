@@ -6,10 +6,12 @@ import instagramIcon from '../assets/img/instagram.svg';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import whatsappIcon from '../assets/img/Whatsapp.svg';
 import xIcon from '../assets/img/x.svg';
+import { CourseVideoSkeleton } from '../components/skeletons';
 
 const CourseVideoPage = ({ selectedCourse, onBack }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [currentLessonIndex, setCurrentLessonIndex] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // ensure main content container is scrolled to top when opening this page
@@ -19,6 +21,23 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
     }
     // fallback to window
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
+
+    // Show skeleton loader for 2 seconds
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      // Scroll to top after state update
+      setTimeout(() => {
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+          mainContent.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 0);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const lessons = [
@@ -56,6 +75,10 @@ const CourseVideoPage = ({ selectedCourse, onBack }) => {
       likes: 12
     }
   ];
+
+  if (isLoading) {
+    return <CourseVideoSkeleton />;
+  }
 
   return (
     <div className="course-video-page">
