@@ -21,23 +21,6 @@ const ExplorePage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [usingFallback, setUsingFallback] = useState(false);
-
-  // Fallback dummy courses for when API is unavailable
-  const dummyCourses = [
-    {
-      id: null,
-      image: courseCardImage,
-      imageFilter: 'hue-rotate(-10deg) saturate(115%)',
-      title: "Demo Course - React Fundamentals",
-      duration: "5 hours, 48 minutes",
-      rating: 4.7,
-      description: "This is a demo course. Real courses from your database will appear here when backend is connected.",
-      progress: 0,
-      authorName: "Demo Instructor",
-      authorTitle: "Sample Teacher"
-    }
-  ];
 
   // Fetch courses from backend
   useEffect(() => {
@@ -61,19 +44,16 @@ const ExplorePage = () => {
           }));
           
           setCourses(transformedCourses);
-          setUsingFallback(false);
           setError(null);
         } else {
-          // No courses in DB, use dummy data
-          setCourses(dummyCourses);
-          setUsingFallback(true);
+          // No courses in DB
+          setCourses([]);
+          setError(null);
         }
       } catch (err) {
         console.error('Error fetching courses:', err);
-        console.log('Using fallback dummy data instead');
-        setCourses(dummyCourses);
-        setUsingFallback(true);
-        setError(null); // Don't show error, just use fallback
+        setCourses([]);
+        setError('Unable to load courses. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -209,24 +189,28 @@ const ExplorePage = () => {
         </div>
 
         
-        {/* Fallback Notice */}
-        {usingFallback && !loading && (
-          <div style={{
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffc107',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            margin: '0 20px 24px',
-            color: '#856404',
-            fontSize: '14px'
-          }}>
-            📌 Showing demo courses. Real courses from your database will appear after starting the backend server.
-          </div>
-        )}
-
         {/* Course Sections */}
         {loading ? (
           <ExplorePageSkeleton />
+        ) : error ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '80px 40px',
+            color: '#666'
+          }}>
+            <h2 style={{ fontSize: '20px', marginBottom: '12px' }}>Unable to Load Courses</h2>
+            <p style={{ fontSize: '14px', marginBottom: '24px' }}>{error}</p>
+            <p style={{ fontSize: '13px', color: '#999' }}>Make sure the backend server is running and try refreshing the page.</p>
+          </div>
+        ) : courses.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '80px 40px',
+            color: '#666'
+          }}>
+            <h2 style={{ fontSize: '20px', marginBottom: '12px' }}>No Courses Available</h2>
+            <p style={{ fontSize: '14px', color: '#999' }}>Check back soon for new courses!</p>
+          </div>
         ) : (
         <div className="explore-sections">
           {searchTerm.trim() ? (
@@ -243,24 +227,8 @@ const ExplorePage = () => {
                     <div className="courses-scroll-container" ref={scrollRef1}>
                       <div className="courses-row">
                         {filteredCourses.map((course, index) => (
-                          <div key={`search-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
+                          <div key={`search-${index}`}>
                             <CourseCard {...course} />
-                            {!course.id && (
-                              <div style={{
-                                position: 'absolute',
-                                top: '12px',
-                                right: '12px',
-                                backgroundColor: '#ffc107',
-                                color: '#000',
-                                padding: '4px 8px',
-                                borderRadius: '4px',
-                                fontSize: '11px',
-                                fontWeight: 'bold',
-                                zIndex: 10
-                              }}>
-                                DEMO
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -290,24 +258,8 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef1}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`latest-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
-                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
-                          {!course.id && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
-                              backgroundColor: '#ffc107',
-                              color: '#000',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              zIndex: 10
-                            }}>
-                              DEMO
-                            </div>
-                          )}
+                        <div key={`latest-${index}`}>
+                          <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
                     </div>
@@ -332,24 +284,8 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef2}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section2-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
-                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
-                          {!course.id && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
-                              backgroundColor: '#ffc107',
-                              color: '#000',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              zIndex: 10
-                            }}>
-                              DEMO
-                            </div>
-                          )}
+                        <div key={`section2-${index}`}>
+                          <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
                     </div>
@@ -374,24 +310,8 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef3}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section3-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
-                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
-                          {!course.id && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
-                              backgroundColor: '#ffc107',
-                              color: '#000',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              zIndex: 10
-                            }}>
-                              DEMO
-                            </div>
-                          )}
+                        <div key={`section3-${index}`}>
+                          <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
                     </div>
@@ -416,24 +336,8 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef4}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section4-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
-                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
-                          {!course.id && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
-                              backgroundColor: '#ffc107',
-                              color: '#000',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              zIndex: 10
-                            }}>
-                              DEMO
-                            </div>
-                          )}
+                        <div key={`section4-${index}`}>
+                          <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
                     </div>
@@ -458,24 +362,8 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef5}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section5-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
-                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
-                          {!course.id && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
-                              backgroundColor: '#ffc107',
-                              color: '#000',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              zIndex: 10
-                            }}>
-                              DEMO
-                            </div>
-                          )}
+                        <div key={`section5-${index}`}>
+                          <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
                     </div>
@@ -500,24 +388,8 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef6}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section6-${index}`} style={{ position: 'relative', opacity: course.id ? 1 : 0.85 }}>
-                          <CourseCard {...course} onCourseClick={course.id ? onCourseClick : undefined} />
-                          {!course.id && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '12px',
-                              right: '12px',
-                              backgroundColor: '#ffc107',
-                              color: '#000',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              zIndex: 10
-                            }}>
-                              DEMO
-                            </div>
-                          )}
+                        <div key={`section6-${index}`}>
+                          <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
                     </div>

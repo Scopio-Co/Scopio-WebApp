@@ -166,28 +166,38 @@ class LessonViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def mark_complete(self, request, pk=None):
-        """Mark lesson as completed and award XP from database only
+        """Mark lesson as completed and award XP from database only"""
+        print(f"\n🎯 === MARK_COMPLETE START ===")
+        print(f"User: {request.user}, Lesson PK: {pk}")
         
-        XP MUST come from lesson.time_xp field in database, NEVER random.
-        Only awards XP on first completion of a lesson.
-        """
+        lesson = self.get_object()
+        print(f"✅ Lesson: {lesson.id} - {lesson.title}")
+        
+        if not request.user.is_authenticated:
+            print("❌ Not authenticated")
+            return Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
         try:
-            lesson = self.get_object()
-            
-            if not request.user.is_authenticated:
-                return Response(
-                    {'error': 'Authentication required'},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
-            
-            # Get or create progress (unique_together is user + lesson only)
+            # Get or create progress (must include course to avoid NULL constraints)
             progress, created = UserProgress.objects.get_or_create(
                 user=request.user,
+                course=lesson.course,
                 lesson=lesson,
-                defaults={'course': lesson.course}
+                defaults={
+                    'completed': False,
+                    'watch_percentage': 0,
+                    'video_duration_seconds': 0,
+                    'last_position': 0,
+                    'xp_chunks_awarded': 0
+                }
             )
+            print(f"{'✅ CREATED' if created else '✅ RETRIEVED'} progress: watch={progress.watch_percentage}%")
+                
         except Exception as e:
-            print(f"❌ Error in mark_complete: {str(e)}")
+            print(f"❌ GET_OR_CREATE failed: {type(e).__name__}: {str(e)}")
             import traceback
             traceback.print_exc()
             return Response(
@@ -195,58 +205,111 @@ class LessonViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
+        # Check if video was watched enough (>= 90%)
+        print(f"Video watched: {progress.watch_percentage}% (required: 90%)")
+        if not progress.is_video_fully_watched:
+            print(f"❌ Not enough watch percentage")
+            return Response(
+                {
+                    'error': f'Video must be watched at least 90% before completion. Current: {progress.watch_percentage}%',
+                    'watch_percentage': progress.watch_percentage,
+                    'required_percentage': 90,
+                    'completed': False
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         xp_awarded = 0
         
-        # Only award XP if this is the first time marking complete
-        if not progress.completed:
-            progress.completed = True
-            progress.completed_at = timezone.now()
-            progress.save()
-            
-            # *** XP MUST come from lesson.time_xp field in database ***
-            # Extract XP from lesson's time_xp field (e.g., "450.00" -> 450)
-            # NO RANDOM GENERATION - only database values
-            if lesson.time_xp:
-                try:
-                    xp_value = float(lesson.time_xp)
-                    xp_awarded = int(xp_value)
-                    
-                    # Validate XP is positive (sanity check)
-                    if xp_awarded < 0:
-                        xp_awarded = 0
-                    
-                except (ValueError, TypeError):
-                    # If time_xp is invalid, award 0 XP
-                    xp_awarded = 0
-                    print(f"Warning: Invalid XP value in lesson {lesson.id}: {lesson.time_xp}")
-            
-            # Award XP to user (only if xp_awarded > 0)
-            if xp_awarded > 0:
-                user_xp, _ = UserXP.objects.get_or_create(
-                    user=request.user,
-                    defaults={'has_seen_welcome': False}
-                )
-                user_xp.add_xp(xp_awarded)
+        try:
+            # Only award XP if this is the first time marking complete
+            if not progress.completed:
+                print(f"✅ First completion - awarding XP")
+                progress.completed = True
+                progress.completed_at = timezone.now()
+                progress.save()
+                print(f"✅ Progress marked complete")
                 
-                # Track daily XP for streak calculation
-                today = date.today()
-                daily_xp, _ = DailyXP.objects.get_or_create(
-                    user=request.user,
-                    date=today
-                )
-                daily_xp.xp_earned += xp_awarded
-                daily_xp.save()
-        else:
-            # Lesson already completed, no new XP
-            progress.save()
+                # *** XP MUST come from lesson.time_xp field in database ***
+                # Extract XP from lesson's time_xp field (e.g., "450.00" -> 450)
+                # NO RANDOM GENERATION - only database values
+                print(f"Lesson time_xp value: '{lesson.time_xp}'")
+                if lesson.time_xp:
+                    try:
+                        xp_value = float(lesson.time_xp)
+                        xp_awarded = int(xp_value)
+                        print(f"✅ XP converted: {lesson.time_xp} → {xp_awarded}")
+                        
+                        # Validate XP is positive (sanity check)
+                        if xp_awarded < 0:
+                            xp_awarded = 0
+                            print(f"⚠️ Negative XP reset to 0")
+                        
+                    except (ValueError, TypeError) as ve:
+                        # If time_xp is invalid, award 0 XP
+                        xp_awarded = 0
+                        print(f"⚠️ Invalid XP value: {lesson.time_xp} - Error: {str(ve)}")
+                else:
+                    print(f"⚠️ Lesson has no time_xp value, XP = 0")
+                
+                # Award XP to user (only if xp_awarded > 0)
+                if xp_awarded > 0:
+                    try:
+                        user_xp, _ = UserXP.objects.get_or_create(
+                            user=request.user,
+                            defaults={'has_seen_welcome': False}
+                        )
+                        user_xp.add_xp(xp_awarded)
+                        print(f"✅ XP added to UserXP: {xp_awarded}")
+                        
+                        # Track daily XP for streak calculation
+                        today = date.today()
+                        daily_xp, _ = DailyXP.objects.get_or_create(
+                            user=request.user,
+                            date=today
+                        )
+                        daily_xp.xp_earned += xp_awarded
+                        daily_xp.save()
+                        print(f"✅ Daily XP updated: {daily_xp.xp_earned}")
+                    except Exception as xpe:
+                        print(f"❌ XP Error: {type(xpe).__name__}: {str(xpe)}")
+                        import traceback
+                        traceback.print_exc()
+                else:
+                    print(f"⚠️ No XP to award (xp_awarded={xp_awarded})")
+            else:
+                # Lesson already completed, no new XP
+                print(f"⚠️ Already completed - no new XP")
+                progress.save()
+                
+        except Exception as ce:
+            print(f"❌ Logic Error: {type(ce).__name__}: {str(ce)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Error completing lesson: {str(ce)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
-        serializer = UserProgressSerializer(progress)
-        return Response({
-            **serializer.data,
-            'xp_awarded': xp_awarded,
-            'lesson_title': lesson.title,
-            'lesson_xp_value': lesson.time_xp
-        })
+        try:
+            serializer = UserProgressSerializer(progress)
+            response_data = {
+                **serializer.data,
+                'xp_awarded': xp_awarded,
+                'lesson_title': lesson.title,
+                'lesson_xp_value': lesson.time_xp,
+                'completed': True
+            }
+            print(f"✅ COMPLETE: Lesson {lesson.id}, XP={xp_awarded}, Response ready")
+            return Response(response_data)
+        except Exception as se:
+            print(f"❌ Serialization Error: {type(se).__name__}: {str(se)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Error preparing response: {str(se)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def update_progress(self, request, pk=None):
@@ -264,7 +327,13 @@ class LessonViewSet(viewsets.ModelViewSet):
         progress, created = UserProgress.objects.get_or_create(
             user=request.user,
             course=lesson.course,
-            lesson=lesson
+            lesson=lesson,
+            defaults={
+                'completed': False,
+                'watch_percentage': 0,
+                'video_duration_seconds': 0,
+                'last_position': last_position
+            }
         )
         
         progress.last_position = last_position
@@ -272,6 +341,89 @@ class LessonViewSet(viewsets.ModelViewSet):
         
         serializer = UserProgressSerializer(progress)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def update_watch_percentage(self, request, pk=None):
+        """Update video watch percentage (real-time progress tracking)"""
+        print(f"\n🔍 === UPDATE_WATCH_PERCENTAGE START ===")
+        print(f"User: {request.user} (Auth: {request.user.is_authenticated})")
+        print(f"Lesson PK: {pk}")
+        
+        # Get lesson
+        try:
+            lesson = self.get_object()
+            print(f"✅ Lesson retrieved: ID={lesson.id}, Title={lesson.title}, Course={lesson.course_id}")
+        except Exception as e:
+            print(f"❌ GET_OBJECT failed: {type(e).__name__}: {str(e)}")
+            return Response(
+                {'error': f'Lesson not found: {str(e)}'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Validate auth
+        if not request.user.is_authenticated:
+            print("❌ User not authenticated")
+            return Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        watch_percentage = request.data.get('watch_percentage', 0)
+        video_duration = request.data.get('video_duration', 0)
+        print(f"Request data: watch_percentage={watch_percentage}, video_duration={video_duration}")
+        
+        # Validate input
+        if not isinstance(watch_percentage, (int, float)) or watch_percentage < 0 or watch_percentage > 100:
+            print(f"❌ Invalid watch_percentage: {watch_percentage}")
+            return Response(
+                {'error': 'watch_percentage must be between 0-100'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            print(f"Get_or_create: user={request.user.id}, course={lesson.course_id}, lesson={lesson.id}")
+            progress, created = UserProgress.objects.get_or_create(
+                user=request.user,
+                course=lesson.course,
+                lesson=lesson,
+                defaults={
+                    'completed': False,
+                    'watch_percentage': 0,
+                    'video_duration_seconds': 0,
+                    'last_position': 0,
+                    'xp_chunks_awarded': 0
+                }
+            )
+            print(f"{'✅ CREATED' if created else '✅ RETRIEVED'} progress record: {progress.id}")
+            
+            # Update progress
+            old_val = progress.watch_percentage
+            progress.watch_percentage = max(progress.watch_percentage, int(watch_percentage))
+            if video_duration > 0:
+                progress.video_duration_seconds = video_duration
+            progress.save()
+            print(f"✅ Progress saved: {old_val}% → {progress.watch_percentage}%")
+            
+            # Serialize response
+            serializer = UserProgressSerializer(progress)
+            response_data = {
+                **serializer.data,
+                'lesson_title': lesson.title,
+                'lesson_duration': lesson.duration,
+                'is_fully_watched': progress.is_video_fully_watched
+            }
+            print(f"✅ Response prepared")
+            return Response(response_data)
+            
+        except Exception as e:
+            print(f"❌ EXCEPTION in logic: {type(e).__name__}")
+            print(f"   Message: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'{type(e).__name__}: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # ========== DISCUSSION VIEWS ==========

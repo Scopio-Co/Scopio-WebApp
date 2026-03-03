@@ -11,6 +11,7 @@ backend/node_modules/
 # Documentation
 changes_doc
 walkthrough
+docs/
 
 # Environment
 benv/

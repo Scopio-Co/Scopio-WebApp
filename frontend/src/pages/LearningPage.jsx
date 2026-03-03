@@ -13,27 +13,9 @@ const LearningPage = ({ onLogout, isLoading }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [usingFallback, setUsingFallback] = useState(false);
   const [userXP, setUserXP] = useState(0);
   const [completedLessons, setCompletedLessons] = useState(0);
   const navigate = useNavigate();
-
-  // Fallback dummy courses for when API is unavailable
-  const dummyCourses = [
-    {
-      id: null, // null ID indicates dummy data
-      title: "Sample Course 1",
-      description: "This is a sample course. Real courses will appear here when connected to the backend.",
-      thumbnail_url: heroCardImg,
-      instructor_name: "Demo Instructor",
-      instructor_title: "Sample Teacher",
-      rating: 4.5,
-      total_duration: "5 hours",
-      progress_percentage: 0,
-      total_lessons: 10,
-      is_published: true
-    }
-  ];
 
   // Fetch enrolled courses from backend
   useEffect(() => {
@@ -62,14 +44,12 @@ const LearningPage = ({ onLogout, isLoading }) => {
           }));
           
           setCourses(enrolledCourses);
-          setUsingFallback(false);
           setError(null);
           console.log(`✓ Loaded ${enrolledCourses.length} enrolled course(s)`);
         } else {
           // No enrollments yet
           console.warn('⚠️ No enrolled courses found');
           setCourses([]);
-          setUsingFallback(false);
         }
       } catch (err) {
         console.error('❌ Error fetching enrolled courses:', err);
@@ -83,7 +63,6 @@ const LearningPage = ({ onLogout, isLoading }) => {
           setError('Failed to load courses. Please check your connection.');
           setCourses([]);
         }
-        setUsingFallback(false);
       } finally {
         setLoading(false);
       }
@@ -178,7 +157,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
               <div className="course-grid">
                 {courses.map((course, index) => (
                   <div 
-                    key={course.id || `demo-${index}`} 
+                    key={course.id} 
                     className="course-card" 
                     onClick={() => navigate(`/course/${course.id}`)}
                     style={{ 

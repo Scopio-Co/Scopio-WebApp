@@ -133,17 +133,38 @@ class UserProgress(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     last_position = models.PositiveIntegerField(default=0, help_text="Last watched position in seconds")
     
+    # Video Completion Tracking
+    watch_percentage = models.PositiveSmallIntegerField(
+        default=0, 
+        help_text="Percentage of video watched (0-100)"
+    )
+    video_duration_seconds = models.PositiveIntegerField(
+        default=0,
+        help_text="Total video duration in seconds for reference"
+    )
+    
+    # XP Chunks (required by database schema)
+    xp_chunks_awarded = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of XP chunks awarded for this lesson"
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ['user', 'lesson']
+        unique_together = ['user', 'course', 'lesson']
         verbose_name_plural = "User Progress"
     
     def __str__(self):
         status = "✓" if self.completed else "○"
-        return f"{status} {self.user.username} - {self.lesson.title}"
+        return f"{status} {self.user.username} - {self.lesson.title} ({self.watch_percentage}%)"
+    
+    @property
+    def is_video_fully_watched(self):
+        """Check if user has watched >= 90% of the video"""
+        return self.watch_percentage >= 90
 
 
 class UserNotes(models.Model):

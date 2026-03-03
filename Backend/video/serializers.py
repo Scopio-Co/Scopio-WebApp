@@ -167,17 +167,21 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
 # ========== PROGRESS SERIALIZERS ==========
 class UserProgressSerializer(serializers.ModelSerializer):
-    """Track user lesson progress"""
+    """Track user lesson progress including watch percentage"""
     lesson_title = serializers.CharField(source='lesson.title', read_only=True)
+    lesson_duration = serializers.CharField(source='lesson.duration', read_only=True)
+    is_video_fully_watched = serializers.BooleanField(read_only=True)
     
     class Meta:
         model = UserProgress
         fields = [
-            'id', 'user', 'course', 'lesson', 'lesson_title',
+            'id', 'user', 'course', 'lesson', 'lesson_title', 'lesson_duration',
             'completed', 'completed_at', 'last_position',
+            'watch_percentage', 'video_duration_seconds',
+            'is_video_fully_watched',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['user', 'created_at', 'updated_at']
+        read_only_fields = ['user', 'created_at', 'updated_at', 'is_video_fully_watched']
 
 
 

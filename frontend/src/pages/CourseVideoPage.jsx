@@ -167,7 +167,7 @@ const CourseVideoPage = () => {
     }
   }, []);
 
-  // Track actual YouTube player time (only counts when video actively playing)
+  // Track actual YouTube player time and send progress updates
   useEffect(() => {
     if (!youtubePlayer || !playerReady || !isVideoPlaying) return;
 
@@ -175,8 +175,24 @@ const CourseVideoPage = () => {
       try {
         // Get current playback time from YouTube player
         const currentTime = youtubePlayer.getCurrentTime();
-        if (currentTime > 0) {
-          setVideoWatchedTime(Math.floor(currentTime));
+        const duration = youtubePlayer.getDuration();
+        
+        if (currentTime > 0 && duration > 0) {
+          const newWatchedTime = Math.floor(currentTime);
+          setVideoWatchedTime(newWatchedTime);
+          
+          // Calculate watch percentage
+          const watchPercentage = Math.min(Math.round((currentTime / duration) * 100), 100);
+          
+          // Send progress update to backend every 5 seconds
+          if (currentTime % 5 < 1) {
+            updateVideoProgressOnBackend(watchPercentage, Math.floor(duration));
+          }
+          
+          // Log when video reaches important milestones
+          if (watchPercentage === 90) {
+            console.log('🎯 Video 90% watched - ready for completion!');
+          }
         }
       } catch (err) {
         console.error('Error getting YouTube player time:', err);
@@ -185,6 +201,39 @@ const CourseVideoPage = () => {
 
     return () => clearInterval(interval);
   }, [youtubePlayer, playerReady, isVideoPlaying]);
+  
+  // Send video progress update to backend
+  const updateVideoProgressOnBackend = async (watchPercentage, videoDuration) => {
+    const currentLesson = courseData?.lessons?.[currentLessonIndex];
+    
+    if (!currentLesson) {
+      console.warn(`⚠️ No lesson found at index ${currentLessonIndex}`);
+      console.warn(`courseData.lessons count: ${courseData?.lessons?.length || 0}`);
+      return;
+    }
+    
+    if (!currentLesson.id) {
+      console.error(`❌ Lesson has no ID! Lesson:`, currentLesson);
+      return;
+    }
+    
+    console.log(`📤 Updating progress: Lesson ${currentLesson.id} (${currentLesson.title}) - ${watchPercentage}%`);
+    
+    try {
+      const response = await api.post(`/api/video/lessons/${currentLesson.id}/update_watch_percentage/`, {
+        watch_percentage: watchPercentage,
+        video_duration: videoDuration
+      });
+      console.log(`✅ Backend progress update successful:`, response.data);
+    } catch (err) {
+      // Log detailed error but silently fail for progress updates (not critical)
+      if (err.response?.status === 500) {
+        console.error(`❌ Server error on progress update:`, err.response?.data);
+      } else {
+        console.debug('Progress update silent fail');
+      }
+    }
+  };
 
   // Reset watch-time when switching lessons
   useEffect(() => {
@@ -226,22 +275,24 @@ const CourseVideoPage = () => {
       // Initialize YouTube player if video is YouTube
       setTimeout(() => {
         const currentLesson = courseData?.lessons?.[currentLessonIndex];
-        if (currentLesson?.video_url) {
+        if (currentLesson?.video_url && window.YT && window.YT.Player) {
           const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
           const youtubeMatch = currentLesson.video_url.match(youtubeRegex);
           
-          if (youtubeMatch && youtubeMatch[1] && window.YT && window.YT.Player) {
+          if (youtubeMatch && youtubeMatch[1]) {
             const videoId = youtubeMatch[1];
-            const playerElement = document.getElementById('youtube-player');
+            const playerElement = document.getElementById('youtube-player-container');
             
-            if (playerElement) {
+            if (playerElement && !playerElement.querySelector('iframe')) {
               try {
-                const player = new window.YT.Player('youtube-player', {
+                const player = new window.YT.Player('youtube-player-container', {
                   videoId: videoId,
                   playerVars: {
                     autoplay: 1,
-                    mute: 1,
-                    enablejsapi: 1
+                    mute: 0,
+                    enablejsapi: 1,
+                    modestbranding: 1,
+                    rel: 0
                   },
                   events: {
                     onReady: (event) => {
@@ -251,12 +302,34 @@ const CourseVideoPage = () => {
                       event.target.playVideo();
                     },
                     onStateChange: (event) => {
-                      // Track play/pause state
-                      if (event.data === window.YT.PlayerState.PLAYING) {
-                        console.log('▶️ Video playing');
-                      } else if (event.data === window.YT.PlayerState.PAUSED) {
-                        console.log('⏸️ Video paused');
+                      const PlayerState = window.YT.PlayerState;
+                      switch(event.data) {
+                        case PlayerState.UNSTARTED:
+                          console.log('⏳ Video unstarted');
+                          break;
+                        case PlayerState.PLAYING:
+                          console.log('▶️ Video playing');
+                          break;
+                        case PlayerState.PAUSED:
+                          console.log('⏸️ Video paused');
+                          break;
+                        case PlayerState.BUFFERING:
+                          console.log('⏳ Video buffering');
+                          break;
+                        case PlayerState.CUED:
+                          console.log('📽️ Video cued');
+                          break;
+                        case PlayerState.ENDED:
+                          console.log('🏁 Video ended!');
+                          // Auto-mark lesson complete when video ends
+                          markLessonComplete();
+                          break;
+                        default:
+                          break;
                       }
+                    },
+                    onError: (event) => {
+                      console.error('❌ YouTube player error:', event.data);
                     }
                   }
                 });
@@ -266,7 +339,7 @@ const CourseVideoPage = () => {
             }
           }
         }
-      }, 500); // Give iframe time to render
+      }, 100); // Reduced delay - iframe renders faster
     }
   };
 
@@ -373,6 +446,16 @@ const CourseVideoPage = () => {
       } else {
         console.log('ℹ️ No XP awarded (lesson already completed or no XP value)');
       }
+      
+      // Auto-navigate to next lesson if available
+      if (!lessonId && currentLessonIndex < courseData.lessons.length - 1) {
+        console.log('📍 Moving to next lesson...');
+        setTimeout(() => {
+          setCurrentLessonIndex(currentLessonIndex + 1);
+          setIsVideoPlaying(false);
+        }, 2000); // Wait 2 seconds before moving to next
+      }
+      
     } catch (err) {
       console.error('❌ Error marking lesson complete:', err);
       console.error('Error details:', {
@@ -388,6 +471,12 @@ const CourseVideoPage = () => {
         alert('Network error. Please check your internet connection and try again.');
       } else if (err.response?.status === 401) {
         alert('Authentication failed. Please log in again.');
+      } else if (err.response?.status === 400) {
+        // 90% watch requirement not met
+        const watchPercentage = err.response?.data?.watch_percentage || 0;
+        const required = err.response?.data?.required_percentage || 90;
+        console.log(`⚠️ Video must be ${required}% watched. Current: ${watchPercentage}%`);
+        alert(`Please watch at least ${required}% of the video before completing the lesson. Currently watched: ${watchPercentage}%`);
       } else if (err.response?.status === 403) {
         alert('You do not have permission to mark this lesson complete.');
       } else if (err.response?.status === 404) {
@@ -419,58 +508,6 @@ const CourseVideoPage = () => {
     
     return 120; // Default 2 minutes if parsing fails
   };
-
-  // Auto-complete lesson when video reaches specified duration from DB
-  useEffect(() => {
-    // Early return checks with logging
-    if (!isEnrolled) {
-      return;
-    }
-    
-    if (!isVideoPlaying) {
-      return;
-    }
-    
-    if (!courseData?.lessons?.[currentLessonIndex]) {
-      console.warn('⚠️ No lesson data available for auto-complete');
-      return;
-    }
-
-    const currentLesson = courseData.lessons[currentLessonIndex];
-    const lessonId = currentLesson.id;
-    
-    if (completedLessons.has(lessonId)) {
-      console.log(`ℹ️ Lesson ${lessonId} already marked as completed`);
-      return;
-    }
-    
-    if (autoCompletingLessonId === lessonId) {
-      console.log(`ℹ️ Lesson ${lessonId} is currently being marked complete`);
-      return;
-    }
-
-    // Parse duration from database (e.g., "6:50" -> 410 seconds)
-    const requiredSeconds = parseDurationToSeconds(currentLesson.duration);
-    
-    if (videoWatchedTime < requiredSeconds) {
-      return; // Not reached required duration yet
-    }
-
-    console.log(`⏰ Auto-completing lesson ${lessonId} after ${videoWatchedTime}s (required: ${requiredSeconds}s)`);
-    setAutoCompletingLessonId(lessonId);
-    
-    markLessonComplete(lessonId).finally(() => {
-      setAutoCompletingLessonId(null);
-    });
-  }, [
-    isEnrolled,
-    isVideoPlaying,
-    videoWatchedTime,
-    courseData,
-    currentLessonIndex,
-    completedLessons,
-    autoCompletingLessonId
-  ]);
 
   // Handle discussion submission
   const handleDiscussionSubmit = async (e) => {
@@ -658,18 +695,22 @@ const CourseVideoPage = () => {
           <div className="video-lessons-container">
             {/* Video Player */}
             <div className="video-player">
-              {isVideoPlaying && videoEmbedUrl ? (
-                <div 
-                  id="youtube-player"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%'
-                  }}
-                />
-              ) : (
+              {/* YouTube Player Container - Always rendered to avoid DOM conflicts */}
+              <div 
+                id="youtube-player-container"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  display: isVideoPlaying && videoEmbedUrl ? 'block' : 'none',
+                  zIndex: 10
+                }}
+              />
+              
+              {/* Thumbnail and Play Button - Show when not playing */}
+              {!isVideoPlaying || !videoEmbedUrl ? (
                 <>
                   <img 
                     src={currentLesson?.thumbnail_url || courseData?.thumbnail_url || courseVideoImage} 
@@ -692,7 +733,7 @@ const CourseVideoPage = () => {
                     <p className="video-subtitle">{currentLesson?.title || 'Lesson Title'}</p>
                   </div>
                 </>
-              )}
+              ) : null}
             </div>
 
             {/* Course Lessons */}
