@@ -724,7 +724,7 @@ const CourseVideoPage = () => {
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    display: isVideoPlaying ? 'block' : 'none',
+                    display: isVideoPlaying ? 'block' : 'block',
                     zIndex: 10
                   }}
                 />
