@@ -4,7 +4,7 @@ import Login from './Login';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import googleIcon from '../assets/img/Google.svg';
 import githubIcon from '../assets/img/Github.svg';
-import api, { fetchCsrfToken } from '../api';
+import api, { fetchCsrfToken, login } from '../api';
 
 const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [formData, setFormData] = useState({
@@ -85,15 +85,30 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
         // Show success toast
         setToast({ visible: true, message: 'Account created successfully!' });
         
-        // Wait 1 second before navigating
-        setTimeout(() => {
-          setToast({ visible: false, message: '' });
-          if (typeof onSwitchToWelcome === 'function') {
-            onSwitchToWelcome();
-          } else if (typeof onSwitchToLogin === 'function') {
-            onSwitchToLogin();
-          }
-        }, 1000);
+        // Automatically log in the user after successful registration
+        try {
+          console.log('🔐 [Signup] Auto-logging in user after registration...');
+          await login(formData.username, formData.password);
+          console.log('✓ [Signup] Auto-login successful, tokens stored');
+          
+          // Wait 1 second before navigating to welcome page
+          setTimeout(() => {
+            setToast({ visible: false, message: '' });
+            if (typeof onSwitchToWelcome === 'function') {
+              onSwitchToWelcome();
+            }
+          }, 1000);
+        } catch (loginError) {
+          console.error('❌ [Signup] Auto-login failed:', loginError);
+          // If auto-login fails, redirect to login page
+          setToast({ visible: true, message: 'Account created! Please log in.' });
+          setTimeout(() => {
+            setToast({ visible: false, message: '' });
+            if (typeof onSwitchToLogin === 'function') {
+              onSwitchToLogin();
+            }
+          }, 1500);
+        }
       } catch (error) {
         console.error('Signup failed:', error.response?.data);
         

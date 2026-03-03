@@ -266,81 +266,96 @@ const CourseVideoPage = () => {
     setCompletedLessons(completed);
   }, [courseData]);
 
+  // Check if video is YouTube
+  const isYouTubeVideo = (url) => {
+    if (!url) return false;
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
+    return youtubeRegex.test(url);
+  };
+
   // Handle play button - check enrollment
   const handlePlayClick = () => {
     if (!isEnrolled) {
       setShowEnrollModal(true);
     } else {
-      setIsVideoPlaying(true);
+      const currentLesson = courseData?.lessons?.[currentLessonIndex];
+      const isYoutube = isYouTubeVideo(currentLesson?.video_url);
       
-      // Initialize YouTube player if video is YouTube
-      setTimeout(() => {
-        const currentLesson = courseData?.lessons?.[currentLessonIndex];
-        if (currentLesson?.video_url && window.YT && window.YT.Player) {
-          const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
-          const youtubeMatch = currentLesson.video_url.match(youtubeRegex);
+      // For YouTube videos, initialize player first, then show
+      if (isYoutube && window.YT && window.YT.Player) {
+        const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
+        const youtubeMatch = currentLesson.video_url.match(youtubeRegex);
+        
+        if (youtubeMatch && youtubeMatch[1]) {
+          const videoId = youtubeMatch[1];
+          const playerElement = document.getElementById('youtube-player-container');
           
-          if (youtubeMatch && youtubeMatch[1]) {
-            const videoId = youtubeMatch[1];
-            const playerElement = document.getElementById('youtube-player-container');
-            
-            if (playerElement && !playerElement.querySelector('iframe')) {
-              try {
-                const player = new window.YT.Player('youtube-player-container', {
-                  videoId: videoId,
-                  playerVars: {
-                    autoplay: 1,
-                    mute: 0,
-                    enablejsapi: 1,
-                    modestbranding: 1,
-                    rel: 0
+          if (playerElement && !playerElement.querySelector('iframe')) {
+            try {
+              const player = new window.YT.Player('youtube-player-container', {
+                videoId: videoId,
+                playerVars: {
+                  autoplay: 1,
+                  mute: 0,
+                  enablejsapi: 1,
+                  modestbranding: 1,
+                  rel: 0
+                },
+                events: {
+                  onReady: (event) => {
+                    console.log('✅ YouTube player ready');
+                    setYoutubePlayer(event.target);
+                    setPlayerReady(true);
+                    // Only hide thumbnail after player is ready
+                    setIsVideoPlaying(true);
+                    event.target.playVideo();
                   },
-                  events: {
-                    onReady: (event) => {
-                      console.log('✅ YouTube player ready');
-                      setYoutubePlayer(event.target);
-                      setPlayerReady(true);
-                      event.target.playVideo();
-                    },
-                    onStateChange: (event) => {
-                      const PlayerState = window.YT.PlayerState;
-                      switch(event.data) {
-                        case PlayerState.UNSTARTED:
-                          console.log('⏳ Video unstarted');
-                          break;
-                        case PlayerState.PLAYING:
-                          console.log('▶️ Video playing');
-                          break;
-                        case PlayerState.PAUSED:
-                          console.log('⏸️ Video paused');
-                          break;
-                        case PlayerState.BUFFERING:
-                          console.log('⏳ Video buffering');
-                          break;
-                        case PlayerState.CUED:
-                          console.log('📽️ Video cued');
-                          break;
-                        case PlayerState.ENDED:
-                          console.log('🏁 Video ended!');
-                          // Auto-mark lesson complete when video ends
-                          markLessonComplete();
-                          break;
-                        default:
-                          break;
-                      }
-                    },
-                    onError: (event) => {
-                      console.error('❌ YouTube player error:', event.data);
+                  onStateChange: (event) => {
+                    const PlayerState = window.YT.PlayerState;
+                    switch(event.data) {
+                      case PlayerState.UNSTARTED:
+                        console.log('⏳ Video unstarted');
+                        break;
+                      case PlayerState.PLAYING:
+                        console.log('▶️ Video playing');
+                        break;
+                      case PlayerState.PAUSED:
+                        console.log('⏸️ Video paused');
+                        break;
+                      case PlayerState.BUFFERING:
+                        console.log('⏳ Video buffering');
+                        break;
+                      case PlayerState.CUED:
+                        console.log('📽️ Video cued');
+                        break;
+                      case PlayerState.ENDED:
+                        console.log('🏁 Video ended!');
+                        // Auto-mark lesson complete when video ends
+                        markLessonComplete();
+                        break;
+                      default:
+                        break;
                     }
+                  },
+                  onError: (event) => {
+                    console.error('❌ YouTube player error:', event.data);
                   }
-                });
-              } catch (err) {
-                console.error('Error initializing YouTube player:', err);
-              }
+                }
+              });
+            } catch (err) {
+              console.error('Error initializing YouTube player:', err);
+              // If YouTube init fails, still show the playing state
+              setIsVideoPlaying(true);
             }
+          } else {
+            // Player already exists, just show it
+            setIsVideoPlaying(true);
           }
         }
-      }, 100); // Reduced delay - iframe renders faster
+      } else {
+        // For non-YouTube videos (Vimeo, direct videos), show immediately
+        setIsVideoPlaying(true);
+      }
     }
   };
 
@@ -699,19 +714,40 @@ const CourseVideoPage = () => {
           <div className="video-lessons-container">
             {/* Video Player */}
             <div className="video-player">
-              {/* YouTube Player Container - Always rendered to avoid DOM conflicts */}
-              <div 
-                id="youtube-player-container"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  display: isVideoPlaying && videoEmbedUrl ? 'block' : 'none',
-                  zIndex: 10
-                }}
-              />
+              {/* YouTube Player Container - Only for YouTube videos */}
+              {isYouTubeVideo(currentVideoUrl) && (
+                <div 
+                  id="youtube-player-container"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    display: isVideoPlaying ? 'block' : 'none',
+                    zIndex: 10
+                  }}
+                />
+              )}
+              
+              {/* Non-YouTube Video Player (Vimeo, direct videos, etc.) */}
+              {!isYouTubeVideo(currentVideoUrl) && isVideoPlaying && videoEmbedUrl && (
+                <iframe
+                  src={videoEmbedUrl}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    zIndex: 10
+                  }}
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Video Player"
+                />
+              )}
               
               {/* Thumbnail and Play Button - Show when not playing */}
               {!isVideoPlaying || !videoEmbedUrl ? (
