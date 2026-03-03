@@ -352,7 +352,11 @@
   color: var(--text-tertiary);
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 2.5rem;
+  padding: 2.5rem 2.5rem 4rem 2.5rem;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
 /* Tabs */
@@ -382,6 +386,26 @@
 }
 
 /* Tab Content */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: var(--scrollbar-thumb);
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
 .about-section {
   margin-bottom: 2.5rem;
 }
@@ -403,8 +427,9 @@
 .what-learn-section {
   margin-bottom: 1.5rem;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 2rem;
 }
 
@@ -441,15 +466,19 @@
   font-size: 1.2rem;
 }
 
-.rating-display {
+.rating-display-in-cdp {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
-  padding: 10px 15px;
+  padding: 12px 15px;
   border-radius: 25px;
   background: var(--cv-avatar-bg);
   box-shadow: 0 3px 21.5px -6px rgba(0, 0, 0, 0.06);
+  position: absolute;
+  bottom: 10px;
+  right: 2.5rem;
+  z-index: 10;
 }
 
 .stars {
@@ -1046,6 +1075,10 @@
   .overview-container{
     padding:1rem;
   }
+  .rating-display-in-cdp {
+    bottom: 1rem;
+    right: 1rem;
+  }
   .tab{
     padding:0.5rem 0.8rem;
   }
@@ -1058,8 +1091,13 @@
 }
 }
 @media (max-width: 1024px) {
+  
     .overview-container{
     padding:1.8rem;
+  }
+  .rating-display-in-cdp {
+    bottom: 1.8rem;
+    right: 1.8rem;
   }
   .video-lessons-container {
     flex-direction: column;
@@ -1071,8 +1109,7 @@
 
   .lessons-sidebar {
     width: 100%;
-    height: auto;
-    max-height: 500px;
+    height: 400px;
   }
 
   .discussions-overview-container {
@@ -1147,6 +1184,11 @@
   }
   .overview-container{
     padding:1rem;
+  }
+  .rating-display-in-cdp {
+    bottom: 1rem;
+    right: 1rem;
+    flex-direction: column;
   }
    .tab{
     padding:0.8rem 0.7rem;

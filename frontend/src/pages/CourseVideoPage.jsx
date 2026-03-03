@@ -956,8 +956,8 @@ const CourseVideoPage = () => {
                           ))}
                         </ul>
                       </div>
-                      <div className="rating-display">
-                        <div style={{ marginBottom: '10px' }}>
+                      <div className="rating-display-in-cdp">
+                        <div>
                           <span className="rating-number">{courseRating.toFixed(1)}</span>
                           <span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '5px' }}>
                             ({totalRatings} rating{totalRatings !== 1 ? 's' : ''})
@@ -988,15 +988,7 @@ const CourseVideoPage = () => {
                             );
                           })}
                         </div>
-                        {userRating ? (
-                          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
-                            You rated: {userRating} star{userRating !== 1 ? 's' : ''}
-                          </p>
-                        ) : (
-                          <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
-                            Click to rate this course
-                          </p>
-                        )}
+                        
                       </div>
                     </div>
                   </>

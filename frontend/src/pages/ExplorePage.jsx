@@ -227,7 +227,7 @@ const ExplorePage = () => {
                     <div className="courses-scroll-container" ref={scrollRef1}>
                       <div className="courses-row">
                         {filteredCourses.map((course, index) => (
-                          <div key={`search-${index}`}>
+                          <div className="course-card-cont" key={`search-${index}`}>
                             <CourseCard {...course} />
                           </div>
                         ))}
@@ -258,7 +258,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef1}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`latest-${index}`}>
+                        <div className="course-card-cont" key={`latest-${index}`}>
                           <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
@@ -284,7 +284,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef2}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section2-${index}`}>
+                        <div className="course-card-cont" key={`section2-${index}`}>
                           <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
@@ -310,7 +310,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef3}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section3-${index}`}>
+                        <div className="course-card-cont" key={`section3-${index}`}>
                           <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
@@ -336,7 +336,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef4}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section4-${index}`}>
+                        <div className="course-card-cont" key={`section4-${index}`}>
                           <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
@@ -362,7 +362,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef5}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section5-${index}`}>
+                        <div className="course-card-cont" key={`section5-${index}`}>
                           <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}
@@ -388,7 +388,7 @@ const ExplorePage = () => {
                   <div className="courses-scroll-container" ref={scrollRef6}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
-                        <div key={`section6-${index}`}>
+                        <div className="course-card-cont" key={`section6-${index}`}>
                           <CourseCard {...course} onCourseClick={onCourseClick} />
                         </div>
                       ))}

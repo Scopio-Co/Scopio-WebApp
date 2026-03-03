@@ -205,13 +205,14 @@ const LeaderboardPage = () => {
         </div>
 
         {/* Pagination */}
-        <div className="leaderboard-pagination">
-          <Pagination 
-            currentPage={currentPage} 
-            totalPages={totalPages} 
-            onPageChange={handlePageChange} 
-          />
-        </div>
+              <div className="leaderboard-pagination">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={filteredLeaderboard.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={handlePageChange}
+                />
+              </div>
       </div>
 
       {/* Footer */}

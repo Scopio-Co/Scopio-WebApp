@@ -167,6 +167,13 @@ font-family: Eina03-Regular;
   font-family: Eina03-Regular;
   margin: 0;
   text-align: justify;
+  max-height: 60px;
+  overflow: hidden;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
 }
 
 /* Responsive Design */
@@ -179,5 +186,12 @@ font-family: Eina03-Regular;
 
   .info-card-content {
     padding: 20px;
+  }
+}
+
+/* Hide info (i) button on smaller screens to avoid clutter */
+@media (max-width: 1024px) {
+  .card-info-btn {
+    display: none !important;
   }
 }

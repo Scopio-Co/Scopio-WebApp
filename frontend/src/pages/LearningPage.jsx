@@ -15,7 +15,13 @@ const LearningPage = ({ onLogout, isLoading }) => {
   const [error, setError] = useState(null);
   const [userXP, setUserXP] = useState(0);
   const [completedLessons, setCompletedLessons] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
+  
+  // Pagination constants
+  const COURSES_PER_PAGE = 8;
+
+  /* No dummy data here — use enrolled courses from the backend only */
 
   // Fetch enrolled courses from backend
   useEffect(() => {
@@ -94,6 +100,32 @@ const LearningPage = ({ onLogout, isLoading }) => {
     return match ? match[1] + '%' : '0%';
   };
 
+  // Pagination logic: show only enrolled courses from the backend
+  const totalPages = Math.max(1, Math.ceil(courses.length / COURSES_PER_PAGE));
+  const startIndex = (currentPage - 1) * COURSES_PER_PAGE;
+  const endIndex = startIndex + COURSES_PER_PAGE;
+  const displayCourses = courses.slice(startIndex, endIndex);
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Scroll to top of the learning page container whenever the page changes
+  useEffect(() => {
+    const el = document.querySelector('.learning-page');
+    if (el) {
+      el.scrollIntoView({ behavior: 'auto', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [currentPage]);
+
+  // Reset to page 1 when courses change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [courses.length]);
+
   return (
     <div className="learning-page">
       {/* Main Content */}
@@ -155,14 +187,12 @@ const LearningPage = ({ onLogout, isLoading }) => {
           {courses.length > 0 && (
             <>
               <div className="course-grid">
-                {courses.map((course, index) => (
+                {displayCourses.map((course, index) => (
                   <div 
                     key={course.id} 
                     className="course-card" 
                     onClick={() => navigate(`/course/${course.id}`)}
-                    style={{ 
-                      cursor: 'pointer'
-                    }}
+                    style={{ cursor: 'pointer' }}
                   >
                     <div className="course-image-card">
                       <img src={course.thumbnail_url || heroCardImg} alt={course.title} className="course-img" />
@@ -204,9 +234,16 @@ const LearningPage = ({ onLogout, isLoading }) => {
           )}
         </div>
         {/* Pagination */}
-        <div className="pagination-wrapper">
-          <Pagination currentPage={2} totalPages={3} onPageChange={() => { /* noop for now */ }} />
-        </div>
+        {totalPages > 1 && (
+          <div className="pagination-wrapper">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={sourceCourses.length}
+              itemsPerPage={COURSES_PER_PAGE}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
         </>
         )}
       </div>
