@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from allauth.socialaccount.models import SocialAccount
 from .models import UserProfile
-import base64
+from .avatar_utils import get_profile_image_url
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -100,11 +100,7 @@ class ProfileSettingsSerializer(serializers.Serializer):
 
     @staticmethod
     def to_representation_for(user: User, profile: UserProfile, request=None):
-        image_url = ''
-        if profile.profile_image:
-            content_type = profile.profile_image_content_type or 'image/png'
-            encoded = base64.b64encode(profile.profile_image).decode('ascii')
-            image_url = f"data:{content_type};base64,{encoded}"
+        image_url = get_profile_image_url(profile, request)
 
         return {
             'full_name': user.get_full_name(),

@@ -2,7 +2,7 @@ import './Welcome.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from './calendar.jsx';
-import profilePic from '../assets/img/profilePic.png';
+import profilePic from '../assets/img/profilePic.webp';
 import badge1 from '../assets/img/Award 4.png';
 import badge2 from '../assets/img/Award 5.png';
 import badge3 from '../assets/img/Award 6.png';
@@ -26,24 +26,33 @@ const WelcomeDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [greetingMessage, setGreetingMessage] = useState('Welcome Back!');
+  const [displayName, setDisplayName] = useState('User');
 
   // Fetch user statistics on component mount
   useEffect(() => {
     const fetchUserStats = async () => {
       try {
-        const response = await api.get('/api/video/user-stats/');
-        console.log('✓ User stats fetched:', response.data);
-        console.log('DEBUG - is_first_visit from API:', response.data.is_first_visit);
+        const [statsResponse, profileResponse] = await Promise.all([
+          api.get('/api/video/user-stats/'),
+          api.get('/api/auth/profile/')
+        ]);
+
+        console.log('✓ User stats fetched:', statsResponse.data);
+        console.log('DEBUG - is_first_visit from API:', statsResponse.data.is_first_visit);
+
+        const fullName = (profileResponse?.data?.full_name || '').trim();
+        const username = (profileResponse?.data?.username || '').trim();
+        setDisplayName(fullName || username || 'User');
         
         setStats({
-          learningHours: response.data.learning_hours || 0,
-          streakDays: response.data.streak_days || 0,
-          progress: response.data.progress || 0,
-          achievements: response.data.achievements || 0
+          learningHours: statsResponse.data.learning_hours || 0,
+          streakDays: statsResponse.data.streak_days || 0,
+          progress: statsResponse.data.progress || 0,
+          achievements: statsResponse.data.achievements || 0
         });
         
         // Set greeting based on first visit
-        const firstVisit = response.data.is_first_visit === true;
+        const firstVisit = statsResponse.data.is_first_visit === true;
         console.log('DEBUG - firstVisit calculated:', firstVisit);
         
         setIsFirstVisit(firstVisit);
@@ -208,7 +217,7 @@ const WelcomeDashboard = () => {
           <div className="dashboard-column">
             <div className="profile-card">
               <div className="profile-wrapper">
-                <div className="speed-text">Speed</div>
+                <div className="speed-text">{displayName}</div>
                 
                 <div className="profile-image-container">
                   <img 

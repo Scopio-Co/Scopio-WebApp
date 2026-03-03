@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
+from api.avatar_utils import get_user_profile_image_url, get_default_profile_image_url
 
 
 # ========== DEPRECATED (Backward Compatibility) ==========
@@ -45,14 +46,19 @@ class DiscussionSerializer(serializers.ModelSerializer):
     """Discussion/comments for courses"""
     author_name = serializers.CharField(required=False, allow_blank=True)
     author_role = serializers.CharField(required=False, allow_blank=True)
+    author_profile_image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Discussion
         fields = [
             'id', 'course', 'user', 'author_name', 'author_role',
-            'comment', 'likes_count', 'created_at', 'updated_at'
+            'comment', 'likes_count', 'author_profile_image_url', 'created_at', 'updated_at'
         ]
         read_only_fields = ['user', 'created_at', 'updated_at', 'likes_count']
+
+    def get_author_profile_image_url(self, obj):
+        request = self.context.get('request')
+        return get_user_profile_image_url(obj.user, request)
     
     def create(self, validated_data):
         """Auto-populate author info from user if not provided"""
@@ -79,6 +85,7 @@ class CourseListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for course listing (LearningPage)"""
     total_lessons = serializers.IntegerField(read_only=True)
     progress_percentage = serializers.SerializerMethodField()
+    instructor_avatar_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Course
@@ -104,6 +111,12 @@ class CourseListSerializer(serializers.ModelSerializer):
             return int((completed / total) * 100)
         return 0
 
+    def get_instructor_avatar_url(self, obj):
+        if obj.instructor_avatar_url:
+            return obj.instructor_avatar_url
+        request = self.context.get('request')
+        return get_default_profile_image_url(request)
+
 
 class CourseDetailSerializer(serializers.ModelSerializer):
     """Full course details (CourseVideoPage) - includes lessons, discussions, resources"""
@@ -115,6 +128,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     user_rating = serializers.SerializerMethodField()
     total_ratings = serializers.SerializerMethodField()
+    instructor_avatar_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Course
@@ -164,6 +178,11 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         """Get total number of ratings"""
         return obj.ratings.count()
 
+    def get_instructor_avatar_url(self, obj):
+        if obj.instructor_avatar_url:
+            return obj.instructor_avatar_url
+        request = self.context.get('request')
+        return get_default_profile_image_url(request)
 
 # ========== PROGRESS SERIALIZERS ==========
 class UserProgressSerializer(serializers.ModelSerializer):

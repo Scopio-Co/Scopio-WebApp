@@ -3,6 +3,7 @@ import './LeaderboardPage.css';
 import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import streakBadge from '../assets/img/streak-badge.svg';
+import defaultProfileAvatar from '../assets/img/profileDefault.webp';
 import api from '../api';
 import { LeaderboardPageSkeleton } from '../components/skeletons';
 
@@ -36,6 +37,7 @@ const LeaderboardPage = () => {
             rank,
             name: entry.name || entry.username || 'Unknown User',
             username: entry.username || 'unknown',
+            profileImageUrl: entry.profile_image_url || defaultProfileAvatar,
             score: Number(entry.total_xp) || 0,
             streak: Number(entry.streak_days) || 0,
             bgColor: getRowBackground(rank)
@@ -169,7 +171,16 @@ const LeaderboardPage = () => {
                     </td>
                     <td className="learner-cell">
                       <div className="learner-info">
-                        <div className="learner-avatar"></div>
+                        <div className="learner-avatar">
+                          <img
+                            src={entry.profileImageUrl || defaultProfileAvatar}
+                            alt={entry.name}
+                            className="learner-avatar-image"
+                            onError={(e) => {
+                              e.currentTarget.src = defaultProfileAvatar;
+                            }}
+                          />
+                        </div>
                         <div className="learner-details">
                           <div className="learner-name">{entry.name}</div>
                           <div className="learner-username">{entry.username}</div>

@@ -9,6 +9,7 @@ import instagramIcon from '../assets/img/instagram.svg';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import whatsappIcon from '../assets/img/Whatsapp.svg';
 import xIcon from '../assets/img/x.svg';
+import defaultProfileAvatar from '../assets/img/profileDefault.webp';
 import api from '../api';
 import { CourseVideoSkeleton } from '../components/skeletons';
 
@@ -604,6 +605,7 @@ const CourseVideoPage = () => {
     id: d.id,
     author: d.author_name,
     role: d.author_role,
+    avatar: d.author_profile_image_url,
     comment: d.comment,
     likes: d.likes_count
   })) || [
@@ -611,6 +613,7 @@ const CourseVideoPage = () => {
       id: 1,
       author: "Hamdan Husain",
       role: "son_of_baheev",
+      avatar: defaultProfileAvatar,
       comment: "Greyt lesson! The examples really helped me understand the concepts better.",
       likes: 12
     }
@@ -639,6 +642,7 @@ const CourseVideoPage = () => {
   const instructorName = courseData?.instructor_name || 'Donald J Trump';
   const instructorTitle = courseData?.instructor_title || 'Web Dev @copestart';
   const instructorBio = courseData?.instructor_bio || 'Ben Hong is a Staff Developer Experience (DX) Engineer...';
+  const instructorAvatar = courseData?.instructor_avatar_url || defaultProfileAvatar;
   const totalLessons = lessons.length;
   const completedLessonsCount = lessons.filter(l => l.completed).length;
   
@@ -835,7 +839,16 @@ const CourseVideoPage = () => {
                     <div key={discussion.id} className="discussion-item">
                       <div className="discussion-base">
                         <div className="discussion-avatar">
-                            <div className="avatar-circle"></div>
+                            <div className="avatar-circle">
+                              <img
+                                src={discussion.avatar || defaultProfileAvatar}
+                                alt={discussion.author}
+                                className="avatar-circle-image"
+                                onError={(e) => {
+                                  e.currentTarget.src = defaultProfileAvatar;
+                                }}
+                              />
+                            </div>
                         <div className="discussion-header">
                           <span className="author-name">{discussion.author}</span>
                           <span className="author-role">{discussion.role}</span>
@@ -1044,7 +1057,16 @@ const CourseVideoPage = () => {
                   <div className="tutor-content">
                     <h3>About the Tutor:</h3>
                     <div className="tutor-profile">
-                      <div className="tutor-avatar"></div>
+                      <div className="tutor-avatar">
+                        <img
+                          src={instructorAvatar}
+                          alt={instructorName}
+                          className="tutor-avatar-image"
+                          onError={(e) => {
+                            e.currentTarget.src = defaultProfileAvatar;
+                          }}
+                        />
+                      </div>
                       <div className="tutor-info">
                         <h4 className="tutor-name">{instructorName}</h4>
                         <p className="tutor-role">{instructorTitle}</p>

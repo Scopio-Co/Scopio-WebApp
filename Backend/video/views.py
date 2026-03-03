@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models.functions import Coalesce
 from datetime import date, timedelta
 from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
+from api.avatar_utils import get_user_profile_image_url
 from .serializers import (
     VideoSerializer,
     CourseListSerializer,
@@ -821,6 +822,7 @@ def leaderboard(request):
             'user_id': user.id,
             'name': full_name or user.username,
             'username': user.username,
+            'profile_image_url': get_user_profile_image_url(user, request),
             'total_xp': user.total_xp,
             'streak_days': calculate_current_streak_for_user(user)
         })
