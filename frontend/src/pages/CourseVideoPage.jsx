@@ -65,6 +65,8 @@ const CourseVideoPage = () => {
   const [videoWatchedTime, setVideoWatchedTime] = useState(0); // Track video playback in seconds
   const [completedLessons, setCompletedLessons] = useState(new Set()); // Track completed lesson IDs
   const [autoCompletingLessonId, setAutoCompletingLessonId] = useState(null);
+  const [youtubePlayer, setYoutubePlayer] = useState(null); // YouTube player instance
+  const [playerReady, setPlayerReady] = useState(false);
 
   // Fetch course data from API
   useEffect(() => {
@@ -154,21 +156,51 @@ const CourseVideoPage = () => {
     checkEnrollment();
   }, [courseId]);
 
-  // Track video playback time (must watch 2+ minutes before can mark complete)
+  // Load YouTube IFrame API
   useEffect(() => {
-    if (!isVideoPlaying) return;
+    // Load YouTube IFrame API script if not already loaded
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+  }, []);
 
-    // Increment watch time every second when video is playing
+  // Track actual YouTube player time (only counts when video actively playing)
+  useEffect(() => {
+    if (!youtubePlayer || !playerReady || !isVideoPlaying) return;
+
     const interval = setInterval(() => {
-      setVideoWatchedTime(prev => prev + 1);
+      try {
+        // Get current playback time from YouTube player
+        const currentTime = youtubePlayer.getCurrentTime();
+        if (currentTime > 0) {
+          setVideoWatchedTime(Math.floor(currentTime));
+        }
+      } catch (err) {
+        console.error('Error getting YouTube player time:', err);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isVideoPlaying]);
+  }, [youtubePlayer, playerReady, isVideoPlaying]);
 
   // Reset watch-time when switching lessons
   useEffect(() => {
     setVideoWatchedTime(0);
+    setIsVideoPlaying(false);
+    setPlayerReady(false);
+    
+    // Destroy previous YouTube player instance
+    if (youtubePlayer) {
+      try {
+        youtubePlayer.destroy();
+      } catch (err) {
+        console.error('Error destroying YouTube player:', err);
+      }
+      setYoutubePlayer(null);
+    }
   }, [currentLessonIndex]);
 
   // Load completed lessons status
@@ -190,11 +222,63 @@ const CourseVideoPage = () => {
       setShowEnrollModal(true);
     } else {
       setIsVideoPlaying(true);
+      
+      // Initialize YouTube player if video is YouTube
+      setTimeout(() => {
+        const currentLesson = courseData?.lessons?.[currentLessonIndex];
+        if (currentLesson?.video_url) {
+          const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
+          const youtubeMatch = currentLesson.video_url.match(youtubeRegex);
+          
+          if (youtubeMatch && youtubeMatch[1] && window.YT && window.YT.Player) {
+            const videoId = youtubeMatch[1];
+            const playerElement = document.getElementById('youtube-player');
+            
+            if (playerElement) {
+              try {
+                const player = new window.YT.Player('youtube-player', {
+                  videoId: videoId,
+                  playerVars: {
+                    autoplay: 1,
+                    mute: 1,
+                    enablejsapi: 1
+                  },
+                  events: {
+                    onReady: (event) => {
+                      console.log('✅ YouTube player ready');
+                      setYoutubePlayer(event.target);
+                      setPlayerReady(true);
+                      event.target.playVideo();
+                    },
+                    onStateChange: (event) => {
+                      // Track play/pause state
+                      if (event.data === window.YT.PlayerState.PLAYING) {
+                        console.log('▶️ Video playing');
+                      } else if (event.data === window.YT.PlayerState.PAUSED) {
+                        console.log('⏸️ Video paused');
+                      }
+                    }
+                  }
+                });
+              } catch (err) {
+                console.error('Error initializing YouTube player:', err);
+              }
+            }
+          }
+        }
+      }, 500); // Give iframe time to render
     }
   };
 
   // Enroll user in course
   const enrollInCourse = async () => {
+    if (!courseId) {
+      alert('Invalid course ID');
+      return;
+    }
+
+    console.log(`📝 Enrolling in course ${courseId}...`);
+    
     try {
       setEnrolling(true);
       const response = await api.post('/api/video/enrollments/', {
@@ -207,8 +291,20 @@ const CourseVideoPage = () => {
       setShowEnrollModal(false);
       setIsVideoPlaying(true); // Auto-play after enrollment
     } catch (err) {
-      console.error('Error enrolling in course:', err);
-      alert('Failed to enroll. Please try again.');
+      console.error('❌ Error enrolling in course:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      
+      if (err.response?.status === 401) {
+        alert('Please log in to enroll in this course.');
+      } else if (err.response?.status === 400) {
+        alert('Invalid enrollment data. Please try again.');
+      } else {
+        alert('Failed to enroll. Please try again.');
+      }
     } finally {
       setEnrolling(false);
     }
@@ -216,29 +312,56 @@ const CourseVideoPage = () => {
 
   // Mark current lesson as complete and award XP
   const markLessonComplete = async (lessonId = null) => {
+    // Validate course data exists
     if (!courseData || !courseData.lessons || courseData.lessons.length === 0) {
+      console.error('❌ No course data available for marking lesson complete');
       return;
     }
 
+    // Find the target lesson
     const targetLesson = lessonId
       ? courseData.lessons.find(lesson => lesson.id === lessonId)
       : courseData.lessons[currentLessonIndex];
 
-    if (!targetLesson) return;
+    if (!targetLesson) {
+      console.error('❌ No target lesson found');
+      return;
+    }
+
+    // Check if user is enrolled
+    if (!isEnrolled) {
+      console.error('❌ User not enrolled in course');
+      alert('Please enroll in the course first to mark lessons complete.');
+      return;
+    }
+
+    // Validate lesson ID
+    if (!targetLesson.id) {
+      console.error('❌ Lesson ID is missing:', targetLesson);
+      alert('Invalid lesson data. Please refresh the page.');
+      return;
+    }
+    
+    console.log(`🎯 Attempting to mark lesson ${targetLesson.id} (${targetLesson.title}) as complete...`);
     
     try {
-      const response = await api.post(`/api/video/lessons/${targetLesson.id}/mark_complete/`);
+      // Make API call with full URL validation
+      const markCompleteUrl = `/api/video/lessons/${targetLesson.id}/mark_complete/`;
+      console.log(`📡 POST ${markCompleteUrl}`);
+      
+      const response = await api.post(markCompleteUrl);
       console.log('✓ Lesson marked complete:', response.data);
       
       // XP awarded comes ONLY from database (lesson.time_xp), never random
       const xpAwarded = response.data.xp_awarded || 0;
       const lessonXpValue = response.data.lesson_xp_value;
       
-      console.log(`  XP from database: ${lessonXpValue} → Awarded: ${xpAwarded}`);
+      console.log(`💰 XP from database: ${lessonXpValue} → Awarded: ${xpAwarded}`);
       
       // Add lesson to completed set for visual indicator
       setCompletedLessons(prev => new Set([...prev, targetLesson.id]));
       
+      // Show XP notification if XP was awarded
       if (xpAwarded > 0) {
         setXpEarned(xpAwarded);
         setShowXpNotification(true);
@@ -247,23 +370,95 @@ const CourseVideoPage = () => {
         setTimeout(() => {
           setShowXpNotification(false);
         }, 3000);
+      } else {
+        console.log('ℹ️ No XP awarded (lesson already completed or no XP value)');
       }
     } catch (err) {
-      console.error('Error marking lesson complete:', err);
-      // Don't fail silently - let user know
-      alert('Failed to mark lesson complete. Please try again.');
+      console.error('❌ Error marking lesson complete:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        lessonId: targetLesson.id,
+        url: err.config?.url
+      });
+      
+      // Provide specific error messages
+      if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        alert('Network error. Please check your internet connection and try again.');
+      } else if (err.response?.status === 401) {
+        alert('Authentication failed. Please log in again.');
+      } else if (err.response?.status === 403) {
+        alert('You do not have permission to mark this lesson complete.');
+      } else if (err.response?.status === 404) {
+        alert('Lesson not found. Please refresh the page.');
+      } else {
+        alert('Failed to mark lesson complete. Please try again or contact support if the issue persists.');
+      }
     }
   };
 
-  // Auto-complete lesson after 2 minutes of playback (minimal UX: no extra button/countdown)
+  // Helper: Parse duration string (e.g., "6:50" or "20 mins") to seconds
+  const parseDurationToSeconds = (duration) => {
+    if (!duration) return 120; // Default 2 minutes if no duration
+    
+    // Format: "MM:SS" or "HH:MM:SS"
+    const timeMatch = duration.match(/(\d+):(\d+)(?::(\d+))?/);
+    if (timeMatch) {
+      const hours = timeMatch[3] ? parseInt(timeMatch[1]) : 0;
+      const minutes = timeMatch[3] ? parseInt(timeMatch[2]) : parseInt(timeMatch[1]);
+      const seconds = timeMatch[3] ? parseInt(timeMatch[3]) : parseInt(timeMatch[2]);
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+    
+    // Format: "20 mins" or "30 minutes"
+    const minsMatch = duration.match(/(\d+)\s*min/);
+    if (minsMatch) {
+      return parseInt(minsMatch[1]) * 60;
+    }
+    
+    return 120; // Default 2 minutes if parsing fails
+  };
+
+  // Auto-complete lesson when video reaches specified duration from DB
   useEffect(() => {
-    if (!isEnrolled || !isVideoPlaying || videoWatchedTime < 120) return;
-    if (!courseData?.lessons?.[currentLessonIndex]) return;
+    // Early return checks with logging
+    if (!isEnrolled) {
+      return;
+    }
+    
+    if (!isVideoPlaying) {
+      return;
+    }
+    
+    if (!courseData?.lessons?.[currentLessonIndex]) {
+      console.warn('⚠️ No lesson data available for auto-complete');
+      return;
+    }
 
-    const lessonId = courseData.lessons[currentLessonIndex].id;
-    if (completedLessons.has(lessonId) || autoCompletingLessonId === lessonId) return;
+    const currentLesson = courseData.lessons[currentLessonIndex];
+    const lessonId = currentLesson.id;
+    
+    if (completedLessons.has(lessonId)) {
+      console.log(`ℹ️ Lesson ${lessonId} already marked as completed`);
+      return;
+    }
+    
+    if (autoCompletingLessonId === lessonId) {
+      console.log(`ℹ️ Lesson ${lessonId} is currently being marked complete`);
+      return;
+    }
 
+    // Parse duration from database (e.g., "6:50" -> 410 seconds)
+    const requiredSeconds = parseDurationToSeconds(currentLesson.duration);
+    
+    if (videoWatchedTime < requiredSeconds) {
+      return; // Not reached required duration yet
+    }
+
+    console.log(`⏰ Auto-completing lesson ${lessonId} after ${videoWatchedTime}s (required: ${requiredSeconds}s)`);
     setAutoCompletingLessonId(lessonId);
+    
     markLessonComplete(lessonId).finally(() => {
       setAutoCompletingLessonId(null);
     });
@@ -464,19 +659,14 @@ const CourseVideoPage = () => {
             {/* Video Player */}
             <div className="video-player">
               {isVideoPlaying && videoEmbedUrl ? (
-                <iframe
-                  src={videoEmbedUrl}
-                  title={currentLesson?.title || 'Course Video'}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                <div 
+                  id="youtube-player"
                   style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     width: '100%',
-                    height: '100%',
-                    border: 'none'
+                    height: '100%'
                   }}
                 />
               ) : (

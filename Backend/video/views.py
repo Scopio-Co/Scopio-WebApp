@@ -171,19 +171,29 @@ class LessonViewSet(viewsets.ModelViewSet):
         XP MUST come from lesson.time_xp field in database, NEVER random.
         Only awards XP on first completion of a lesson.
         """
-        lesson = self.get_object()
-        
-        if not request.user.is_authenticated:
-            return Response(
-                {'error': 'Authentication required'},
-                status=status.HTTP_401_UNAUTHORIZED
+        try:
+            lesson = self.get_object()
+            
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': 'Authentication required'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            
+            # Get or create progress (unique_together is user + lesson only)
+            progress, created = UserProgress.objects.get_or_create(
+                user=request.user,
+                lesson=lesson,
+                defaults={'course': lesson.course}
             )
-        
-        progress, created = UserProgress.objects.get_or_create(
-            user=request.user,
-            course=lesson.course,
-            lesson=lesson
-        )
+        except Exception as e:
+            print(f"❌ Error in mark_complete: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Server error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
         xp_awarded = 0
         
