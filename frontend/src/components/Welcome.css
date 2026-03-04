@@ -1,0 +1,551 @@
+*{
+  box-sizing: border-box;
+}
+
+/* Dashboard.css */
+
+.dashboard-container {
+    display: flex;
+    padding: clamp(20px, 4vw, 40px);
+    flex-wrap: wrap;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    border-radius: clamp(15px, 2vw, 20px);
+    border: 2px solid #FFF;
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 24.4px 7px rgba(0, 0, 0, 0.09);
+    margin: clamp(20px, 4vw, 40px);
+}
+
+.dashboard-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.dashboard-title {
+    color: var(--text-tertiary);
+    font-family: "LaoMuangDon-Regular", sans-serif;
+    font-size: clamp(32px, 6vw, 64px);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    margin: 10px 0 30px 0;
+}
+
+.dashboard-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: nowrap; 
+}
+
+.dashboard-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 50%;    
+  min-width: 0;      
+  max-width: 100%;
+  gap: clamp(20px, 3vw, 40px);
+  transition: all 0.3s ease;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(20px, 3vw, 34px);
+  width: 100%;
+  flex: 1 1 50%;   
+  min-width: 320px; 
+}
+.stat-card {
+  display: flex;
+  padding: 10px 20px;
+  justify-content: space-between;
+  align-items: center;
+  align-content: center;
+  row-gap: 13px;
+  flex: 1 1 0; /* allow stat-cards to shrink as container narrows */
+  min-width: 0; /* allow the stat-card to shrink instead of forcing column width */
+  border-radius: clamp(35px, 4vw, 47px);
+  border: 2px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));
+  background: rgba(255, 255, 255, 0.41);
+
+  /* Frame highlighter */
+  box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0; /* allow text to shrink/wrap inside */
+}
+
+.stat-content > .stat-value{
+  color: var( --text-tertiary);
+  text-align: center;
+  font-family: Inter, sans-serif;
+  /* responsive font sizing so the numeric value scales with screen */
+  font-size: clamp(1rem, 3vw, 2.5rem);
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-content > .stat-label{
+    color: var( --text-tertiary);
+    font-family: Inter;
+    font-size: clamp(12px, 1.5vw, 16px);
+    font-style: normal;
+    font-weight: 800;
+    line-height: normal;
+    text-align: center;
+}
+
+.calendar-row{
+display: flex;
+height: auto;
+width: 100%;
+min-height: 320px;
+align-items: center;
+justify-content: center;
+gap: 23px;
+align-self: stretch;
+margin-bottom: 40px;
+}
+
+.icon-circle {
+  /* allow icon size to scale with viewport so stat cards can shrink proportionally */
+  width: clamp(40px, 5.5vw, 60px);
+  height: clamp(40px, 5.5vw, 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+
+.icon-image {
+  /* make icons responsive to their container (.icon-circle is 80x80)
+     so they scale down on narrower layouts */
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.stat-value {
+  /* responsive fallback for other uses */
+  font-size: clamp(1rem, 3vw, 1.875rem);
+  font-weight: bold;
+  color: #1f2937;
+  transition: all 0.3s ease;
+}
+
+.stat-value.updating {
+  animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.stat-card.loading {
+  opacity: 1;
+  pointer-events: none;
+}
+
+.loading-skeleton {
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.stat-label {
+  color: #6b7280;
+}
+
+.menu-column{
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.portfolio{
+  display: flex;
+padding: 20px;
+justify-content: center;
+align-items: center;
+gap: 10px;
+min-height: 60px;
+border-radius: 20px;
+background: #FFF;
+box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+color: #000;
+text-align: center;
+font-family: "Segoe UI";
+font-size: 24px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+
+.portfolio a{
+  text-decoration: none;
+  color: inherit;
+}
+
+.events{
+  display: flex;
+padding: 10px;
+flex-direction: column;
+justify-content: space-between;
+flex: 1 0 0;
+align-self: stretch;
+border-radius: 20px;
+border: 2px solid #FFF;
+background: rgba(255, 255, 255, 0.45);
+
+/* Frame highlighter */
+box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+}
+
+.menu-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.menu-item {
+  color: #374151;
+  cursor: pointer;
+  border-bottom: 1px solid var(--text-light);
+  transition: all 0.2s ease;
+  padding: 4px 0;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: translateX(5px);
+  padding-left: 8px;
+  border-radius: 8px;
+}
+
+.menu-item:nth-child(3){
+  border-bottom: none;
+}
+
+.menu-item li{
+  list-style: none;
+  padding: 8px 12px;
+}
+
+
+.profile-card {
+  background: transparent;
+  border-radius: 1.5rem;
+}
+
+.profile-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.speed-text {
+  position: absolute;
+  top: -10px;
+  text-align: center;
+  font-size: clamp(2rem, 8vw, 5rem); 
+  font-weight: 800;
+  font-family: Inter;
+  font-style: normal;
+  line-height: normal;
+  background: linear-gradient(181deg, #FFF 50%, #C5B4FF 80%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Blinking animation used while fetching/displaying username */
+.speed-text.blinking {
+  animation: blink 1s steps(2, start) infinite;
+}
+
+.profile-image-container {
+  position: relative;
+  z-index: 10;
+  padding-top: 4rem;
+  margin-bottom: 1.5rem;
+  bottom: 0;
+  width: 100%; 
+  max-width: 400px; 
+}
+
+.profile-image {
+  width: 100%;  
+  border-radius: 1.5rem;
+}
+
+.badges-container {
+  display: flex;
+  width: 90%; 
+  max-width: 310.655px;
+  min-height: 62.971px;
+  padding: 8.396px 16.792px;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: clamp(6px, 2vw, 12.594px); 
+  border-radius: 62.131px;
+  border: 2.519px solid #FFF;
+  background: linear-gradient(90deg, rgba(197, 180, 255, 0.75) 0%, rgba(158, 205, 255, 0.75) 100%), #FFF;
+  box-shadow: 0 0 20.486px 5.877px rgba(0, 0, 0, 0.09);
+  position: absolute;
+  bottom: 50px;
+  z-index: 999;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 1; 
+}
+
+.badge-image {
+  width: clamp(45px, 6vw, 65px);
+  height: auto;
+}
+
+@media (max-width: 1250px) {
+  .stat-card{
+    flex-direction: column;
+    height:auto;
+  }
+  .dashboard-wrapper{
+    height:auto;
+  }
+  .calendar-row{
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+  .menu-column {
+    width: 100%;
+    height: auto;
+  }
+}
+@media screen and (max-width: 1024px) {
+  .dashboard-container {
+    padding: 30px 20px;
+    height: auto;
+    margin: 20px;
+  }
+
+  .dashboard-title {
+    font-size: 48px;
+    text-align: center;
+  }
+
+  .dashboard-grid {
+    flex-direction: column-reverse;
+    gap: 2rem;
+  }
+
+  .left-column {
+    gap: 24px;
+  }
+
+  .dashboard-column {
+    gap: 20px;
+  }
+
+  .stat-card {
+    width: 100%;
+    height: auto;
+    padding: 20px 30px;
+  }
+
+  .calendar-row {
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .menu-column {
+    width: 100%;
+  }
+
+  .speed-text {
+    font-size: 3.5rem;
+  }
+
+  .profile-image-container {
+    padding-top: 3rem;
+    width: calc(100% - 30%);
+  }
+
+  .badges-container {
+    position: relative;
+    bottom: 100px;
+    min-width: 250px;
+  }
+
+  .badge-image {
+    width: 56px;
+  }
+}
+
+/* Small mobile screens */
+@media screen and (max-width: 425px) {
+  .dashboard-container {
+    padding: 15px 10px;
+    margin: 15px 5px;
+    width: calc(100% - 10px);
+    box-sizing: border-box;
+  }
+
+  .dashboard-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dashboard-title {
+    font-size: clamp(24px, 7vw, 36px);
+    margin: 10px 0 20px 0;
+  }
+
+  .dashboard-grid {
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .left-column {
+    width: 100%;
+    min-width: 0;
+    gap: 15px;
+  }
+
+  .dashboard-column {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .stat-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+  }
+
+  .icon-circle {
+    width: clamp(35px, 8vw, 45px);
+    height: clamp(35px, 8vw, 45px);
+    margin-bottom: 5px;
+  }
+
+  .stat-content {
+    width: 100%;
+    text-align: center;
+  }
+
+  .stat-content > .stat-value {
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+  }
+
+  .stat-content > .stat-label {
+    font-size: clamp(11px, 3vw, 14px);
+  }
+
+  .calendar-row {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+  }
+
+  .rightColumn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .profile-card {
+    width: 100%;
+  }
+
+  .profile-wrapper {
+    width: 100%;
+  }
+
+  .profile-image-container {
+    width: 85%;
+    max-width: 250px;
+    padding-top: 2rem;
+    margin: 0 auto;
+  }
+
+  .speed-text {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  }
+
+  .badges-container {
+    bottom: 60px;
+    min-width: 160px;
+    max-width: calc(100% - 20px);
+    padding: 5px 10px;
+  }
+
+  .badge-image {
+    width: clamp(35px, 8vw, 45px);
+  }
+
+  .menu-column {
+    width: 100%;
+    max-width: 100%;
+  }
+}

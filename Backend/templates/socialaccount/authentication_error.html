@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+        // Immediately redirect to frontend with error message
+        window.location.href = '{{ frontend_url }}/?error=auth_failed&message=Authentication%20failed.%20Please%20try%20again.';
+    </script>
+</head>
+<body>
+    <p>Redirecting...</p>
+</body>
+</html>

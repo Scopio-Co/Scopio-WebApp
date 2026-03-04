@@ -1,0 +1,272 @@
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import "./Navbar.css";
+import profileAvatar from '../assets/img/profilePic (2).png';
+import api from '../api';
+
+const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
+  // ✅ Initialize dark mode state from localStorage
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
+
+  const [toast, setToast] = useState({ visible: false, message: '' });
+  const [userData, setUserData] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  // ✅ Apply dark mode class to body and save to localStorage
+  useEffect(() => {
+    document.body.classList.toggle("dark-mode", isDarkMode);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  // ✅ Initialize theme on component mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      const isDark = savedTheme === 'dark';
+      setIsDarkMode(isDark);
+      document.body.classList.toggle("dark-mode", isDark);
+    }
+  }, []);
+
+  // ✅ Fetch user data when authenticated
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await api.get('/api/auth/status/');
+          setUserData(response.data.user);
+          console.log('✓ User data fetched:', response.data.user);
+        } catch (error) {
+          console.error('❌ Failed to fetch user data:', error);
+          setUserData(null);
+        }
+      } else {
+        setUserData(null);
+      }
+    };
+
+    fetchUserData();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handleProfileUpdated = (event) => {
+      const updated = event?.detail || {};
+      const fullName = (updated.full_name || '').trim();
+      const [firstName = '', ...rest] = fullName.split(' ');
+      const lastName = rest.join(' ');
+
+      setUserData((prev) => ({
+        ...(prev || {}),
+        first_name: firstName,
+        last_name: lastName,
+        username: updated.username ?? prev?.username,
+        college: updated.college ?? prev?.college,
+        bio: updated.bio ?? prev?.bio,
+        profile_image_url: updated.profile_image_url ?? prev?.profile_image_url,
+      }));
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdated);
+    return () => window.removeEventListener('profile-updated', handleProfileUpdated);
+  }, []);
+
+  // Get active page from URL location
+  const getActivePage = () => {
+    const path = location.pathname;
+    if (path === '/home' || path === '/') return 'Home';
+    if (path === '/learning') return 'Learning';
+    if (path === '/explore') return 'Explore';
+    if (path === '/leaderboard') return 'Leaderboards';
+    if (path === '/settings') return 'Settings';
+    if (path === '/articles' || path.startsWith('/articles/')) return 'Articles';
+    if (path.startsWith('/course/')) return 'Course';
+    return 'Home';
+  };
+
+  const handleNavItemClick = (item) => {
+    // If authenticated, go to home page, otherwise go to login/signup root
+    if (item === "Home") {
+      navigate(isAuthenticated ? '/home' : '/', { replace: false });
+    } else if (item === "Learning") {
+      navigate('/learning', { replace: false });
+    } else if (item === "Explore") {
+      navigate('/explore', { replace: false });
+    } else if (item === "Leaderboards") {
+      navigate('/leaderboard', { replace: false });
+    } else if (item === "Articles") {
+      navigate('/articles', { replace: false });
+    } else if (item === "Settings") {
+      navigate('/settings', { replace: false });
+    }
+    
+    // Scroll to top and close mobile menu
+    const mainEl = document.querySelector('.main-content');
+    if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+    setMobileOpen(false);
+  };
+
+  const handleProfileClick = () => {
+    // For now, just close mobile menu - profile page can be implemented later
+    setMobileOpen(false);
+  };
+
+  const navigationItems = [
+    "Home",
+    "Learning",
+    "Explore",
+    "Articles",
+    "Leaderboards",
+    "Settings",
+  ];
+
+  const favoriteItems = [
+    "Kick Like Benz",
+    "Uno dos tres",
+    "Connect it",
+    "Mini Integration",
+    "Forge theory",
+  ];
+
+  return (
+    <>
+      <div className={`navbar ${mobileOpen ? 'mobile-open' : ''}`}>
+      {/* Profile Section */}
+      <div className="profile-section" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
+        <div className="profile-info">
+          <div className="profile-avatar">
+            <img
+              src={userData?.profile_image_url || profileAvatar}
+              alt="Profile"
+              className="avatar-image"
+              key={userData?.profile_image_url || 'default-profile-avatar'}
+            />
+          </div>
+          <div className="profile-text">
+            <h3>{(userData?.first_name || userData?.username || 'Profile')}</h3>
+            <p>{userData?.username || 'Log in / Sign up'}</p>
+          </div>
+        </div>
+
+        {/* ✅ Dark Mode Toggle */}
+        {/* <div className="toggle-switch">
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={isDarkMode}
+              onChange={toggleDarkMode}
+            />
+            <span className="slider"></span>
+          </label>
+        </div> */}
+      </div>
+
+      {/* Navigation Menu */}
+      <div className="navigation-section">
+        <ul className="nav-list">
+          {navigationItems.map((item, index) => (
+            <li key={index} className="nav-item">
+              <a 
+                href="#" 
+                className={`nav-link ${getActivePage() === item ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavItemClick(item);
+                }}
+              >
+                {item}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Favorites Section */}
+      <div className="favorites-section">
+        <ul className="favorites-list">
+          <div className="favorites-header">
+            <span className="favorites-badge">Favorites</span>
+          </div>
+          {favoriteItems.map((item, index) => (
+            <li key={index} className="favorite-item">
+              <a href="#" className="favorite-link">
+                {item}
+              </a>
+            </li>
+          ))}
+          <li className="show-more">
+            <a href="#" className="show-more-link">
+              Show more
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      {/* Logout Button */}
+      <div className="logout-section">
+        <button
+          className="logout-button"
+          onClick={() => {
+              if (typeof onLogout === 'function') onLogout();
+              else console.log('Logout clicked!');
+              setMobileOpen(false);
+              // show logout toast
+              setToast({ visible: true, message: 'Logged out' });
+              setTimeout(() => setToast({ visible: false, message: '' }), 1000);
+            }}
+        >
+          <span>Log Out</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="29"
+            height="29"
+            viewBox="0 0 29 29"
+            fill="none"
+          >
+            <path
+              d="M18.0191 9.12107V8.03257C18.0191 5.6584 16.0941 3.7334 13.7199 3.7334H8.03237C5.65937 3.7334 3.73438 5.6584 3.73438 8.03257V14.5251"    
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M18.0191 19.9302V21.0304C18.0191 23.3976 16.0987 25.3167 13.7316 25.3167H8.03237C5.65937 25.3167 3.73438 23.3917 3.73438 21.0176V18.938"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M25.9444 14.525H11.8965"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M22.5283 11.124L23.3823 11.9742M25.9443 14.5249L22.5283 17.9269"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+      </div>
+
+      {mobileOpen && <div className="navbar-overlay" onClick={() => setMobileOpen(false)} />}
+      {toast.visible && (
+        <div className={`toast ${toast.visible ? '' : 'hide'}`}>
+          {toast.message}
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Navbar;

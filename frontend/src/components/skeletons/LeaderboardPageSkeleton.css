@@ -1,0 +1,230 @@
+.leaderboard-page-skeleton {
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.leaderboard-content-skeleton {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.leaderboard-header-skeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.skeleton-leaderboard-title {
+  width: 250px;
+  height: 48px;
+  background: var(--cv-panel-bg);
+  border-radius: 8px;
+}
+
+.skeleton-search-bar {
+  width: 300px;
+  height: 45px;
+  background: var(--cv-panel-bg);
+  border-radius: 25px;
+}
+
+.leaderboard-table-skeleton {
+  background: var(--leaderboard-table-bg);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.table-header-skeleton {
+  display: grid;
+  grid-template-columns: 80px 1fr 150px 150px;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.skeleton-header-cell {
+  height: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.leaderboard-row-skeleton {
+  display: grid;
+  grid-template-columns: 80px 1fr 150px 150px;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  margin-bottom: 0.8rem;
+  background: var(--leaderboard-row-bg);
+  border-radius: 15px;
+  border: 1px solid var(--leaderboard-badge-border);
+}
+
+.leaderboard-row-skeleton.top-1 {
+  background: linear-gradient(90deg, rgba(249, 211, 255, 0.30) 8.17%, rgba(148, 26, 255, 0.30) 66.83%, rgba(249, 211, 255, 0.30) 100%);
+}
+
+.leaderboard-row-skeleton.top-2 {
+  background: linear-gradient(90deg, rgba(192, 225, 255, 0.30) 8.17%, rgba(0, 132, 255, 0.30) 66.83%, rgba(192, 225, 255, 0.30) 100%);
+}
+
+.leaderboard-row-skeleton.top-3 {
+  background: linear-gradient(90deg, rgba(175, 255, 242, 0.30) 8.17%, rgba(0, 255, 212, 0.30) 66.83%, rgba(175, 255, 242, 0.30) 100%);
+}
+
+.skeleton-rank {
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.skeleton-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skeleton-user-name {
+  width: 150px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-username {
+  width: 120px;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-score {
+  width: 80px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+.skeleton-streak {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.skeleton-streak-badge {
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-streak-text {
+  width: 60px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.leaderboard-pagination-skeleton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.skeleton-pagination-item {
+  width: 40px;
+  height: 40px;
+  background: var(--cv-panel-bg);
+  border-radius: 8px;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.0) 0%,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.8) 40%,
+    rgba(255, 255, 255, 0.0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  mix-blend-mode: overlay;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .table-header-skeleton,
+  .leaderboard-row-skeleton {
+    grid-template-columns: 60px 1fr 120px 120px;
+  }
+
+  .skeleton-search-bar {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .leaderboard-page-skeleton {
+    padding: 1rem;
+  }
+
+  .leaderboard-header-skeleton {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .skeleton-search-bar {
+    width: 100%;
+  }
+
+  .table-header-skeleton {
+    display: none;
+  }
+
+  .leaderboard-row-skeleton {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .skeleton-user-info {
+    grid-column: 1 / -1;
+  }
+
+  .skeleton-score,
+  .skeleton-streak {
+    justify-self: start;
+  }
+}

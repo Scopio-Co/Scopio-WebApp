@@ -1,0 +1,228 @@
+/* CSS Custom Properties for Light/Dark Themes */
+:root {
+  /* Light Theme Variables */
+  --bg-primary: rgba(255, 255, 255, 0.27);
+  --bg-secondary: rgba(255, 255, 255, 0.58);
+  --bg-tertiary: rgba(255, 255, 255, 0.4);
+  --bg-quaternary: rgba(255, 255, 255, 0.25);
+  --bg-overlay: rgba(255, 255, 255, 0.20);
+  --bg-white:#ffffff ;
+  
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-tertiary: #000000;
+  --text-light: rgba(255, 255, 255, 0.9);
+  
+  --border-primary: rgba(255, 255, 255, 0.72);
+  --border-secondary: #dae1e4;
+  --border-tertiary: #EFEFEF;
+  
+  --btn-new:#373737;
+  --btn-info:#D0D0D0;
+  --progress-text:#666;
+  --progress-bar: rgba(0, 0, 0, 0.1);
+
+  --shadow-light: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 20px 40px rgba(0, 0, 0, 0.1);
+  --shadow-heavy: 0 6px 20px rgba(139, 92, 246, 0.4);
+  
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #FFD900;
+  --accent-tertiary: #ededed;
+  
+  --scrollbar-track: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb: rgba(109, 109, 109, 0.767);
+  --scrollbar-hover: rgb(77, 77, 77);
+  
+  /* Leaderboard Variables */
+  --leaderboard-table-bg: rgba(255, 255, 255, 0.4);
+  --leaderboard-row-bg: rgba(255, 255, 255, 0.30);
+  --leaderboard-badge-bg: rgba(255, 255, 255, 0.40);
+  --leaderboard-badge-border: rgba(255, 255, 255, 0.72);
+  --leaderboard-text: #2a2a2a;
+  --leaderboard-username: #666;
+  --leaderboard-header-bg: rgba(220, 210, 255, 0.4);
+  
+  /* Glassmorphism and Button Variables */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.10));
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), inset 0 0 40px rgba(255, 255, 255, 0.05);
+  --bg-button-primary: rgb(255, 255, 255);
+  --bg-button-hover: rgba(255, 255, 255, 0.9);
+  --shadow-sm: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.15);
+
+  /* Course Video Page - light theme defaults */
+  --cv-secondary: #4D4D4D;
+  --cv-panel-bg: rgba(255, 255, 255, 0.6);
+  --cv-header: rgba(255, 255, 255, 0.7);
+  --cv-description: #333333;
+  --cv-tab-border-color: rgba(255, 255, 255, 0.72);
+  --cv-tab-bg: transparent;
+  --cv-avatar-bg: #ffffff;
+  --cv-avatar-border: #a1a1a1;
+  --cv-author-name-color: #1f2937;
+  --cv-author-role-color: #6b7280;
+  --cv-discussion-comment-color: #374151;
+  --cv-lesson-item-border-color: #f0f0f0;
+  --cv-lesson-item-hover-bg: #d3d3d3;
+  --cv-lesson-play-bg: transparent;
+  --cv-lesson-play-bg-hover: transparent;
+  --cv-lessons-header-border-color: rgba(255, 255, 255, 0.72);
+}
+
+/* Dark Theme Variables */
+body.dark-mode {
+  --bg-primary: rgba(0, 0, 0, 0.27);
+  --bg-secondary: rgba(30, 36, 50, 0.90);
+  --bg-tertiary: rgba(0, 0, 0, 0.4);
+  --bg-quaternary: rgba(25, 30, 42, 0.90);
+  --bg-overlay: rgba(15, 20, 30, 0.20);
+  --bg-white: #1a202c;
+
+  --text-primary: #e2e8f0;
+  --text-secondary: #a0aec0;
+  --text-tertiary: #ffffff;
+  --text-light: rgba(1, 1, 1, 0.95);
+  
+  --border-primary: rgba(109, 127, 153, 0.3);
+  --border-secondary: rgba(60, 70, 90, 0.5);
+  --border-tertiary: rgba(80, 100, 130, 0.2);
+  
+  --btn-new:#b4b4b4;
+  --btn-info:#333333;
+  --progress-text:#b8b8b8;
+  --progress-bar: rgba(255, 255, 255, 0.1);
+  
+  --shadow-light: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow-medium: 0 20px 40px rgba(0, 0, 0, 0.5);
+  --shadow-heavy: 0 6px 20px rgba(139, 92, 246, 0.6);
+  
+  --accent-primary: #9f7aea;
+  --accent-secondary: #ffd700;
+  --accent-tertiary: rgba(45, 55, 75, 0.8);
+  
+  --scrollbar-track: rgba(50, 60, 80, 0.3);
+  --scrollbar-thumb: rgba(100, 120, 150, 0.6);
+  --scrollbar-hover: rgba(130, 150, 180, 0.8);
+  
+  /* Leaderboard Variables */
+  --leaderboard-table-bg: rgba(30, 36, 50, 0.5);
+  --leaderboard-row-bg: rgba(40, 46, 60, 0.40);
+  --leaderboard-badge-bg: rgba(50, 60, 80, 0.50);
+  --leaderboard-badge-border: rgba(100, 120, 150, 0.5);
+  --leaderboard-text: #e2e8f0;
+  --leaderboard-username: #a0aec0;
+  --leaderboard-header-bg: rgba(50, 60, 80, 0.5);
+  
+  /* Dark Theme Glassmorphism and Button Variables */
+  --glass-bg: linear-gradient(135deg, rgba(40, 46, 60, 0.4), rgba(20, 24, 35, 0.2));
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(100, 120, 150, 0.1);
+  --bg-button-primary: rgba(60, 70, 90, 0.8);
+  --bg-button-hover: rgba(70, 80, 100, 0.9);
+  --shadow-sm: 0 3px 20.1px -6px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
+
+  /* Course Video Page - dark theme overrides */
+  --cv-secondary: #B3B3B3;
+  --cv-panel-bg: rgba(1, 1, 1, 0.6);
+  --cv-header:rgba(0, 0, 0, 0.7);
+  --cv-description: #E0E0E0;
+  --cv-tab-border-color: #3a3a4e;
+  --cv-tab-bg: #2a2a3e;
+  --cv-avatar-bg: #374151;
+  --cv-avatar-border: #4b5563;
+  --cv-author-name-color: #f9fafb;
+  --cv-author-role-color: #9ca3af;
+  --cv-discussion-comment-color: #d1d5db;
+  --cv-lesson-item-border-color: #3a3a4e;
+  --cv-lesson-item-hover-bg: #2f2f46;
+  --cv-lesson-play-bg: #ffffff;
+  --cv-lesson-play-bg-hover: #7a8aee;
+}
+
+/* Base element defaults */
+* {
+  box-sizing: border-box;
+}
+
+/* Scope theme transitions to major surfaces only */
+body,
+#root,
+.navbar,
+.main-content {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  background-color: var(--bg-overlay);
+  color: var(--text-primary);
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Remove horizontal scroll */
+}
+
+.app-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: visible; /* Allow popups to overflow */
+}
+
+.navbar-section {
+  flex-shrink: 0;
+  width: 20%; /* 20% width for navbar */
+  height: 100vh;
+  overflow: hidden; /* Let navbar handle its own scrolling */
+}
+
+.main-content {
+  flex: 1;
+  height: 100vh;
+  width:80%;
+  max-width: 1500px;
+  margin: 0 auto;
+  overflow-y: auto; /* Only allow vertical scroll for main content */
+  overflow-x: visible; /* Allow horizontal overflow for popups */
+}
+@media (max-width: 1024px ) {
+  .navbar-section{
+    width:30%;
+  }
+  .main-content{
+    width:70%;
+  }
+}
+
+/* On small screens the sidebar becomes an overlay; collapse the reserved space */
+@media (max-width: 768px) {
+  .navbar-section {
+    width: 0 !important;
+    flex: 0 0 0 !important;
+    min-width: 0 !important;
+    overflow: visible;
+  }
+
+  .main-content {
+    flex: 1 1 100% !important;
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Prevent the root/document from scrolling so the browser UI remains stable */
+  html, body, #root {
+    height: 100%;
+    overflow: hidden; 
+  }
+  .main-content {
+    padding-bottom: 80px;
+  }
+}

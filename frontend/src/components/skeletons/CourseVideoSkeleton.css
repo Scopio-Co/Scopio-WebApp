@@ -1,0 +1,262 @@
+.course-video-skeleton {
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.course-video-header-skeleton {
+  padding: 1.5rem 0 1.5rem 20px;
+}
+
+.skeleton-title {
+  width: 300px;
+  height: 36px;
+  background: var(--cv-panel-bg);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-subtitle {
+  width: 200px;
+  height: 20px;
+  background: var(--cv-panel-bg);
+  border-radius: 6px;
+}
+
+.course-content-grid-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.video-lessons-container-skeleton {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.video-player-skeleton {
+  width: 100%;
+  height: 400px;
+  background: var(--cv-panel-bg);
+  border-radius: 35px;
+}
+
+.lessons-sidebar-skeleton {
+  border-radius: 35px;
+  background: var(--cv-panel-bg);
+  padding: 20px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.lessons-header-skeleton {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--cv-lessons-header-border-color);
+}
+
+.lessons-list-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.lessons-list-skeleton::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.lesson-item-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0.5rem;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.skeleton-circle {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.lesson-content-skeleton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lesson-meta-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-end;
+}
+
+.discussions-overview-container-skeleton {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.discussions-sidebar-skeleton {
+  border-radius: 20px;
+  background: var(--cv-panel-bg);
+  padding: 1.2rem;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.discussions-header-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.discussions-list-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.discussions-list-skeleton::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.discussion-item-skeleton {
+  padding: 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.discussion-header-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.skeleton-circle-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.overview-container-skeleton {
+  border-radius: 35px;
+  background: var(--cv-panel-bg);
+  padding: 2.5rem;
+}
+
+.course-tabs-skeleton {
+  display: flex;
+  gap: 0.5rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 2px solid var(--cv-tab-border-color);
+  margin-bottom: 1.5rem;
+}
+
+.tab-skeleton {
+  width: 100px;
+  height: 36px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tab-content-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeleton-text-xs {
+  width: 60px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-text-sm {
+  width: 120px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-text-md {
+  width: 180px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+.skeleton-text-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.skeleton-text-line {
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-text-line:last-child {
+  width: 80%;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.0) 0%,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.8) 40%,
+    rgba(255, 255, 255, 0.0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  mix-blend-mode: overlay;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .video-lessons-container-skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  .discussions-overview-container-skeleton {
+    grid-template-columns: 1fr;
+  }
+}

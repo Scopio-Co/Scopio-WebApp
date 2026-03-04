@@ -1,0 +1,482 @@
+/* Auth.css - Authentication Pages Styling */
+@import url("../assets/fonts.css");
+
+/* Container and Layout */
+.auth-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "eina03", sans-serif;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.auth-content {
+  display: flex;
+  width: 100%;
+  max-width: 90%;
+  min-height: 600px;
+  border: 2px solid var(--border-primary);
+  background: var(--bg-tertiary);
+  border-radius: 25px;
+  box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Form Section */
+.auth-form-section {
+  flex: 1;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.auth-form {
+  width: 100%;
+  padding: 10px 20px;
+}
+
+/* Login Modal Styling */
+.login-modal {
+  border-radius: 25px;
+  background: var(--bg-tertiary);
+  padding: 25px 15px;
+  border: 1px solid var(--border-primary);
+  width: 478px;
+}
+
+.login-form {
+  max-width: none;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 8px;
+  position: relative;
+}
+
+/* Form Labels */
+.form-label {
+  display: block;
+  color: var(--text-secondary);
+  font-family: 'Eina03', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 15px;
+  letter-spacing: 0.5px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.half-width {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* Input Styling */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 15px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  border: 3px solid var(--border-primary);
+  background: var(--bg-quaternary);
+  box-shadow: var(--shadow-light);
+  transition: all 0.4s ease;
+  box-sizing: border-box;
+  color: var(--text-primary);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  color: var(--text-tertiary);
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  background: var(--bg-secondary);
+}
+
+/* Chrome, Edge, Safari - Dark theme autofill */
+input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-quaternary) inset !important;
+  caret-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-tertiary) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+}
+
+/* Firefox - Dark theme autofill */
+input:autofill {
+  background-color: var(--bg-quaternary) !important;
+  color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+}
+
+input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 5px;
+  margin-left: 15px;
+  display: block;
+}
+
+/* Gender Selection */
+.gender-selection {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 25px;
+  justify-content: flex-start;
+}
+
+.gender-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gender-group input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border-radius: 50%;
+  border: 3.5px solid var(--border-primary);
+  background: var(--bg-quaternary);
+  box-shadow: var(--shadow-light);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.4s ease;
+}
+
+.gender-group input[type="radio"]:checked {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.gender-group input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FFF;
+}
+
+.gender-group label {
+  font-size: 16px;
+  color: var(--text-secondary);
+  font-family: 'Eina03', sans-serif;
+  cursor: pointer;
+  transition: color 0.4s ease;
+}
+
+/* Form Options */
+.form-options {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.forgot-password-link:hover {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+/* Buttons */
+.auth-button {
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 15px;
+  font-family: 'Eina03', sans-serif ;
+}
+
+.auth-button.primary {
+  background: #A749FF;
+  color: white;
+}
+
+.auth-button.primary:hover {
+  background: #6a06c7;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
+}
+
+.auth-button.secondary {
+background: #0C2BF2;
+  color: white;
+  font-size: 14px;
+  margin-bottom: 0px;
+  padding: 12px 20px;
+}
+
+.auth-button.secondary:hover {
+background: #0017ad;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
+.login-button {
+  margin-bottom: 20px;
+}
+
+/* Social Login */
+.social-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.social-media {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 25px;
+  padding: clamp(6px, 1vw + 4px, 12px);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-quaternary);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+/* Social button */
+.social-button {
+  background: none;
+  color: var(--text-primary);
+  width: clamp(30px, 2vw + 10px, 45px);
+  height: clamp(30px, 2vw + 10px, 45px);
+  border: none;
+  padding: clamp(6px, 1vw + 4px, 12px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: clamp(14px, 1vw + 10px, 20px);
+}
+
+/* Icon inside the button */
+.social-icon {
+  width: clamp(18px, 1.5vw + 10px, 25px);
+  height: clamp(18px, 1.5vw + 10px, 25px);
+}
+
+.social-button:hover {
+  transform: translateY(-3px);
+}
+
+/* Brand Section */
+.auth-brand-section {
+  flex: 1;
+  background: linear-gradient(
+    127deg,
+    rgba(167, 73, 255, 0.66) 35.58%,
+    rgba(12, 43, 242, 0.66) 146.46%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-content {
+  text-align: center;
+  z-index: 1;
+  position: relative;
+}
+
+.brand-title {
+  font-family: "Eina03", sans-serif;
+  font-size: clamp(1.8rem, 5vw + 1rem, 5.2rem);
+  font-weight: 400;
+  color: white;
+  margin: 0;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Overlay Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  /* dark translucent layer to hide content under the modal */
+  background: rgba(0, 0, 0, 0.35);
+  /* apply blur to background behind the overlay (modern browsers) */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* ensure clicks on overlay close modal, and prevent pointer events leaking */
+  pointer-events: auto;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  z-index: 10000;
+  /* keep modal visually above the blurred backdrop */
+  will-change: transform, opacity;
+}
+
+@media (max-width: 1024px) {
+  .auth-content {
+    flex-direction: column-reverse;
+    max-width: 500px;
+    min-height: auto;
+  }
+  .auth-brand-section{
+    padding: 30px;
+  }
+  
+  .auth-form-section {
+    padding: 30px 20px;
+    flex-grow: 1;
+  }
+  .login-modal {
+    height: auto;
+    padding: 30px 15px;
+  }
+}
+
+/* Modal responsive tweaks for small screens */
+@media (max-width: 768px) {
+  .modal-overlay {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 12px;
+    max-height: calc(100vh - 56px);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-modal {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 14px;
+    padding: 18px 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    margin: 0;
+  }
+
+  /* Make buttons and inputs slightly larger/touch-friendly */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding: 14px 16px;
+  }
+
+  .auth-button {
+    padding: 14px 16px;
+  }
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  padding: 20px 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4), 
+              0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  z-index: 2000;
+  /* ensure toast appears above modal overlay/backdrop */
+  z-index: 11000;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  opacity: 0;
+  animation: toast-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  min-width: 280px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.toast::before {
+  content: '✓';
+  display: inline-block;
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.2);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  line-height: 28px;
+  text-align: center;
+}
+
+@keyframes toast-in {
+  to { 
+    opacity: 1; 
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+.toast.hide {
+  animation: toast-out 0.3s ease-in forwards;
+}
+
+@keyframes toast-out {
+  to { 
+    opacity: 0; 
+    transform: translateX(-50%) scale(0.9);
+  }
+}

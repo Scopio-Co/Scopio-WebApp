@@ -1,0 +1,25 @@
+/* Coolvetica Font Declaration */
+@font-face {
+  font-family: 'Coolvetica';
+  src: url('./fonts/coolvetica.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+    font-family: 'Century Gothic';
+    src: url('./fonts/centurygothic.ttf') format('truetype');
+}
+@font-face{
+  font-family: 'Eina03';
+  src: url('./fonts/Eina03-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Eina03-Regular';
+  src: url('./fonts/Eina03-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'LaoMuangDon-Regular';
+  src: url('./fonts/LaoMuangDon-Regular.ttf') format('truetype');
+}
