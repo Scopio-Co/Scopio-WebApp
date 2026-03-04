@@ -6,7 +6,6 @@ from .views import (
     LessonViewSet,
     DiscussionViewSet,
     ResourceViewSet,
-    CourseResourceAzureViewSet,
     UserProgressViewSet,
     UserNotesViewSet,
     RatingViewSet,
@@ -27,7 +26,6 @@ router.register(r'courses', CourseViewSet, basename='course')
 router.register(r'lessons', LessonViewSet, basename='lesson')
 router.register(r'discussions', DiscussionViewSet, basename='discussion')
 router.register(r'resources', ResourceViewSet, basename='resource')
-router.register(r'azure-resources', CourseResourceAzureViewSet, basename='azure-resource')
 router.register(r'progress', UserProgressViewSet, basename='user-progress')
 router.register(r'notes', UserNotesViewSet, basename='user-notes')
 router.register(r'ratings', RatingViewSet, basename='rating')
