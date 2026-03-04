@@ -10,7 +10,7 @@ from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from django.urls import reverse
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 import logging
 from .models import UserProfile
@@ -232,6 +232,26 @@ def auth_status(request):
             "date_joined": request.user.date_joined,
         }
     }, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def auth_profile_image(request, user_id):
+    """Serve a user's profile image bytes by user ID."""
+    profile = UserProfile.objects.filter(user_id=user_id).only(
+        'profile_image',
+        'profile_image_content_type'
+    ).first()
+
+    if not profile or not profile.profile_image:
+        return JsonResponse({'detail': 'Profile image not found'}, status=404)
+
+    response = HttpResponse(
+        profile.profile_image,
+        content_type=profile.profile_image_content_type or 'image/png'
+    )
+    response['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 
 @api_view(["GET", "PATCH", "PUT"])

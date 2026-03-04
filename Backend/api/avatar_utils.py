@@ -1,5 +1,5 @@
-import base64
 from django.conf import settings
+from django.urls import reverse
 
 
 def get_default_profile_image_url(request=None):
@@ -8,10 +8,9 @@ def get_default_profile_image_url(request=None):
 
 
 def get_profile_image_url(profile, request=None):
-    if profile and profile.profile_image:
-        content_type = profile.profile_image_content_type or 'image/png'
-        encoded = base64.b64encode(profile.profile_image).decode('ascii')
-        return f"data:{content_type};base64,{encoded}"
+    if profile and profile.profile_image and getattr(profile, 'user_id', None):
+        image_path = reverse('auth_profile_image', kwargs={'user_id': profile.user_id})
+        return request.build_absolute_uri(image_path) if request else image_path
     return get_default_profile_image_url(request)
 
 
