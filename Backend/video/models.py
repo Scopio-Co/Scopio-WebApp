@@ -281,6 +281,58 @@ class DailyXP(models.Model):
         return self.xp_earned >= 150
 
 
+class CourseResourceAzure(models.Model):
+    """Store course resources (profiles, videos, thumbnails) with Azure Blob URLs"""
+    
+    RESOURCE_TYPES = [
+        ('pfp', 'Profile Picture'),
+        ('video', 'Video'),
+        ('thumbnail', 'Thumbnail'),
+    ]
+    
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='azure_resources')
+    resource_type = models.CharField(
+        max_length=10,
+        choices=RESOURCE_TYPES,
+        help_text="Type of resource: Profile Picture, Video, or Thumbnail"
+    )
+    
+    # Azure Blob URL
+    blob_url = models.URLField(help_text="Full URL to Azure Blob Storage file")
+    blob_name = models.CharField(max_length=255, help_text="Blob name in Azure container")
+    
+    # Metadata
+    original_filename = models.CharField(max_length=255, blank=True)
+    file_size = models.PositiveIntegerField(default=0, help_text="File size in bytes")
+    
+    # For organizing resources
+    label = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Optional label (e.g., 'Intro Video', 'Course Thumbnail')"
+    )
+    order = models.PositiveIntegerField(default=0, help_text="Order of display")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['resource_type', 'order', 'created_at']
+        verbose_name_plural = "Course Resources (Azure)"
+        indexes = [
+            models.Index(fields=['course', 'resource_type']),
+        ]
+    
+    def __str__(self):
+        return f"{self.course.title} - {self.get_resource_type_display()} ({self.label or 'Unlabeled'})"
+    
+    @property
+    def resource_url(self):
+        """Get the blob URL (alias for blob_url)"""
+        return self.blob_url
+
+
 # Keep old Video model for backward compatibility (can be removed later)
 class Video(models.Model):
     """DEPRECATED: Use Lesson model instead. Kept for backward compatibility."""

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP, CourseResourceAzure
+from .forms import CourseResourceAzureInlineForm
 
 
 # ========== INLINE ADMINS ==========
@@ -28,6 +29,15 @@ class DiscussionInline(admin.TabularInline):
     can_delete = True
 
 
+class CourseResourceAzureInline(admin.TabularInline):
+    """Inline admin for Azure Blob resources within a course"""
+    model = CourseResourceAzure
+    extra = 1
+    form = CourseResourceAzureInlineForm
+    fields = ['resource_type', 'file_upload', 'blob_url', 'label', 'order']
+    ordering = ['resource_type', 'order']
+
+
 # ========== MAIN ADMINS ==========
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
@@ -37,7 +47,7 @@ class CourseAdmin(admin.ModelAdmin):
     ]
     list_filter = ['is_published', 'created_at', 'rating']
     search_fields = ['title', 'description', 'instructor_name']
-    inlines = [LessonInline, ResourceInline, DiscussionInline]
+    inlines = [LessonInline, ResourceInline, DiscussionInline, CourseResourceAzureInline]
     
     fieldsets = (
         ('Basic Information', {
@@ -154,3 +164,34 @@ class DailyXPAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related('user')
 
 
+@admin.register(CourseResourceAzure)
+class CourseResourceAzureAdmin(admin.ModelAdmin):
+    list_display = ['course', 'resource_type', 'label', 'original_filename', 'created_at']
+    list_filter = ['resource_type', 'course', 'created_at']
+    search_fields = ['course__title', 'label', 'original_filename']
+    ordering = ['-created_at']
+    form = CourseResourceAzureInlineForm
+    
+    fieldsets = (
+        ('Resource Information', {
+            'fields': ('course', 'resource_type', 'label', 'order')
+        }),
+        ('Upload File', {
+            'fields': ('file_upload',),
+            'description': 'Upload a new file to Azure Blob Storage'
+        }),
+        ('Azure Blob Details', {
+            'fields': ('blob_url', 'blob_name', 'original_filename', 'file_size'),
+            'classes': ('collapse',),
+            'description': 'Read-only Azure storage information'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    readonly_fields = ['blob_url', 'blob_name', 'original_filename', 'file_size', 'created_at', 'updated_at']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('course')

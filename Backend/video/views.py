@@ -7,7 +7,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.functions import Coalesce
 from datetime import date, timedelta
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP, CourseResourceAzure
 from api.avatar_utils import get_user_profile_image_url
 from .serializers import (
     VideoSerializer,
@@ -21,7 +21,8 @@ from .serializers import (
     RatingSerializer,
     EnrollmentSerializer,
     UserXPSerializer,
-    DailyXPSerializer
+    DailyXPSerializer,
+    CourseResourceAzureSerializer
 )
 
 
@@ -481,6 +482,40 @@ class ResourceViewSet(viewsets.ModelViewSet):
         course_id = self.request.query_params.get('course', None)
         if course_id:
             queryset = queryset.filter(course_id=course_id)
+        
+        return queryset
+
+
+class CourseResourceAzureViewSet(viewsets.ModelViewSet):
+    """
+    Azure Blob Storage Resources ViewSet
+    
+    Manages course resources stored in Azure (pfp, videos, thumbnails)
+    
+    Endpoints:
+    - GET /api/video/azure-resources/ - List all resources
+    - GET /api/video/azure-resources/?course={course_id} - Filter by course
+    - GET /api/video/azure-resources/?resource_type={type} - Filter by type
+    - POST /api/video/azure-resources/ - Create resource
+    - GET /api/video/azure-resources/{id}/ - Get single resource
+    - PUT/PATCH /api/video/azure-resources/{id}/ - Update resource
+    - DELETE /api/video/azure-resources/{id}/ - Delete resource
+    """
+    queryset = CourseResourceAzure.objects.all()
+    serializer_class = CourseResourceAzureSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        """Filter by course or resource type if provided"""
+        queryset = CourseResourceAzure.objects.select_related('course').order_by('resource_type', 'order')
+        
+        course_id = self.request.query_params.get('course', None)
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+        
+        resource_type = self.request.query_params.get('resource_type', None)
+        if resource_type:
+            queryset = queryset.filter(resource_type=resource_type)
         
         return queryset
 

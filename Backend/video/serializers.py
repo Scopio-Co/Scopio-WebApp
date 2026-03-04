@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
+from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP, CourseResourceAzure
 from api.avatar_utils import get_user_profile_image_url, get_default_profile_image_url
 
 
@@ -320,3 +320,62 @@ class DailyXPSerializer(serializers.ModelSerializer):
             'meets_streak_threshold', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+# ========== AZURE BLOB RESOURCES SERIALIZER ==========
+class CourseResourceAzureSerializer(serializers.ModelSerializer):
+    """Azure Blob Storage resources for courses (pfp, videos, thumbnails)"""
+    resource_type_display = serializers.CharField(source='get_resource_type_display', read_only=True)
+    
+    class Meta:
+        model = CourseResourceAzure
+        fields = [
+            'id', 'course', 'resource_type', 'resource_type_display',
+            'blob_url', 'label', 'order', 'original_filename',
+            'file_size', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['blob_url', 'created_at', 'updated_at']
+
+
+class CourseDetailWithAzureResourcesSerializer(serializers.ModelSerializer):
+    """Course with Azure blob resources grouped by type"""
+    lessons = LessonMinimalSerializer(many=True, read_only=True)
+    resources = ResourceSerializer(many=True, read_only=True)
+    azure_resources = serializers.SerializerMethodField()
+    instructor_avatar_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Course
+        fields = [
+            'id', 'title', 'description', 'thumbnail_url',
+            'instructor_name', 'instructor_title', 'instructor_bio',
+            'instructor_avatar_url', 'instructor_social_links',
+            'what_you_learn', 'prerequisites', 'rating', 'total_duration',
+            'is_published', 'lessons', 'resources', 'azure_resources',
+            'created_at', 'updated_at'
+        ]
+    
+    def get_azure_resources(self, obj):
+        """Group Azure resources by type"""
+        resources_by_type = {}
+        
+        for resource in obj.azure_resources.all():
+            resource_type = resource.get_resource_type_display()
+            if resource_type not in resources_by_type:
+                resources_by_type[resource_type] = []
+            
+            resources_by_type[resource_type].append({
+                'id': resource.id,
+                'url': resource.blob_url,
+                'label': resource.label,
+                'filename': resource.original_filename,
+            })
+        
+        return resources_by_type
+    
+    def get_instructor_avatar_url(self, obj):
+        """Get instructor avatar, preferring Azure blob if available"""
+        # Check if there's an azure PFP resource for this course
+        azure_pfp = obj.azure_resources.filter(resource_type='pfp').first()
+        if azure_pfp:
+            return azure_pfp.blob_url
+        return obj.instructor_avatar_url
