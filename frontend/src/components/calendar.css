@@ -39,43 +39,64 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .day-label {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   color: #6b7280;
   text-align: center;
+  text-transform: uppercase;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 12px 8px;
   flex: 1;
+  align-items: center;
+  justify-items: center;
+}
+
+.calendar-day-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .calendar-day {
-  width: 19.302px;
-  height: 16.722px;
-  border-radius: 19.302px;
   display: flex;
   justify-content: center;
-    align-items: center;
+  align-items: center;
 }
 
 .calendar-day.empty {
   background: transparent;
+  width: 10px;
+  height: 10px;
 }
 
 .calendar-day.inactive {
-  background: #EDEFF1;
+  background: #D1D5DB;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
 }
 
 .calendar-day.active {
-  background: #fbbf24;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background: #FFCE51;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(253, 176, 34, 0.3);
+}
+
+.streak-fire-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .streak-indicator {
@@ -85,8 +106,8 @@
 }
 
 .fire-icon {
-  width: 19.302px;
-  height: 16.722px;
+  width: 16px;
+  height: 16px;
 }
 
 .streak-count {
@@ -99,13 +120,26 @@
 .day-tooltip {
   background: rgba(0, 0, 0, 0.9);
   color: white;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 8px;
   font-size: 12px;
   z-index: 1000;
   pointer-events: none;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 140px;
+  text-align: center;
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .tooltip-date {
@@ -141,7 +175,13 @@
 }
 
 .calendar-day-container:hover .calendar-day.active {
-  transform: scale(1.1);
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+  box-shadow: 0 3px 6px rgba(253, 176, 34, 0.4);
+}
+
+.calendar-day-container:hover .calendar-day.inactive {
+  transform: scale(1.2);
   transition: transform 0.2s ease;
 }
 
@@ -150,6 +190,17 @@
   .streak-calendar {
     width: 100%;
     max-width: 304px;
+  }
+  
+  .calendar-day.active {
+    width: 32px;
+    height: 24px;
+    border-radius: 12px;
+  }
+  
+  .streak-fire-icon {
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -163,7 +214,7 @@
 
   .calendar-grid,
   .day-labels {
-    gap: 4px;
+    gap: 8px 4px;
   }
 
   .month-label {
@@ -177,5 +228,21 @@
   .nav-button {
     font-size: 16px;
     padding: 2px 4px;
+  }
+  
+  .calendar-day.active {
+    width: 28px;
+    height: 20px;
+    border-radius: 10px;
+  }
+  
+  .calendar-day.inactive {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .streak-fire-icon {
+    width: 12px;
+    height: 12px;
   }
 }

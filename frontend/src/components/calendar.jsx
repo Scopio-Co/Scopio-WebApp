@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './calendar.css';
-import SmallFireIcon from '../assets/img/Small.png';
+import StreakBadge from '../assets/img/streak-badge.svg';
 import api from '../api';
 
 const Calendar = ({ onStreakUpdate }) => {
@@ -124,7 +124,11 @@ const Calendar = ({ onStreakUpdate }) => {
     if (day && activityData[day]) {
       setHoveredDay(day);
       const rect = event.currentTarget.getBoundingClientRect();
-      setTooltipPosition({ x: rect.left, y: rect.top - 40 });
+      const tooltipWidth = 140; // Approximate tooltip width
+      setTooltipPosition({ 
+        x: rect.left + (rect.width / 2) - (tooltipWidth / 2), 
+        y: rect.top - 80 
+      });
     }
   };
   
@@ -181,23 +185,19 @@ const Calendar = ({ onStreakUpdate }) => {
             onMouseEnter={(e) => handleDayHover(day, e)}
             onMouseLeave={handleDayLeave}
           >
-            <div
-              className={`calendar-day ${
-                day === null 
-                  ? 'empty' 
-                  : activityData[day]?.has_activity
-                  ? 'active'
-                  : 'inactive'
-              }`}
-            >
-              {day && activityData[day]?.has_activity && isInStreak(day) && (
+            {day === null ? (
+              <div className="calendar-day empty"></div>
+            ) : activityData[day]?.has_activity ? (
+              <div className="calendar-day active">
                 <img 
-                  src={SmallFireIcon} 
+                  src={StreakBadge} 
                   alt="streak" 
                   className="streak-fire-icon" 
                 />
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="calendar-day inactive"></div>
+            )}
           </div>
         ))}
       </div>
@@ -208,8 +208,8 @@ const Calendar = ({ onStreakUpdate }) => {
           className="day-tooltip"
           style={{
             position: 'fixed',
-            left: tooltipPosition.x + 'px',
-            top: tooltipPosition.y + 'px',
+            left: `${tooltipPosition.x}px`,
+            top: `${tooltipPosition.y}px`,
           }}
         >
           <div className="tooltip-date">

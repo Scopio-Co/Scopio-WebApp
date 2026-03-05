@@ -119,6 +119,7 @@ background: rgba(0, 0, 0, 0.30);
   width: 300px;
   border: 1px solid var(--border-primary);
   background: var(--text-light);
+  backdrop-filter: blur(4px);
 }
 
 .info-card-header {

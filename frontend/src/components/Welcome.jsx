@@ -11,6 +11,7 @@ import clockIcon from '../assets/img/timer.png';
 import targetIcon from '../assets/img/progress.png';
 import flameIcon from '../assets/img/fire.png';
 import achievementIcon from '../assets/img/achieved.png';
+import trophyIcon from '../assets/img/trophy-cham.png';
 import api from '../api';
 
 const WelcomeDashboard = () => {
@@ -27,6 +28,8 @@ const WelcomeDashboard = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [greetingMessage, setGreetingMessage] = useState('Welcome Back!');
   const [displayName, setDisplayName] = useState('User');
+  const [userRank, setUserRank] = useState({ rank: 0, totalUsers: 0 });
+  const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   // Fetch user statistics on component mount
   useEffect(() => {
@@ -81,6 +84,41 @@ const WelcomeDashboard = () => {
     };
 
     fetchUserStats();
+  }, []);
+
+  // Fetch user rank
+  useEffect(() => {
+    const fetchUserRank = async () => {
+      try {
+        // Mock data - replace with actual API call
+        setUserRank({ rank: 3, totalUsers: 250 });
+      } catch (error) {
+        console.error('❌ Failed to fetch user rank:', error);
+      }
+    };
+
+    fetchUserRank();
+  }, []);
+
+  // Countdown timer for streak
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      
+      const diff = midnight - now;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setCountdown({ hours, minutes, seconds });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Handle streak update from calendar
@@ -239,9 +277,39 @@ const WelcomeDashboard = () => {
 
         </div>
         <div className='calendar-row'>
-            {/* Calendar */}
+          {/* Calendar - Left */}
+          <div className="calendar-container">
             <Calendar onStreakUpdate={handleStreakUpdate} />
           </div>
+
+          {/* Right Side Stats Containers */}
+          <div className="calendar-side-stats">
+            {/* User Rank Container */}
+            <div className="rank-container">
+              <div className="rank-trophy">
+                <img src={trophyIcon} alt="Trophy" className="trophy-icon" />
+              </div>
+              <div className="rank-content">
+                <div className="rank-title">Your Rank</div>
+                <div className="rank-value">#{userRank.rank}</div>
+                <div className="rank-subtitle">Among {userRank.totalUsers} learners</div>
+              </div>
+            </div>
+
+            {/* Streak Countdown Container */}
+            <div className="streak-countdown-container">
+              <div className="countdown-header">
+                <div className="countdown-title">Streak Ends In</div>
+                <div className="countdown-timer">
+                  {String(countdown.hours).padStart(2, '0')}:
+                  {String(countdown.minutes).padStart(2, '0')}:
+                  {String(countdown.seconds).padStart(2, '0')}
+                </div>
+                <div className="countdown-subtitle">Complete a lesson to maintain your streak</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

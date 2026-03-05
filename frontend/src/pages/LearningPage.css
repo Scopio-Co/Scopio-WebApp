@@ -135,6 +135,7 @@
   width: 100%;
   height: 200px;
   object-fit: cover;
+  display: block;
 }
 .continue-button-wrapper {
   background: #988bf8;
@@ -273,17 +274,27 @@
   .course-info {
     padding: 20px 25px;
   }
+  .course-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+  .course-image-card {
+    width: 100%;
+    flex: initial;
+    overflow: visible;
+  }
+  .course-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    object-fit: contain;
+    background: #000;
+  }
   .progress-bar {
     width: 100%;
     height: 28px;
   }
-  .course-author {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .course-img {
-    height: 270px;
-  }
+  
   .learning-page-content {
     padding: 20px;
   }
@@ -305,14 +316,13 @@
   .course-image-card {
     width: 100%;
   }
-  .course-card {
-    flex-direction: column;
-    min-height: auto;
-  }
-
-  .course-image {
+  
+  .course-img {
     width: 100%;
-    height: 200px;
+    height: auto;
+    aspect-ratio: 16/9;
+    object-fit: contain;
+    background: #000;
   }
 
   .course-info {
@@ -329,10 +339,19 @@
   }
 }
 @media (max-width: 480px) {
-  .course-author{
-    flex-direction: column;
-    align-items: flex-start;
+  .reviews-section{
+    background: transparent;
   }
+   .reviews-section .reviews-text{
+    display: none;
+   }
+   .course-author .single-star{
+    width: 18px;
+    height: 18px;
+   }
+   .course-author .rating-number{
+    font-size: 1.1rem;
+   }
 }
 
 /* Empty State Styles */

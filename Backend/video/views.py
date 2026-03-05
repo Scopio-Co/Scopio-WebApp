@@ -811,7 +811,7 @@ def leaderboard(request):
     Leaderboard sorted by total XP descending.
     XP source is UserXP.total_xp (awarded from lesson.time_xp on first completion).
     """
-    users = User.objects.filter(is_active=True).annotate(
+    users = User.objects.filter(is_active=True, is_superuser=False).annotate(
         total_xp=Coalesce(models.F('xp_profile__total_xp'), 0)
     ).order_by('-total_xp', 'date_joined', 'username')
 

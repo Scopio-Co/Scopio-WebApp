@@ -934,7 +934,7 @@ const CourseVideoPage = () => {
             </div>
 
             {/* Overview - Right */}
-            <div className="overview-container">
+            <div className={`overview-container ${activeTab === 'notes' ? 'notes-active' : ''}`}>
               {/* Tabs */}
               <div className="course-tabs">
                 <button 

@@ -169,44 +169,46 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
       </div>
 
       {/* Navigation Menu */}
-      <div className="navigation-section">
-        <ul className="nav-list">
-          {navigationItems.map((item, index) => (
-            <li key={index} className="nav-item">
-              <a 
-                href="#" 
-                className={`nav-link ${getActivePage() === item ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavItemClick(item);
-                }}
-              >
-                {item}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <div className="scrollable-content">
+        <div className="navigation-section">
+          <ul className="nav-list">
+            {navigationItems.map((item, index) => (
+              <li key={index} className="nav-item">
+                <a 
+                  href="#" 
+                  className={`nav-link ${getActivePage() === item ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavItemClick(item);
+                  }}
+                >
+                  {item}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      {/* Favorites Section */}
-      <div className="favorites-section">
-        <ul className="favorites-list">
-          <div className="favorites-header">
-            <span className="favorites-badge">Favorites</span>
-          </div>
-          {favoriteItems.map((item, index) => (
-            <li key={index} className="favorite-item">
-              <a href="#" className="favorite-link">
-                {item}
+        {/* Favorites Section */}
+        <div className="favorites-section">
+          <ul className="favorites-list">
+            <div className="favorites-header">
+              <span className="favorites-badge">Favorites</span>
+            </div>
+            {favoriteItems.map((item, index) => (
+              <li key={index} className="favorite-item">
+                <a href="#" className="favorite-link">
+                  {item}
+                </a>
+              </li>
+            ))}
+            <li className="show-more">
+              <a href="#" className="show-more-link">
+                Show more
               </a>
             </li>
-          ))}
-          <li className="show-more">
-            <a href="#" className="show-more-link">
-              Show more
-            </a>
-          </li>
-        </ul>
+          </ul>
+        </div>
       </div>
 
       {/* Logout Button */}
