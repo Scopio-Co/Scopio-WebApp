@@ -313,6 +313,6 @@
     padding: 0 3px;
   }
   .course-card-main{
-    height:320px !important;
+    min-height: 320px;
   }
 }
