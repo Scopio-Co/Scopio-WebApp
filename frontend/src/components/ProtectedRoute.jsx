@@ -61,13 +61,13 @@ const ProtectedRoute = ({ children, isAuthenticated, isCheckingAuth }) => {
         onClose={handleModalClose}
         onLogin={handleLogin}
       />
+      {/* Do not mount protected children while unauthenticated to avoid API calls */}
       <div style={{ 
         filter: showModal ? 'blur(8px)' : 'none', 
         pointerEvents: 'none',
-        transition: 'filter 0.3s ease'
-      }}>
-        {children}
-      </div>
+        transition: 'filter 0.3s ease',
+        height: '100%'
+      }} />
     </>
   );
 };

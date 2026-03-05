@@ -6,7 +6,6 @@ import './App.css'
 import Navbar from './components/Navbar'
 import Signup from './components/Signup'
 import Login from './components/Login'
-import ErrorPopup from './components/ErrorPopup'
 import HeroCard from './components/HeroCard'
 import HeroSlider from './components/HeroSlider'
 import TopPicks from './components/TopPicks'
@@ -503,7 +502,6 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
-      <ErrorPopup error={authError} onClose={() => setAuthError(null)} />
     </div>
   );
 }
