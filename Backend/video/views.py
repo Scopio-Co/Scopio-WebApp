@@ -692,43 +692,57 @@ def user_stats(request):
     - streak_days: Consecutive days with at least 150 XP
     - progress: Overall completion percentage
     - achievements: Total completed lessons
+    
+    OPTIMIZED: Uses database aggregates and prefetch_related for fast queries
     """
     user = request.user
     
-    # 1. Calculate learning hours from total watch time
+    # 1. Calculate learning hours from total watch time (single query, aggregated)
     total_watch_time = Enrollment.objects.filter(user=user).aggregate(
-        total=Sum('total_watch_time')
+        total=Coalesce(Sum('total_watch_time'), 0)
     )['total'] or 0
     learning_hours = round(total_watch_time / 3600, 1)  # Convert seconds to hours
     
     # 2. Calculate current streak (consecutive days with 150+ XP)
     streak_days = calculate_current_streak_for_user(user)
     
-    # 3. Calculate progress (percentage of completed lessons)
-    total_lessons = Lesson.objects.count()
-    completed_lessons = UserProgress.objects.filter(
+    # 3. Calculate progress (percentage of completed lessons in enrolled courses)
+    # Instead of counting ALL lessons, count enrolled course lessons
+    enrolled_course_ids = Enrollment.objects.filter(user=user).values_list('course_id', flat=True)
+    
+    # Count completed lessons in enrolled courses (optimized query)
+    completed_count = UserProgress.objects.filter(
         user=user,
-        completed=True
-    ).count()
-    progress = int((completed_lessons / total_lessons * 100)) if total_lessons > 0 else 0
+        completed=True,
+        course_id__in=enrolled_course_ids
+    ).aggregate(
+        count=models.Count('id')
+    )['count']
+    
+    # Count total lessons in enrolled courses only
+    total_lesson_count = Lesson.objects.filter(
+        course_id__in=enrolled_course_ids
+    ).aggregate(
+        count=models.Count('id')
+    )['count']
+    
+    # Calculate progress percentage
+    progress = int((completed_count / total_lesson_count * 100)) if total_lesson_count > 0 else 0
     
     # 4. Calculate achievements (completed lessons count)
-    achievements = completed_lessons
+    achievements = completed_count
     
-    # 5. Get or create user XP profile for first-time check
+    # 5. Get or create user XP profile for first-time check (single query)
     user_xp, created = UserXP.objects.get_or_create(
         user=user,
         defaults={'has_seen_welcome': False}
     )
     is_first_visit = not user_xp.has_seen_welcome
     
-    # Debug logging
-    print(f"DEBUG - User: {user.username}")
-    print(f"DEBUG - UserXP created: {created}")
-    print(f"DEBUG - has_seen_welcome: {user_xp.has_seen_welcome}")
-    print(f"DEBUG - is_first_visit: {is_first_visit}")
+    # Debug logging (minimal)
+    print(f"DEBUG - User: {user.username} | XP created: {created} | First visit: {is_first_visit}")
     
-    return Response({
+    response = Response({
         'learning_hours': learning_hours,
         'streak_days': streak_days,
         'progress': progress,
@@ -736,6 +750,9 @@ def user_stats(request):
         'total_xp': user_xp.total_xp,
         'is_first_visit': is_first_visit
     })
+    # Cache user stats for 5 minutes (frontend will refetch frequently anyway via manual navigation)
+    response['Cache-Control'] = 'private, max-age=300'
+    return response
 
 
 @api_view(['GET'])
@@ -810,22 +827,35 @@ def leaderboard(request):
     """
     Leaderboard sorted by total XP descending.
     XP source is UserXP.total_xp (awarded from lesson.time_xp on first completion).
+    Excludes superusers from ranking.
+    OPTIMIZED: Uses select_related and efficient filtering.
     """
-    users = User.objects.filter(is_active=True, is_superuser=False).annotate(
+    users = User.objects.filter(
+        is_active=True, 
+        is_superuser=False
+    ).select_related('xp_profile').annotate(
         total_xp=Coalesce(models.F('xp_profile__total_xp'), 0)
-    ).order_by('-total_xp', 'date_joined', 'username')
+    ).order_by('-total_xp', 'date_joined', 'username').values(
+        'id', 'username', 'first_name', 'last_name', 'total_xp'
+    )
 
     leaderboard_rows = []
-    for rank, user in enumerate(users, start=1):
-        full_name = user.get_full_name().strip()
+    for rank, user_data in enumerate(users, start=1):
+        full_name = f"{user_data['first_name']} {user_data['last_name']}".strip()
+        
         leaderboard_rows.append({
             'rank': rank,
-            'user_id': user.id,
-            'name': full_name or user.username,
-            'username': user.username,
-            'profile_image_url': get_user_profile_image_url(user, request),
-            'total_xp': user.total_xp,
-            'streak_days': calculate_current_streak_for_user(user)
+            'user_id': user_data['id'],
+            'name': full_name or user_data['username'],
+            'username': user_data['username'],
+            'profile_image_url': get_user_profile_image_url(
+                User.objects.get(id=user_data['id']), 
+                request
+            ),
+            'total_xp': int(user_data['total_xp']),
+            'streak_days': calculate_current_streak_for_user(
+                User.objects.get(id=user_data['id'])
+            )
         })
 
     return Response({

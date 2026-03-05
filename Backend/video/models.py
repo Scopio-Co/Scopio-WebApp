@@ -129,7 +129,7 @@ class UserProgress(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='user_progress')
     
     # Progress Tracking
-    completed = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False, db_index=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     last_position = models.PositiveIntegerField(default=0, help_text="Last watched position in seconds")
     
@@ -156,6 +156,11 @@ class UserProgress(models.Model):
     class Meta:
         unique_together = ['user', 'course', 'lesson']
         verbose_name_plural = "User Progress"
+        # Optimize queries for user stats and progress calculations
+        indexes = [
+            models.Index(fields=['user', 'completed'], name='userprog_user_completed_idx'),
+            models.Index(fields=['user', 'course'], name='userprog_user_course_idx'),
+        ]
     
     def __str__(self):
         status = "✓" if self.completed else "○"
@@ -202,6 +207,11 @@ class Enrollment(models.Model):
         unique_together = ['user', 'course']
         ordering = ['-last_accessed']
         verbose_name_plural = "Enrollments"
+        # Optimize queries for learning hours and enrollment lookups
+        indexes = [
+            models.Index(fields=['user'], name='enrollment_user_idx'),
+            models.Index(fields=['user', 'course'], name='enrollment_user_course_idx'),
+        ]
     
     def __str__(self):
         return f"{self.user.username} enrolled in {self.course.title}"
@@ -271,6 +281,11 @@ class DailyXP(models.Model):
         unique_together = ['user', 'date']
         ordering = ['-date']
         verbose_name_plural = "Daily XP"
+        # Optimize queries for streak calculation
+        indexes = [
+            models.Index(fields=['user', 'date'], name='dailyxp_user_date_idx'),
+            models.Index(fields=['user', '-date'], name='dailyxp_user_date_desc_idx'),
+        ]
     
     def __str__(self):
         return f"{self.user.username} - {self.date}: {self.xp_earned} XP"
