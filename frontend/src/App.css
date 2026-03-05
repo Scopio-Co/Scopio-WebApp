@@ -158,7 +158,7 @@ html, body {
   padding: 0;
   width: 100%;
   overflow-x: hidden;
-  background-color: var(--bg-overlay);
+  background-color:white;
   color: var(--text-primary);
 }
 
@@ -224,5 +224,34 @@ html, body {
   }
   .main-content {
     padding-bottom: 80px;
+  }
+  /* Mobile: remove blue tap highlight, disable selection/copying in-app and prevent double-tap zoom */
+  body,
+  .navbar,
+  .scrollable-content,
+  .nav-list,
+  .nav-item,
+  .nav-link,
+  .profile-section,
+  .profile-text,
+  .logout-section,
+  .favorites-section {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* Allow buttons and inputs to remain selectable if added later */
+  .logout-button,
+  a,
+  input,
+  textarea {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
   }
 }

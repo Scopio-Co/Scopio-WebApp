@@ -5,7 +5,7 @@ const AuthWarningModal = ({ isOpen, onClose, onLogin }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="auth-modal-overlay" onClick={onLogin}>
+    <div className="auth-modal-overlay">
       <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="auth-modal-title">Authentication Required</h2>
         <p className="auth-modal-message">

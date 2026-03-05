@@ -2,8 +2,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
-from django.db.models import Avg, Sum
-from django.db import models
+from django.db.models import Avg, Sum, Prefetch
+from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.db.models.functions import Coalesce
 from datetime import date, timedelta
@@ -54,8 +54,16 @@ class CourseViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Filter published courses for regular users, show all for admins"""
+        discussion_queryset = Discussion.objects.select_related('user')
+        if self.request.user.is_authenticated:
+            discussion_queryset = discussion_queryset.prefetch_related(
+                Prefetch('liked_by', queryset=User.objects.filter(id=self.request.user.id))
+            )
+
         queryset = Course.objects.prefetch_related(
-            'lessons', 'discussions', 'resources'
+            'lessons',
+            Prefetch('discussions', queryset=discussion_queryset),
+            'resources'
         )
         
         # Show only published courses to non-admin users
@@ -442,6 +450,10 @@ class DiscussionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter by course if provided"""
         queryset = Discussion.objects.select_related('course', 'user')
+        if self.request.user.is_authenticated:
+            queryset = queryset.prefetch_related(
+                Prefetch('liked_by', queryset=User.objects.filter(id=self.request.user.id))
+            )
         
         course_id = self.request.query_params.get('course', None)
         if course_id:
@@ -452,16 +464,50 @@ class DiscussionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Auto-set user when creating discussion"""
         serializer.save(user=self.request.user)
+
+    def _set_like_state(self, discussion_id, user, liked):
+        with transaction.atomic():
+            discussion = Discussion.objects.select_for_update().get(pk=discussion_id)
+            currently_liked = discussion.liked_by.filter(id=user.id).exists()
+
+            if liked and not currently_liked:
+                discussion.liked_by.add(user)
+                Discussion.objects.filter(pk=discussion.pk).update(likes_count=models.F('likes_count') + 1)
+            elif not liked and currently_liked:
+                discussion.liked_by.remove(user)
+                Discussion.objects.filter(pk=discussion.pk, likes_count__gt=0).update(likes_count=models.F('likes_count') - 1)
+
+            discussion.refresh_from_db(fields=['likes_count'])
+
+        return {
+            'id': discussion.id,
+            'likes_count': discussion.likes_count,
+            'is_liked': liked,
+        }
+
+    @action(detail=True, methods=['post'])
+    def set_like(self, request, pk=None):
+        """Set like state idempotently (liked=true/false)."""
+        if not request.user or not request.user.is_authenticated:
+            return Response({'detail': 'Authentication required.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        liked = request.data.get('liked', None)
+        if not isinstance(liked, bool):
+            return Response({'detail': 'liked must be a boolean.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        payload = self._set_like_state(pk, request.user, liked)
+        return Response(payload)
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        """Increment likes for a discussion"""
+        """Toggle like/unlike for a discussion (one like per user)"""
+        if not request.user or not request.user.is_authenticated:
+            return Response({'detail': 'Authentication required.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         discussion = self.get_object()
-        discussion.likes_count += 1
-        discussion.save()
-        
-        serializer = self.get_serializer(discussion)
-        return Response(serializer.data)
+        liked = not discussion.liked_by.filter(id=request.user.id).exists()
+        payload = self._set_like_state(discussion.id, request.user, liked)
+        return Response(payload)
 
 
 # ========== RESOURCE VIEWS ==========

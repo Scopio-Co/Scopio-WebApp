@@ -66,6 +66,10 @@ const Login = ({ onLoginSuccess }) => {
         } else {
           console.log('⚠️ [Login] onLoginSuccess callback not provided');
         }
+
+        // Ensure the main content scrolls to top after login
+        const mainEl = document.querySelector('.main-content');
+        if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
       } catch (error) {
         console.error('❌ [Login] Login failed:', error);
         // Display error message from backend

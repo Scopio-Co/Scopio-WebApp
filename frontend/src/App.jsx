@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom'
 import reactLogo from './assets/img/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import Navbar from './components/Navbar'
 import Signup from './components/Signup'
 import Login from './components/Login'
-import ErrorPopup from './components/ErrorPopup'
 import HeroCard from './components/HeroCard'
 import HeroSlider from './components/HeroSlider'
 import TopPicks from './components/TopPicks'
@@ -415,6 +414,7 @@ function AppContent() {
               <span className="hamburger-inner" />
             </span>
           </button>
+          <Link to="/home" className="hamburger-logo-text">Scopio</Link>
         </div>
         <Routes>
           {/* Public route - Login/Signup or Welcome */}
@@ -502,7 +502,6 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
-      <ErrorPopup error={authError} onClose={() => setAuthError(null)} />
     </div>
   );
 }

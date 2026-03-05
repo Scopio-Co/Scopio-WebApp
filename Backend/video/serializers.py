@@ -47,18 +47,29 @@ class DiscussionSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(required=False, allow_blank=True)
     author_role = serializers.CharField(required=False, allow_blank=True)
     author_profile_image_url = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     
     class Meta:
         model = Discussion
         fields = [
             'id', 'course', 'user', 'author_name', 'author_role',
-            'comment', 'likes_count', 'author_profile_image_url', 'created_at', 'updated_at'
+            'comment', 'likes_count', 'is_liked', 'author_profile_image_url', 'created_at', 'updated_at'
         ]
         read_only_fields = ['user', 'created_at', 'updated_at', 'likes_count']
 
     def get_author_profile_image_url(self, obj):
         request = self.context.get('request')
         return get_user_profile_image_url(obj.user, request)
+
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            prefetched = getattr(obj, '_prefetched_objects_cache', {})
+            prefetched_liked_by = prefetched.get('liked_by')
+            if prefetched_liked_by is not None:
+                return any(user.id == request.user.id for user in prefetched_liked_by)
+            return obj.liked_by.filter(id=request.user.id).exists()
+        return False
     
     def create(self, validated_data):
         """Auto-populate author info from user if not provided"""

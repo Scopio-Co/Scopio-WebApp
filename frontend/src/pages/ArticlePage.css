@@ -185,7 +185,7 @@
 /* Mobile Devices */
 @media (max-width: 768px) {
   .article-page-header {
-    margin-top: 45px;
+    margin-top: 15px;
   }
 
   .bento-grid {

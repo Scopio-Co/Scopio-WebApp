@@ -87,6 +87,7 @@ class Discussion(models.Model):
     """Course discussions - matches Discussions sidebar"""
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='discussions')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_discussions')
+    liked_by = models.ManyToManyField(User, related_name='liked_course_discussions', blank=True)
     
     # Discussion Content
     author_name = models.CharField(max_length=255, help_text="Display name")

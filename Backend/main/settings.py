@@ -16,12 +16,29 @@ import os
 import json
 import dj_database_url
 
+def _load_simple_env_file(path):
+    """Fallback loader for KEY=VALUE .env files when python-dotenv is unavailable."""
+    try:
+        with open(path, 'r', encoding='utf-8') as env_file:
+            for raw_line in env_file:
+                line = raw_line.strip()
+                if not line or line.startswith('#') or '=' not in line:
+                    continue
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+    except FileNotFoundError:
+        pass
+
 # Load environment variables from .env file (local development only)
 try:
     from dotenv import load_dotenv
     load_dotenv()
+    load_dotenv(Path(__file__).resolve().parent / '.env')
 except ImportError:
-    pass
+    _load_simple_env_file(Path(__file__).resolve().parent / '.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

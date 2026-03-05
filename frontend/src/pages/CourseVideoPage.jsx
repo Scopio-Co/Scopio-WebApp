@@ -12,6 +12,7 @@ import xIcon from '../assets/img/x.svg';
 import defaultProfileAvatar from '../assets/img/profileDefault.webp';
 import api from '../api';
 import { CourseVideoSkeleton } from '../components/skeletons';
+import DiscussionLikeButton from '../components/DiscussionLikeButton';
 
 // Helper function to extract video embed URL
 const getVideoEmbedUrl = (url) => {
@@ -623,7 +624,8 @@ const CourseVideoPage = () => {
     role: d.author_role,
     avatar: d.author_profile_image_url,
     comment: d.comment,
-    likes: d.likes_count
+    likes: d.likes_count || 0,
+    isLiked: !!d.is_liked
   })) || [
     {
       id: 1,
@@ -631,7 +633,8 @@ const CourseVideoPage = () => {
       role: "son_of_baheev",
       avatar: defaultProfileAvatar,
       comment: "Greyt lesson! The examples really helped me understand the concepts better.",
-      likes: 12
+      likes: 12,
+      isLiked: false
     }
   ];
 
@@ -868,7 +871,7 @@ const CourseVideoPage = () => {
                       padding: '10px',
                       borderRadius: '8px',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
-                      background: 'rgba(255, 255, 255, 0.05)',
+                      background: 'rgba(255, 255, 255, 0.8)',
                       color: 'var(--text-primary)',
                       fontSize: '14px',
                       fontFamily: 'inherit',
@@ -916,12 +919,11 @@ const CourseVideoPage = () => {
                         </div>
                         </div>
                         
-                        <div className="discussion-likes">
-                        <span className="likes-count">{discussion.likes}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" viewBox="0 0 23 20" fill="none">
-  <path d="M16.6064 0.25C20.003 0.250236 22.75 2.95184 22.75 6.28125C22.7499 10.1283 20.9289 13.1946 18.6807 15.4453C16.4294 17.699 13.766 19.1177 12.1338 19.6621H12.1318C11.9708 19.7176 11.7413 19.75 11.5 19.75C11.2587 19.75 11.0292 19.7176 10.8682 19.6621H10.8662C9.23396 19.1177 6.57059 17.699 4.31934 15.4453C2.07112 13.1946 0.250111 10.1283 0.25 6.28125C0.25 2.95184 2.99701 0.250236 6.39355 0.25C8.40601 0.25 10.1851 1.20031 11.3008 2.66797C11.3481 2.73016 11.4219 2.7666 11.5 2.7666C11.5781 2.7666 11.6519 2.73016 11.6992 2.66797C12.8147 1.20051 14.6052 0.25 16.6064 0.25Z" fill="#B39DFF" stroke="#D3C7FF" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-                      </div>
+                        <DiscussionLikeButton
+                          commentId={discussion.id}
+                          initialLikeCount={discussion.likes}
+                          initiallyLiked={discussion.isLiked}
+                        />
                       </div>
                       
                       <div className="discussion-content">

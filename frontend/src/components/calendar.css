@@ -192,16 +192,6 @@
     max-width: 304px;
   }
   
-  .calendar-day.active {
-    width: 32px;
-    height: 24px;
-    border-radius: 12px;
-  }
-  
-  .streak-fire-icon {
-    width: 14px;
-    height: 14px;
-  }
 }
 
 @media (max-width: 425px) {
@@ -210,39 +200,5 @@
     max-width: 100%;
     box-sizing: border-box;
     padding: 12px;
-  }
-
-  .calendar-grid,
-  .day-labels {
-    gap: 8px 4px;
-  }
-
-  .month-label {
-    font-size: 12px;
-  }
-
-  .day-label {
-    font-size: 9px;
-  }
-
-  .nav-button {
-    font-size: 16px;
-    padding: 2px 4px;
-  }
-  
-  .calendar-day.active {
-    width: 28px;
-    height: 20px;
-    border-radius: 10px;
-  }
-  
-  .calendar-day.inactive {
-    width: 8px;
-    height: 8px;
-  }
-  
-  .streak-fire-icon {
-    width: 12px;
-    height: 12px;
   }
 }
