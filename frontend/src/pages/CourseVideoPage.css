@@ -307,6 +307,30 @@
   line-height: 1;
 }
 
+.discussion-like-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.discussion-like-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.discussion-like-button svg {
+  opacity: 0.7;
+}
+
+.discussion-like-button.liked svg {
+  opacity: 1;
+}
+
 /* Lessons Sidebar - Right */
 .lessons-sidebar {
   border-radius: 35px;
