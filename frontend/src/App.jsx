@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom'
 import reactLogo from './assets/img/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -415,7 +415,7 @@ function AppContent() {
               <span className="hamburger-inner" />
             </span>
           </button>
-          <span className="hamburger-logo-text">Scopio</span>
+          <Link to="/home" className="hamburger-logo-text">Scopio</Link>
         </div>
         <Routes>
           {/* Public route - Login/Signup or Welcome */}

@@ -116,6 +116,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   const handleProfileClick = () => {
     // For now, just close mobile menu - profile page can be implemented later
     setMobileOpen(false);
+    navigate('/settings');
   };
 
   const navigationItems = [
@@ -139,7 +140,19 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     <>
       <div className={`navbar ${mobileOpen ? 'mobile-open' : ''}`}>
       {/* Profile Section */}
-      <div className="profile-section" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
+      <div
+        className="profile-section"
+        onClick={handleProfileClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleProfileClick();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="profile-info">
           <div className="profile-avatar">
             <img
@@ -231,6 +244,9 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
               setMobileOpen(false);
               // show logout toast
               setToast({ visible: true, message: 'Logged out' });
+              // ensure main content is reset to top when logging out
+              const mainEl = document.querySelector('.main-content');
+              if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
               setTimeout(() => setToast({ visible: false, message: '' }), 1000);
             }}
         >

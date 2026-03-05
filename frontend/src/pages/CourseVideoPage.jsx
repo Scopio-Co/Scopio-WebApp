@@ -868,7 +868,7 @@ const CourseVideoPage = () => {
                       padding: '10px',
                       borderRadius: '8px',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
-                      background: 'rgba(255, 255, 255, 0.05)',
+                      background: 'rgba(255, 255, 255, 0.8)',
                       color: 'var(--text-primary)',
                       fontSize: '14px',
                       fontFamily: 'inherit',
