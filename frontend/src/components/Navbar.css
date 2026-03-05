@@ -312,6 +312,11 @@ input:checked + .slider:before {
   padding: 12px;
   box-sizing: border-box;
 }
+
+.hamburger-logo-text {
+  display: none;
+}
+
 .hamburger{
   display: none;
   position: relative;
@@ -384,17 +389,31 @@ input:checked + .slider:before {
   /* Show hamburger container on small screens and pin to top while scrolling */
   .hamburger-container{
     display: flex;
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    right: auto;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 1300;
     gap: 8px;
     align-items: center;
-    justify-content: flex-start;
-    background: transparent;
-    padding: 6px;
-    border-radius: 10px;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(10px);
+    padding: 12px;
+    border-radius: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .hamburger-logo-text {
+    display: block;
+    font-family: 'Eina03', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    background: #000000;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-right: 8px;
   }
 
   .navbar{

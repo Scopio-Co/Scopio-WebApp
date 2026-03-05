@@ -310,6 +310,9 @@
 }
 
 @media (max-width: 768px) {
+  .learning-page-header{
+    margin: 0 auto 20px auto;
+  }
   .learning-page-title {
     font-size: 28px;
   }
@@ -339,17 +342,17 @@
   }
 }
 @media (max-width: 480px) {
-  .reviews-section{
+  .learning-page .reviews-section{
     background: transparent;
   }
-   .reviews-section .reviews-text{
+   .learning-page .reviews-section .reviews-text{
     display: none;
    }
-   .course-author .single-star{
+   .learning-page .course-author .single-star{
     width: 18px;
     height: 18px;
    }
-   .course-author .rating-number{
+   .learning-page .course-author .rating-number{
     font-size: 1.1rem;
    }
 }

@@ -242,6 +242,7 @@ function AppContent() {
               <span className="hamburger-inner" />
             </span>
           </button>
+          <span className="hamburger-logo-text">Scopio</span>
         </div>
         <Routes>
           {/* Public route - Login/Signup or Welcome */}
