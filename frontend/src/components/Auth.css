@@ -391,6 +391,10 @@ background: #0017ad;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }
+  .auth-container{
+    padding: 0 20px 20px 20px;
+    min-height: 100svh;
+  }
 
   .modal-content {
     width: 100%;

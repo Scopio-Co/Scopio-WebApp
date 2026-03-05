@@ -88,6 +88,13 @@
   font: normal 400 0.89rem "Century Gothic";
 }
 
+/* Keep username/login text on one line and truncate if too long */
+.profile-text p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Toggle Switch */
 .switch {
   position: relative;
@@ -159,6 +166,7 @@ input:checked + .slider:before {
   padding-bottom: 8px;
   border-bottom: 3px solid var(--border-tertiary);
 }
+.nav-item { cursor: pointer; }
 .nav-item:last-child {
   border-bottom: none;
 }
@@ -293,9 +301,8 @@ input:checked + .slider:before {
     width:auto;
     border-radius: 15px;
   }
-  .profile-text p{
-    width:60px;
-  }
+  /* allow the profile subtitle to size naturally on narrower screens */
+  .profile-text p{ max-width: 140px; }
 }
 
 /* Hide hamburger on screens wider than 768px */
@@ -320,11 +327,7 @@ input:checked + .slider:before {
 .hamburger{
   display: none;
   position: relative;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-primary);
+  background: transparent;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -376,15 +379,13 @@ input:checked + .slider:before {
   right: 0;
   bottom: 0;
   background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1050;
 }
 
 @media (max-width: 768px) {
   .hamburger{ display: flex; }
-
-  .hamburger.is-active {
-    display: none;
-  }
 
   /* Show hamburger container on small screens and pin to top while scrolling */
   .hamburger-container{
@@ -393,7 +394,7 @@ input:checked + .slider:before {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1300;
+    z-index: 1000;
     gap: 8px;
     align-items: center;
     justify-content: space-between;

@@ -208,7 +208,7 @@ def get_csrf_token(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def auth_status(request):
-    """Test auth: Returns info of authenticated user."""
+    """Test auth: Returns info of authenticated user. Token validation endpoint."""
     logger.info(f"Auth status check: {request.user.email}")
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
@@ -218,7 +218,7 @@ def auth_status(request):
         request=request,
     )
 
-    return Response({
+    response = Response({
         "authenticated": True,
         "user": {
             "id": request.user.id,
@@ -232,6 +232,9 @@ def auth_status(request):
             "date_joined": request.user.date_joined,
         }
     }, status=status.HTTP_200_OK)
+    # Cache status for 1 minute (used for token validation, but should be fresh)
+    response['Cache-Control'] = 'private, max-age=60'
+    return response
 
 
 @api_view(["GET", "PATCH", "PUT"])
@@ -246,7 +249,10 @@ def auth_profile(request):
             profile=profile,
             request=request,
         )
-        return Response(data, status=status.HTTP_200_OK)
+        response = Response(data, status=status.HTTP_200_OK)
+        # Cache profile data for 5 minutes (can be invalidated on user action)
+        response['Cache-Control'] = 'private, max-age=300'
+        return response
 
     serializer = ProfileSettingsSerializer(
         data=request.data,

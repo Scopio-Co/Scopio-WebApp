@@ -4,6 +4,9 @@ import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import streakBadge from '../assets/img/streak-badge.svg';
 import defaultProfileAvatar from '../assets/img/profileDefault.webp';
+import goldBadge from '../assets/img/leaderboard Badge/gold-badge.png';
+import silverBadge from '../assets/img/leaderboard Badge/silver-badge.png';
+import bronzeBadge from '../assets/img/leaderboard Badge/bronze-badge.png';
 import api from '../api';
 import { LeaderboardPageSkeleton } from '../components/skeletons';
 
@@ -162,11 +165,19 @@ const LeaderboardPage = () => {
                       <div 
                         className="rank-badge"
                         style={{ 
-                          background: getRankBadgeColor(entry.rank),
-                          border: entry.rank ? '2px solid rgba(255, 255, 255, 0.72)' : 'none'
+                          background: entry.rank <= 3 ? 'transparent' : getRankBadgeColor(entry.rank),
+                          border: entry.rank <= 3 ? 'none' : (entry.rank ? '2px solid rgba(255, 255, 255, 0.72)' : 'none')
                         }}
                       >
-                        {entry.rank}
+                        {entry.rank === 1 ? (
+                          <img src={goldBadge} alt="Gold" className="rank-medal" />
+                        ) : entry.rank === 2 ? (
+                          <img src={silverBadge} alt="Silver" className="rank-medal" />
+                        ) : entry.rank === 3 ? (
+                          <img src={bronzeBadge} alt="Bronze" className="rank-medal" />
+                        ) : (
+                          entry.rank
+                        )}
                       </div>
                     </td>
                     <td className="learner-cell">

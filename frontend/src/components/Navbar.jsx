@@ -173,14 +173,23 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
         <div className="navigation-section">
           <ul className="nav-list">
             {navigationItems.map((item, index) => (
-              <li key={index} className="nav-item">
-                <a 
-                  href="#" 
-                  className={`nav-link ${getActivePage() === item ? 'active' : ''}`}
-                  onClick={(e) => {
+              <li
+                key={index}
+                className="nav-item"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleNavItemClick(item)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     handleNavItemClick(item);
-                  }}
+                  }
+                }}
+              >
+                <a
+                  href="#"
+                  className={`nav-link ${getActivePage() === item ? 'active' : ''}`}
+                  onClick={(e) => e.preventDefault()}
                 >
                   {item}
                 </a>
@@ -189,7 +198,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
           </ul>
         </div>
 
-        {/* Favorites Section */}
+        {/* Favorites Section 
         <div className="favorites-section">
           <ul className="favorites-list">
             <div className="favorites-header">
@@ -209,6 +218,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
             </li>
           </ul>
         </div>
+        */}
       </div>
 
       {/* Logout Button */}
