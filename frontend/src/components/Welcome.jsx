@@ -14,91 +14,51 @@ import achievementIcon from '../assets/img/achieved.png';
 import trophyIcon from '../assets/img/trophy-cham.png';
 import api from '../api';
 
-const WelcomeDashboard = () => {
+const WelcomeDashboard = ({ welcomeData = null }) => {
   const navigate = useNavigate();
 
   const [stats, setStats] = useState({
-    learningHours: 0,
-    streakDays: 0,
-    progress: 0,
-    achievements: 0
+    learningHours: welcomeData?.stats?.learningHours || 0,
+    streakDays: welcomeData?.stats?.streakDays || 0,
+    progress: welcomeData?.stats?.progress || 0,
+    achievements: welcomeData?.stats?.achievements || 0
   });
 
-  const [loading, setLoading] = useState(true);
-  const [isFirstVisit, setIsFirstVisit] = useState(false);
-  const [greetingMessage, setGreetingMessage] = useState('Welcome Back!');
-  const [displayName, setDisplayName] = useState('User');
-  const [userRank, setUserRank] = useState({ rank: 0, totalUsers: 0 });
+  const [loading, setLoading] = useState(!welcomeData || welcomeData.isLoading);
+  const [isFirstVisit, setIsFirstVisit] = useState(welcomeData?.isFirstVisit ?? false);
+  const [greetingMessage, setGreetingMessage] = useState(
+    welcomeData?.isFirstVisit ? 'Welcome to Scopio!' : 'Welcome Back!'
+  );
+  const [displayName, setDisplayName] = useState(welcomeData?.displayName || 'User');
+  const [userRank, setUserRank] = useState(welcomeData?.userRank || { rank: 0, totalUsers: 0 });
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
-  // Fetch user statistics on component mount
+  // Initialize from cached welcome data on mount
   useEffect(() => {
-    const fetchUserStats = async () => {
-      try {
-        const [statsResponse, profileResponse] = await Promise.all([
-          api.get('/api/video/user-stats/'),
-          api.get('/api/auth/profile/')
-        ]);
-
-        console.log('✓ User stats fetched:', statsResponse.data);
-        console.log('DEBUG - is_first_visit from API:', statsResponse.data.is_first_visit);
-
-        const fullName = (profileResponse?.data?.full_name || '').trim();
-        const username = (profileResponse?.data?.username || '').trim();
-        // Use only the first name (before any whitespace) and capitalize first letter
-        const firstName = fullName ? fullName.split(/\s+/)[0] : '';
-        const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
-        setDisplayName(capitalize(firstName) || capitalize(username) || 'Username');
-        
-        setStats({
-          learningHours: statsResponse.data.learning_hours || 0,
-          streakDays: statsResponse.data.streak_days || 0,
-          progress: statsResponse.data.progress || 0,
-          achievements: statsResponse.data.achievements || 0
-        });
-        
-        // Set greeting based on first visit
-        const firstVisit = statsResponse.data.is_first_visit === true;
-        console.log('DEBUG - firstVisit calculated:', firstVisit);
-        
-        setIsFirstVisit(firstVisit);
-        const greeting = firstVisit ? 'Welcome to Scopio!' : 'Welcome Back!';
-        console.log('DEBUG - Setting greeting to:', greeting);
-        setGreetingMessage(greeting);
-        
-        setLoading(false);
-        
-        // Mark welcome as seen if it's first visit
-        if (firstVisit) {
-          try {
-            await api.post('/api/video/mark-welcome-seen/');
-            console.log('✓ Welcome marked as seen');
-          } catch (error) {
-            console.error('❌ Failed to mark welcome as seen:', error);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Failed to fetch user stats:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchUserStats();
-  }, []);
-
-  // Fetch user rank
-  useEffect(() => {
-    const fetchUserRank = async () => {
-      try {
-        // Mock data - replace with actual API call
-        setUserRank({ rank: 3, totalUsers: 250 });
-      } catch (error) {
-        console.error('❌ Failed to fetch user rank:', error);
-      }
-    };
-
-    fetchUserRank();
-  }, []);
+    if (welcomeData && !welcomeData.isLoading) {
+      console.log('✓ [Welcome] Using cached welcome data:', welcomeData);
+      
+      setStats({
+        learningHours: welcomeData.stats?.learningHours || 0,
+        streakDays: welcomeData.stats?.streakDays || 0,
+        progress: welcomeData.stats?.progress || 0,
+        achievements: welcomeData.stats?.achievements || 0
+      });
+      
+      setDisplayName(welcomeData.displayName || 'User');
+      setIsFirstVisit(welcomeData.isFirstVisit === true);
+      setGreetingMessage(welcomeData.isFirstVisit === true ? 'Welcome to Scopio!' : 'Welcome Back!');
+      setUserRank(welcomeData.userRank || { rank: 0, totalUsers: 0 });
+      setLoading(false);
+    } else if (welcomeData && welcomeData.isLoading) {
+      console.log('⏳ [Welcome] Waiting for welcome data to load...');
+      setLoading(true);
+    } else {
+      // Fallback: no cached data, show loading
+      console.log('⚠️ [Welcome] No welcome data provided, using defaults');
+      setLoading(false);
+    }
+  }, [welcomeData]);
 
   // Countdown timer for streak
   useEffect(() => {
