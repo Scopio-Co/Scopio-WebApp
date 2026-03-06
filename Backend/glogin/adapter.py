@@ -20,6 +20,10 @@ class SocialAdapter(DefaultSocialAccountAdapter):
             from django.contrib.sites.models import Site
             site = Site.objects.get_current()
             
+            # Log the request details
+            logger.info(f"get_app called: provider={provider}, request.build_absolute_uri()={request.build_absolute_uri()}")
+            logger.info(f"Site domain: {site.domain}, Site ID: {site.id}")
+            
             # Use a more explicit query to avoid multiple matches
             app = SocialApp.objects.filter(
                 provider=provider,
@@ -35,6 +39,17 @@ class SocialAdapter(DefaultSocialAccountAdapter):
         except Exception as e:
             logger.exception(f"Error in get_app: {str(e)}")
             raise
+    
+    def get_callback_url(self, request, app):
+        """
+        Explicitly set the callback URL to match Google's configuration.
+        Override the default to avoid construction errors.
+        """
+        from django.contrib.sites.models import Site
+        site = Site.objects.get_current()
+        callback_url = f"http://{site.domain}/accounts/{app.provider}/login/callback/"
+        logger.info(f"✓ Callback URL: {callback_url}")
+        return callback_url
 
     def is_auto_signup_allowed(self, request, sociallogin):
         # Always allow auto-signup when coming from Google.
