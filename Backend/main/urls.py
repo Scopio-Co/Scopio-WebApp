@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Helpful redirects for common paths
-    path('', RedirectView.as_view(url='/api/', permanent=False)),
+    path('', RedirectView.as_view(url=settings.FRONTEND_URL, permanent=False)),
     # allauth may fallback to this default after login; force token-finalize flow.
     path('accounts/profile/', RedirectView.as_view(url='/glogin/google/finalize/', permanent=False)),
     path('user/register', RedirectView.as_view(url='/api/user/register/', permanent=True)),
