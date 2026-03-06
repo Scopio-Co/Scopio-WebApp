@@ -345,7 +345,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Enforce stronger defaults in production
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for social login
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'  # Use HTTPS to match Google Cloud Console redirect URI
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Use HTTP - backend only listens on port 80 (no HTTPS)
 SOCIALACCOUNT_ADAPTER = 'glogin.adapter.SocialAdapter'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 LOGIN_ERROR_URL = '/glogin/error/'  # Redirect authentication errors to custom handler
