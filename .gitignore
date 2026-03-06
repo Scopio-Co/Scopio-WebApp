@@ -12,7 +12,6 @@ backend/node_modules/
 changes_doc
 walkthrough
 docs/
-
 # Environment
 benv/
 
@@ -30,3 +29,5 @@ __pycache__/
 *.sqlite3
 Backend/db.sqlite3
 
+.env
+.env.production

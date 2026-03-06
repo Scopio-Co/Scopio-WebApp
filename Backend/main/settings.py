@@ -55,6 +55,7 @@ DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 # Allow all hosts for development; set explicit hosts in production via env
 _env_hosts = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
 ALLOWED_HOSTS = _env_hosts if _env_hosts else [
+    '20.17.98.254.nip.io',  # Azure VM with nip.io (for OAuth)
     '20.17.98.254',  # Azure VM IP
     'localhost',
     '127.0.0.1',
@@ -265,7 +266,8 @@ CSRF_TRUSTED_ORIGINS = [
     FRONTEND_URL,
     'https://scopio-webapp.onrender.com',
     'https://scopio-web-app.vercel.app',
-    'http://20.17.98.254',  # Azure VM backend
+    'http://20.17.98.254.nip.io',  # Azure VM backend (nip.io for OAuth)
+    'http://20.17.98.254',  # Azure VM backend (direct IP)
 ]
 if DEBUG:
     CSRF_TRUSTED_ORIGINS.extend(['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:8000'])
