@@ -43,12 +43,13 @@ class SocialAdapter(DefaultSocialAccountAdapter):
     def get_callback_url(self, request, app):
         """
         Explicitly set the callback URL to match Google's configuration.
-        Override the default to avoid construction errors.
+        MUST return: http://20.17.98.254.nip.io/accounts/google/login/callback/
         """
         from django.contrib.sites.models import Site
         site = Site.objects.get_current()
+        # Ensure EXACTLY: http://[domain]/accounts/[provider]/login/callback/
         callback_url = f"http://{site.domain}/accounts/{app.provider}/login/callback/"
-        logger.info(f"✓ Callback URL: {callback_url}")
+        logger.info(f"get_callback_url() site.domain={site.domain}, app.provider={app.provider} → {callback_url}")
         return callback_url
 
     def is_auto_signup_allowed(self, request, sociallogin):
