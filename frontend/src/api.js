@@ -3,6 +3,21 @@
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
+function resolveApiBaseUrl() {
+  const configured = (import.meta.env.VITE_API_URL || '').trim();
+  if (!configured) {
+    return '/';
+  }
+
+  // Prevent mixed-content failures when frontend is HTTPS and env points to HTTP backend.
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && configured.startsWith('http://')) {
+    console.warn('⚠️ [API] Mixed-content unsafe API URL detected on HTTPS page. Falling back to same-origin proxy.');
+    return '/';
+  }
+
+  return configured.replace(/\/+$/, '');
+}
+
 // Helper function to get CSRF token from cookies
 function getCsrfToken() {
   const name = 'csrftoken';
@@ -21,7 +36,7 @@ function getCsrfToken() {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: resolveApiBaseUrl(),
   withCredentials: true, // Enable sending cookies with requests
 });
 

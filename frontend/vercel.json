@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "http://20.17.98.254.nip.io/api/$1"
+    },
+    {
+      "source": "/glogin/(.*)",
+      "destination": "http://20.17.98.254.nip.io/glogin/$1"
+    },
+    {
+      "source": "/accounts/(.*)",
+      "destination": "http://20.17.98.254.nip.io/accounts/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
