@@ -2,7 +2,6 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.contrib.auth import logout as django_logout
 from rest_framework_simplejwt.tokens import RefreshToken
-import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,22 +34,25 @@ def google_finalize(request):
         logger.info(f"Redirecting to: {redirect_url}")
         
         response = redirect(redirect_url)
+        use_https = getattr(settings, 'USE_HTTPS', False)
+        cookie_secure = (not settings.DEBUG) and use_https
+        cookie_samesite = 'None' if cookie_secure else 'Lax'
         # Ensure cookies are set with correct settings
         response.set_cookie(
             'jwt_access',
             access,
             max_age=1800,  # 30 minutes
-            secure=not settings.DEBUG,
+            secure=cookie_secure,
             httponly=False,
-            samesite='None' if not settings.DEBUG else 'Lax'
+            samesite=cookie_samesite
         )
         response.set_cookie(
             'jwt_refresh',
             refresh_str,
             max_age=86400,  # 1 day
-            secure=not settings.DEBUG,
+            secure=cookie_secure,
             httponly=False,
-            samesite='None' if not settings.DEBUG else 'Lax'
+            samesite=cookie_samesite
         )
         return response
     except Exception as e:

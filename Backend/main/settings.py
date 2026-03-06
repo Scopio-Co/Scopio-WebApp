@@ -369,6 +369,7 @@ AUTHENTICATION_BACKENDS = (
 
 LOGIN_REDIRECT_URL = '/glogin/google/finalize/'  # Complete OAuth by minting JWT and redirecting to frontend
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
+ACCOUNT_SIGNUP_REDIRECT_URL = '/glogin/google/finalize/'
 
 # allauth configuration to avoid intermediate forms and auto-create users
 # Using new allauth v0.65+ settings

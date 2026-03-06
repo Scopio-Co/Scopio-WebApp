@@ -11,6 +11,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Helpful redirects for common paths
     path('', RedirectView.as_view(url='/api/', permanent=False)),
+    # allauth may fallback to this default after login; force token-finalize flow.
+    path('accounts/profile/', RedirectView.as_view(url='/glogin/google/finalize/', permanent=False)),
     path('user/register', RedirectView.as_view(url='/api/user/register/', permanent=True)),
     path('api/user/register/', CreateUserView.as_view(), name='register'), #endpoint for user registration
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), #endpoint for obtaining JWT tokens
