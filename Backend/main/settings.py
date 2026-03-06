@@ -63,6 +63,10 @@ ALLOWED_HOSTS = _env_hosts if _env_hosts else [
     'scopio-web-app.vercel.app',
 ] 
 # Django REST Framework + JWT
+_default_renderers = ["rest_framework.renderers.JSONRenderer"]
+if DEBUG:
+    _default_renderers.append("rest_framework.renderers.BrowsableAPIRenderer")
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -70,6 +74,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_RENDERER_CLASSES": _default_renderers,
 }
 
 SIMPLE_JWT = {
