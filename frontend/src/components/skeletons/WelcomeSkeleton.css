@@ -1,0 +1,165 @@
+/* WelcomeSkeleton.css - Uses same structure as Welcome.css with skeleton shimmer */
+
+/* Icon Circle Skeleton - inside stat-card */
+.skeleton-icon-circle {
+  width: clamp(40px, 5.5vw, 60px);
+  height: clamp(40px, 5.5vw, 60px);
+  border-radius: 12px;
+  background: rgba(200, 200, 220, 0.6);
+  flex-shrink: 0;
+}
+
+/* Stat Value & Label Skeletons - inside stat-content */
+.skeleton-stat-value {
+  width: 80px;
+  height: clamp(1rem, 3vw, 2.5rem);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 8px;
+}
+
+.skeleton-stat-label {
+  width: 100px;
+  height: clamp(12px, 1.5vw, 16px);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 6px;
+}
+
+/* Speed Text Skeleton (Username) - Blinking grey box */
+.skeleton-speed-text {
+  position: absolute;
+  top: -10px;
+  width: clamp(120px, 15vw, 200px);
+  height: clamp(2rem, 8vw, 5rem);
+  background: rgba(180, 180, 200, 0.6);
+  border-radius: 12px;
+}
+
+/* Calendar Skeleton - inside calendar-container */
+.skeleton-calendar {
+  width: 100%;
+  min-height: 320px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  background: rgba(200, 200, 220, 0.4);
+  backdrop-filter: blur(10px);
+  margin-top: 24px;
+  box-shadow: 0 3px 20.1px -6px rgba(0, 0, 0, 0.10);
+}
+
+/* Rank Trophy Skeleton */
+.skeleton-rank-trophy {
+  width: clamp(60px, 8vw, 80px);
+  height: clamp(60px, 8vw, 80px);
+  border-radius: 12px;
+  background: rgba(200, 200, 220, 0.6);
+  flex-shrink: 0;
+}
+
+/* Rank Content Skeletons */
+.skeleton-rank-title {
+  width: 100px;
+  height: clamp(14px, 1.5vw, 18px);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 6px;
+}
+
+.skeleton-rank-value {
+  width: 60px;
+  height: clamp(2rem, 4vw, 3rem);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 8px;
+}
+
+.skeleton-rank-subtitle {
+  width: 150px;
+  height: clamp(12px, 1.2vw, 14px);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 6px;
+}
+
+/* Countdown Skeletons */
+.skeleton-countdown-title {
+  width: 120px;
+  height: clamp(14px, 1.5vw, 18px);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 6px;
+}
+
+.skeleton-countdown-timer {
+  width: 140px;
+  height: clamp(1.8rem, 3.5vw, 2.5rem);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 8px;
+}
+
+.skeleton-countdown-subtitle {
+  width: 90%;
+  height: clamp(11px, 1.1vw, 13px);
+  background: rgba(200, 200, 220, 0.5);
+  border-radius: 6px;
+}
+
+/* Shimmer Animation - Enhanced for better visibility */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Blink Animation - For speed-text skeleton */
+@keyframes blink {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.skeleton-blink {
+  animation: blink 1.2s ease-in-out infinite;
+}
+
+/* Responsive adjustments - Match Welcome.css breakpoints */
+@media (max-width: 1250px) {
+  .skeleton-calendar {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .skeleton-stat-value {
+    width: 70px;
+  }
+
+  .skeleton-stat-label {
+    width: 90px;
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton-calendar {
+    min-height: 240px;
+  }
+
+  .skeleton-icon-circle {
+    width: 40px;
+    height: 40px;
+  }
+}
