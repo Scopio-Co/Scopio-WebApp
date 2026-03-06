@@ -130,8 +130,8 @@
   .bento-item-skeleton.bento-item-4,
   .bento-item-skeleton.bento-item-5,
   .bento-item-skeleton.bento-item-6 {
-    grid-column: span 1;
-    grid-row: span 1;
+    grid-column: span 2;
+    grid-row: span 2;
   }
 }
 

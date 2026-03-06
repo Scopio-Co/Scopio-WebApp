@@ -371,6 +371,23 @@ function AppContent() {
     navigate('/');
   };
 
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    const path = location.pathname;
+    const mainEl = document.querySelector('.main-content');
+    if (path === '/home' || path === '/') {
+      // If already on welcome/home, smoothly scroll to top
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // From other pages, go to home without adding history entry
+      navigate('/home', { replace: true });
+      // ensure top upon navigation (ScrollToTop component will handle, but reset main-content if present)
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
+    }
+    setMobileOpen(false);
+  };
+
   // Home page with signup/login or welcome based on auth
   const HomePage = () => (
     <>
@@ -403,7 +420,7 @@ function AppContent() {
               <span className="hamburger-inner" />
             </span>
           </button>
-          <Link to="/home" className="hamburger-logo-text">Scopio</Link>
+          <button type="button" className="hamburger-logo-text" onClick={handleLogoClick}>Scopio</button>
         </div>
         <Routes>
           {/* Public route - Login/Signup or Welcome */}

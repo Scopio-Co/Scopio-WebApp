@@ -410,6 +410,8 @@ input:checked + .slider:before {
     font-family: 'Eina03', sans-serif;
     font-size: 24px;
     font-weight: 600;
+    padding: 0;
+    border: none;
     background: #000000;
     background-clip: text;
     -webkit-background-clip: text;

@@ -173,7 +173,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: #ffffff;
-  z-index: 1001;
+  z-index: 998;
   position: absolute;
   top: 50%;
   border: 1px solid var(--Glass-Stroke, rgba(255, 255, 255, 0.72));

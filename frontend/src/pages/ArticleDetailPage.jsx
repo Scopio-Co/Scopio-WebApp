@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import './ArticleDetailPage.css';
 
@@ -7,6 +7,19 @@ const ArticleDetailPage = () => {
   const navigate = useNavigate();
   const { articleId } = useParams();
   const article = location.state?.article;
+
+  useEffect(() => {
+    try {
+      const container = document.querySelector('.main-content');
+      if (container && typeof container.scrollTo === 'function') {
+        container.scrollTo({ top: 0, behavior: 'auto' });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    } catch (e) {
+      // noop in non-browser environments
+    }
+  }, []);
 
   if (!article) {
     return (
