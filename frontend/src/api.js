@@ -6,11 +6,6 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 function resolveApiBaseUrl() {
   const configured = (import.meta.env.VITE_API_URL || '').trim();
 
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    // Always use same-origin on HTTPS deployments to avoid mixed-content issues.
-    return '/';
-  }
-
   if (!configured) {
     return '/';
   }
