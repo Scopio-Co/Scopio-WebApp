@@ -165,11 +165,8 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
 
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
-      const configured = (import.meta.env.VITE_API_URL || '').trim();
-      const forceSameOrigin = window.location.protocol === 'https:';
-      const oauthUrl = forceSameOrigin || !configured
-        ? '/glogin/google/start/'
-        : `${configured.replace(/\/+$/, '')}/glogin/google/start/`;
+      const backendBase = (import.meta.env.VITE_BACKEND_URL || 'http://20.17.98.254.nip.io').trim().replace(/\/+$/, '');
+      const oauthUrl = `${backendBase}/glogin/google/start/`;
       window.location.href = oauthUrl;
     } else {
       console.log(`${provider} login not yet implemented`);
