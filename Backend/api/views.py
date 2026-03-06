@@ -62,10 +62,26 @@ class CreateUserView(generics.CreateAPIView):
 @api_view(["GET"])  # Simple API root to help discover endpoints
 @permission_classes([AllowAny])
 def api_root(request):
+    # Avoid exposing a 500 for a discovery endpoint if URL names change.
+    try:
+        register_url = request.build_absolute_uri(reverse("register"))
+    except Exception:
+        register_url = request.build_absolute_uri("/api/user/register/")
+
+    try:
+        token_url = request.build_absolute_uri(reverse("token_obtain_pair"))
+    except Exception:
+        token_url = request.build_absolute_uri("/api/token/")
+
+    try:
+        refresh_url = request.build_absolute_uri(reverse("token_refresh"))
+    except Exception:
+        refresh_url = request.build_absolute_uri("/api/token/refresh/")
+
     return Response({
-        "register": request.build_absolute_uri(reverse("register")),
-        "token": request.build_absolute_uri(reverse("token_obtain_pair")),
-        "token_refresh": request.build_absolute_uri(reverse("token_refresh")),
+        "register": register_url,
+        "token": token_url,
+        "token_refresh": refresh_url,
         "notes": request.build_absolute_uri("/api/notes/"),
         "notes_delete": request.build_absolute_uri("/api/notes/delete/<id>/"),
         "users": request.build_absolute_uri("/api/users/")
@@ -74,9 +90,10 @@ def api_root(request):
 
 # ---- Cookie-based JWT auth helpers ----
 def _set_auth_cookies(response, access_token: str | None, refresh_token: str | None):
-    secure = not settings.DEBUG
-    # Use 'Lax' in development (localhost), 'None' in production (with HTTPS)
-    samesite = "Lax" if settings.DEBUG else "None"
+    use_https = getattr(settings, 'USE_HTTPS', False)
+    secure = (not settings.DEBUG) and use_https
+    # SameSite=None requires Secure; for HTTP deployments use Lax.
+    samesite = "None" if secure else "Lax"
     
     if access_token:
         response.set_cookie(
