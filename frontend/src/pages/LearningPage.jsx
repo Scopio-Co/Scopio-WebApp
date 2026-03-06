@@ -180,7 +180,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
           {error && (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: '#ff4444' }}>
               <p>{error}</p>
-              <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>Make sure the backend server is running at http://127.0.0.1:8000</p>
+              <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>Unable to connect to the server. Please try again later.</p>
             </div>
           )}
 

@@ -1,0 +1,150 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                   SCOPIO DEPLOYMENT QUICK REFERENCE              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📍 DEPLOYMENT URLS                                               │
+├──────────────────────────────────────────────────────────────────┤
+│ Frontend: https://scopio-web-app.vercel.app/                    │
+│ Backend:  http://20.17.98.254                                    │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🔧 BACKEND SETUP (Azure VM)                                      │
+├──────────────────────────────────────────────────────────────────┤
+│ 1. SSH:     ssh username@20.17.98.254                           │
+│ 2. CD:      cd /path/to/Scopio/Backend                          │
+│ 3. ENV:     cp .env.production .env && nano .env                │
+│ 4. SECRET:  python -c "from django.core.management.utils \      │
+│             import get_random_secret_key; \                      │
+│             print(get_random_secret_key())"                      │
+│ 5. VENV:    source benv/bin/activate                            │
+│ 6. DEPS:    pip install -r requirements.txt                     │
+│ 7. MIGRATE: python manage.py migrate                            │
+│ 8. STATIC:  python manage.py collectstatic --noinput            │
+│ 9. SETUP:   python setup_production.py                          │
+│ 10. RUN:    gunicorn main.wsgi:application \                    │
+│             --bind 0.0.0.0:80 --workers 3                        │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🌐 FRONTEND SETUP (Vercel)                                       │
+├──────────────────────────────────────────────────────────────────┤
+│ 1. Go to: https://vercel.com/dashboard                          │
+│ 2. Select: scopio-web-app project                               │
+│ 3. Navigate: Settings > Environment Variables                   │
+│ 4. Add Variable:                                                 │
+│    - Name: VITE_API_URL                                          │
+│    - Value: http://20.17.98.254                                  │
+│    - Environment: ✓Production ✓Preview ✓Development             │
+│ 5. Save and Redeploy                                             │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📝 BACKEND .ENV FILE (Required Variables)                        │
+├──────────────────────────────────────────────────────────────────┤
+│ DEBUG=False                                                      │
+│ DJANGO_SECRET_KEY=<generate-with-command-above>                 │
+│ ALLOWED_HOSTS=20.17.98.254,localhost,127.0.0.1                  │
+│ FRONTEND_URL=https://scopio-web-app.vercel.app                  │
+│ DATABASE_URL=postgresql://user:pass@host:port/db?sslmode=require│
+│ GOOGLE_CLIENT_ID=<your-client-id>.apps.googleusercontent.com    │
+│ GOOGLE_CLIENT_SECRET=<your-client-secret>                       │
+│ SITE_DOMAIN=20.17.98.254                                         │
+│ SITE_NAME=Scopio                                                 │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ VERIFICATION TESTS                                            │
+├──────────────────────────────────────────────────────────────────┤
+│ Backend:                                                         │
+│   curl http://20.17.98.254/api/                                 │
+│   curl http://20.17.98.254/api/auth/csrf/ -v                    │
+│                                                                  │
+│ Frontend:                                                        │
+│   Visit: https://scopio-web-app.vercel.app/                     │
+│   - Open DevTools Console (F12)                                 │
+│   - Check API calls use correct backend URL                     │
+│   - Test login/signup                                            │
+│   - Verify no CORS errors                                       │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🐛 TROUBLESHOOTING                                               │
+├──────────────────────────────────────────────────────────────────┤
+│ CORS Error:                                                      │
+│   → Check FRONTEND_URL in backend .env                          │
+│   → Restart backend: sudo systemctl restart scopio              │
+│                                                                  │
+│ Can't Connect:                                                   │
+│   → Check backend running: curl http://20.17.98.254/api/        │
+│   → Check Azure NSG allows port 80                              │
+│   → Check backend logs: sudo journalctl -u scopio -f            │
+│                                                                  │
+│ 401 Unauthorized:                                                │
+│   → Clear browser localStorage and cookies                      │
+│   → Check CSRF token in cookies (DevTools > Application)        │
+│   → Verify JWT tokens in localStorage                           │
+│                                                                  │
+│ Frontend Wrong URL:                                              │
+│   → Verify VITE_API_URL in Vercel env vars                      │
+│   → Redeploy after changing environment variables               │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🔒 SECURITY CHECKLIST                                            │
+├──────────────────────────────────────────────────────────────────┤
+│ ☐ DEBUG=False in production                                     │
+│ ☐ Strong DJANGO_SECRET_KEY generated                            │
+│ ☐ Database uses SSL (sslmode=require)                           │
+│ ☐ Only port 80/443 open in Azure NSG                            │
+│ ☐ SSH restricted to your IP only                                │
+│ ☐ .env files not committed to Git                               │
+│ ☐ Strong passwords for database and superuser                   │
+│ ☐ HTTPS enabled (recommended):                                  │
+│     certbot --nginx -d yourdomain.com                            │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📚 DOCUMENTATION FILES                                           │
+├──────────────────────────────────────────────────────────────────┤
+│ DEPLOYMENT_GUIDE.md      → Comprehensive deployment guide       │
+│ DEPLOYMENT_CHECKLIST.md  → Step-by-step checklist               │
+│ CHANGES_SUMMARY.md       → All changes made summary             │
+│ Backend/.env.production  → Backend environment template         │
+│ frontend/.env.production → Frontend environment template        │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📊 STATUS MONITORING                                             │
+├──────────────────────────────────────────────────────────────────┤
+│ Check Backend Status:                                            │
+│   sudo systemctl status scopio                                   │
+│                                                                  │
+│ View Backend Logs:                                               │
+│   sudo journalctl -u scopio -f                                   │
+│   sudo journalctl -u scopio -p err                               │
+│                                                                  │
+│ Restart Backend:                                                 │
+│   sudo systemctl restart scopio                                  │
+│                                                                  │
+│ View Vercel Logs:                                                │
+│   Dashboard > Project > Deployments > View Function Logs        │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🎯 DEPLOYMENT STATUS                                             │
+├──────────────────────────────────────────────────────────────────┤
+│ ✅ Code configured and ready                                    │
+│ ✅ CORS settings updated                                        │
+│ ✅ Environment templates created                                │
+│ ✅ Documentation complete                                       │
+│                                                                  │
+│ ⏳ Deploy backend to Azure VM                                   │
+│ ⏳ Set Vercel environment variables                             │
+│ ⏳ Test end-to-end functionality                                │
+└──────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════╗
+║  Need Help? Check DEPLOYMENT_GUIDE.md for detailed instructions ║
+╚══════════════════════════════════════════════════════════════════╝
