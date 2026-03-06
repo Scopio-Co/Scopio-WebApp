@@ -307,14 +307,16 @@ if DEBUG:
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_DOMAIN = None
+    SECURE_SSL_REDIRECT = False
 else:
-    # Production: cross-domain HTTPS
+    # Production: cross-domain but allow HTTP for nip.io OAuth
     CSRF_COOKIE_SAMESITE = 'None'
-    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = False  # Don't require HTTPS for nip.io
     SESSION_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False  # Don't require HTTPS for nip.io
     # Don't set SESSION_COOKIE_DOMAIN - let browser handle it
     SESSION_COOKIE_DOMAIN = None
+    SECURE_SSL_REDIRECT = False  # Don't redirect to HTTPS
 
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 SESSION_COOKIE_HTTPONLY = True  # Security: Don't expose session to JS
