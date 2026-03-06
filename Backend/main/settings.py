@@ -367,7 +367,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',  # For social auth
 )
 
-LOGIN_REDIRECT_URL = '/'  # Redirect to home after login
+LOGIN_REDIRECT_URL = '/glogin/google/finalize/'  # Complete OAuth by minting JWT and redirecting to frontend
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 
 # allauth configuration to avoid intermediate forms and auto-create users
