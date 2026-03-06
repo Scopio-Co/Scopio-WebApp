@@ -77,7 +77,8 @@ class SocialAdapter(DefaultSocialAccountAdapter):
     def authentication_error(self, request, provider_id, error=None, exception=None, extra_context=None):
         """Override to redirect authentication errors to frontend instead of showing Django page"""
         logger.error(f"Authentication error for {provider_id}: {error}")
-        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        from django.conf import settings
+        frontend_url = settings.FRONTEND_URL
         error_message = str(error) if error else "Authentication failed"
         return redirect(f"{frontend_url}/?error=auth_failed&message={error_message}")
 

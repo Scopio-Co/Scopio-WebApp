@@ -17,7 +17,7 @@ def google_finalize(request):
         logger.info(f"Session key: {request.session.session_key}")
         
         if not request.user.is_authenticated:
-            frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+            frontend = settings.FRONTEND_URL
             logger.error("User not authenticated in google_finalize")
             return redirect(f"{frontend}/?error=google_auth_failed")
 
@@ -29,7 +29,7 @@ def google_finalize(request):
         access = str(refresh.access_token)
         refresh_str = str(refresh)
 
-        frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        frontend = settings.FRONTEND_URL
         # Use query params instead of hash for better reliability
         redirect_url = f"{frontend}/?access={access}&refresh={refresh_str}"
         logger.info(f"Redirecting to: {redirect_url}")
@@ -55,12 +55,12 @@ def google_finalize(request):
         return response
     except Exception as e:
         logger.exception(f"Error in google_finalize: {str(e)}")
-        frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        frontend = settings.FRONTEND_URL
         error_message = str(e).replace('#', '%23').replace('&', '%26')
         return redirect(f"{frontend}/?error=auth_error&message={error_message}")
 
 def google_logout(request):
     django_logout(request)
-    frontend = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    frontend = settings.FRONTEND_URL
     return redirect(frontend)
 
