@@ -153,6 +153,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -342,10 +343,13 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Enforce stronger defaults in production
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for social login
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Always use HTTP for OAuth callback (nginx handles proxying)
 SOCIALACCOUNT_ADAPTER = 'glogin.adapter.SocialAdapter'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 LOGIN_ERROR_URL = '/glogin/error/'  # Redirect authentication errors to custom handler
+
+# Trust X-Forwarded-Proto headers from nginx reverse proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
