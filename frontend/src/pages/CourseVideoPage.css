@@ -610,6 +610,10 @@
   border-bottom: 1px solid var(--border-primary);
 }
 
+.lessons-header {
+  cursor: pointer; /* make header indicate it's clickable for toggling */
+}
+
 .lessons-header-content {
   flex: 1;
 }

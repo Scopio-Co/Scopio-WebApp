@@ -865,16 +865,22 @@ const CourseVideoPage = () => {
 
             {/* Course Lessons */}
             <div className={`lessons-sidebar ${lessonsVisible ? 'lessons-visible' : ''}`}>
-              <div className="lessons-header">
+              <div
+                className="lessons-header"
+                onClick={() => setLessonsVisible(!lessonsVisible)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setLessonsVisible(!lessonsVisible); }}
+              >
                 <div className="lessons-header-content">
                   <h2>Course Lessons</h2>
                   <p className="progress-text">{completedLessonsCount}/{totalLessons} completed</p>
                 </div>
-                <button 
-                  className="lessons-toggle-btn"
-                  onClick={() => setLessonsVisible(!lessonsVisible)}
-                  aria-label="Toggle lessons"
-                >
+                  <button 
+                    className="lessons-toggle-btn"
+                    aria-label="Toggle lessons"
+                    tabIndex={-1}
+                  >
                   <svg 
                     width="24" 
                     height="24" 
