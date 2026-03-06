@@ -3,6 +3,16 @@
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
+function resolveApiBaseUrl() {
+  const configured = (import.meta.env.VITE_API_URL || '').trim();
+
+  if (!configured) {
+    return '/';
+  }
+
+  return configured.replace(/\/+$/, '');
+}
+
 // Helper function to get CSRF token from cookies
 function getCsrfToken() {
   const name = 'csrftoken';
@@ -21,7 +31,7 @@ function getCsrfToken() {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: resolveApiBaseUrl(),
   withCredentials: true, // Enable sending cookies with requests
 });
 
