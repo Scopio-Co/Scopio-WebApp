@@ -381,17 +381,6 @@ function AppContent() {
     </>
   );
 
-  // Show loading screen while checking authentication
-  if (isCheckingAuth) {
-    return (
-      <div className="app-layout" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-primary)' }}>
-          <p>Verifying session...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="app-layout">
       <ScrollToTop />

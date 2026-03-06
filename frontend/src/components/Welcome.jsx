@@ -2,6 +2,7 @@ import './Welcome.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from './calendar.jsx';
+import { WelcomeSkeleton } from './skeletons';
 import profilePic from '../assets/img/profilePic.webp';
 import badge1 from '../assets/img/Award 4.png';
 import badge2 from '../assets/img/Award 5.png';
@@ -103,7 +104,10 @@ const WelcomeDashboard = ({ welcomeData = null }) => {
     }));
   };
 
-
+  // Show skeleton while data is loading (dynamic)
+  if (loading || welcomeData?.isLoading) {
+    return <WelcomeSkeleton displayName={displayName} />;
+  }
 
   return (
     <div className="dashboard-container">
