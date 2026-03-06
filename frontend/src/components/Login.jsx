@@ -96,8 +96,8 @@ const Login = ({ onLoginSuccess }) => {
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
       const configured = (import.meta.env.VITE_API_URL || '').trim();
-      const isUnsafeHttpOnHttps = window.location.protocol === 'https:' && configured.startsWith('http://');
-      const oauthUrl = isUnsafeHttpOnHttps || !configured
+      const forceSameOrigin = window.location.protocol === 'https:';
+      const oauthUrl = forceSameOrigin || !configured
         ? '/glogin/google/start/'
         : `${configured.replace(/\/+$/, '')}/glogin/google/start/`;
       window.location.href = oauthUrl;

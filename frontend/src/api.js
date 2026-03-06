@@ -5,13 +5,13 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
 function resolveApiBaseUrl() {
   const configured = (import.meta.env.VITE_API_URL || '').trim();
-  if (!configured) {
+
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    // Always use same-origin on HTTPS deployments to avoid mixed-content issues.
     return '/';
   }
 
-  // Prevent mixed-content failures when frontend is HTTPS and env points to HTTP backend.
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && configured.startsWith('http://')) {
-    console.warn('⚠️ [API] Mixed-content unsafe API URL detected on HTTPS page. Falling back to same-origin proxy.');
+  if (!configured) {
     return '/';
   }
 
