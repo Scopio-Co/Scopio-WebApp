@@ -1,5 +1,12 @@
 {
+  "api": {
+    "maxDuration": 30
+  },
   "rewrites": [
+    {
+      "source": "/api/proxy/:path*",
+      "destination": "/api/proxy"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

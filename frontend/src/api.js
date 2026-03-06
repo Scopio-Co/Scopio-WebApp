@@ -4,13 +4,9 @@ import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
 function resolveApiBaseUrl() {
-  const configured = (import.meta.env.VITE_API_URL || '').trim();
-
-  if (!configured) {
-    return '/';
-  }
-
-  return configured.replace(/\/+$/, '');
+  // Always use the Vercel proxy endpoint to avoid mixed-content errors
+  // This works because the proxy runs on the same HTTPS domain
+  return '/api/proxy';
 }
 
 // Helper function to get CSRF token from cookies
