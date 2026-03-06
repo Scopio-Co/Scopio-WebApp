@@ -1,4 +1,5 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.models import SocialApp
 from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import redirect
@@ -10,6 +11,31 @@ logger = logging.getLogger(__name__)
 
 
 class SocialAdapter(DefaultSocialAccountAdapter):
+    def get_app(self, request, provider, client_id=None):
+        """
+        Override to avoid MultipleObjectsReturned errors.
+        Explicitly query for the Google app by provider and site.
+        """
+        try:
+            from django.contrib.sites.models import Site
+            site = Site.objects.get_current()
+            
+            # Use a more explicit query to avoid multiple matches
+            app = SocialApp.objects.filter(
+                provider=provider,
+                sites=site
+            ).distinct().first()
+            
+            if not app:
+                logger.error(f"No SocialApp found for provider '{provider}' on site '{site.domain}'")
+                raise SocialApp.DoesNotExist(f"SocialApp not configured for {provider}")
+            
+            logger.info(f"✓ Got SocialApp for {provider}: {app.name}")
+            return app
+        except Exception as e:
+            logger.exception(f"Error in get_app: {str(e)}")
+            raise
+
     def is_auto_signup_allowed(self, request, sociallogin):
         # Always allow auto-signup when coming from Google.
         # We rely on ACCOUNT settings (no username, email required) and
