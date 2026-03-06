@@ -30,4 +30,4 @@ __pycache__/
 Backend/db.sqlite3
 
 .env
-.env.production
+.env.productionsudo gunicorn main.wsgi:application --bind 0.0.0.0:80 --workers 3
