@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from django.core.cache import cache
 from django.utils import timezone
 from django.db.models import Avg, Sum, Prefetch
 from django.db import models, transaction
@@ -8,7 +9,7 @@ from django.contrib.auth.models import User
 from django.db.models.functions import Coalesce
 from datetime import date, timedelta
 from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
-from api.avatar_utils import get_user_profile_image_url
+from api.avatar_utils import get_profile_image_url
 from .serializers import (
     VideoSerializer,
     CourseListSerializer,
@@ -281,6 +282,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                         daily_xp.xp_earned += xp_awarded
                         daily_xp.save()
                         print(f"✅ Daily XP updated: {daily_xp.xp_earned}")
+                        invalidate_leaderboard_cache()
                     except Exception as xpe:
                         print(f"❌ XP Error: {type(xpe).__name__}: {str(xpe)}")
                         import traceback
@@ -702,6 +704,12 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
 # ========== USER STATISTICS ENDPOINT ==========
 
 STREAK_THRESHOLD = 150
+LEADERBOARD_CACHE_KEY = 'video:leaderboard:v1'
+LEADERBOARD_CACHE_TTL = 300
+
+
+def invalidate_leaderboard_cache():
+    cache.delete(LEADERBOARD_CACHE_KEY)
 
 
 def calculate_current_streak_for_user(user):
@@ -728,6 +736,42 @@ def calculate_current_streak_for_user(user):
             break
 
     return streak_days
+
+
+def _calculate_streaks_for_user_ids(user_ids):
+    if not user_ids:
+        return {}
+
+    qualifying_days = DailyXP.objects.filter(
+        user_id__in=user_ids,
+        xp_earned__gte=STREAK_THRESHOLD,
+    ).values_list('user_id', 'date')
+
+    dates_by_user = {}
+    for user_id, streak_date in qualifying_days:
+        dates_by_user.setdefault(user_id, set()).add(streak_date)
+
+    streaks = {}
+    today = date.today()
+    for user_id in user_ids:
+        streak_days = 0
+        check_date = today
+        user_dates = dates_by_user.get(user_id, set())
+
+        while True:
+            if check_date in user_dates:
+                streak_days += 1
+                check_date -= timedelta(days=1)
+                continue
+
+            if check_date == today and streak_days == 0:
+                check_date -= timedelta(days=1)
+                continue
+            break
+
+        streaks[user_id] = streak_days
+
+    return streaks
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -876,38 +920,51 @@ def leaderboard(request):
     Excludes superusers from ranking.
     OPTIMIZED: Uses select_related and efficient filtering.
     """
+    cached_payload = cache.get(LEADERBOARD_CACHE_KEY)
+    if cached_payload is not None:
+        response = Response(cached_payload)
+        response['X-Leaderboard-Cache'] = 'HIT'
+        response['Cache-Control'] = 'private, max-age=300'
+        return response
+
     users = User.objects.filter(
-        is_active=True, 
+        is_active=True,
         is_superuser=False
-    ).select_related('xp_profile').annotate(
+    ).select_related('xp_profile', 'profile').annotate(
         total_xp=Coalesce(models.F('xp_profile__total_xp'), 0)
-    ).order_by('-total_xp', 'date_joined', 'username').values(
-        'id', 'username', 'first_name', 'last_name', 'total_xp'
-    )
+    ).only(
+        'id', 'username', 'first_name', 'last_name',
+        'profile__profile_image', 'xp_profile__total_xp', 'date_joined'
+    ).order_by('-total_xp', 'date_joined', 'username')
+
+    users = list(users)
+    user_ids = [user.id for user in users]
+    streaks = _calculate_streaks_for_user_ids(user_ids)
 
     leaderboard_rows = []
-    for rank, user_data in enumerate(users, start=1):
-        full_name = f"{user_data['first_name']} {user_data['last_name']}".strip()
-        
+    for rank, user in enumerate(users, start=1):
+        full_name = f"{user.first_name} {user.last_name}".strip()
+        profile = getattr(user, 'profile', None)
+
         leaderboard_rows.append({
             'rank': rank,
-            'user_id': user_data['id'],
-            'name': full_name or user_data['username'],
-            'username': user_data['username'],
-            'profile_image_url': get_user_profile_image_url(
-                User.objects.get(id=user_data['id']), 
-                request
-            ),
-            'total_xp': int(user_data['total_xp']),
-            'streak_days': calculate_current_streak_for_user(
-                User.objects.get(id=user_data['id'])
-            )
+            'user_id': user.id,
+            'name': full_name or user.username,
+            'username': user.username,
+            'profile_image_url': get_profile_image_url(profile),
+            'total_xp': int(getattr(user, 'total_xp', 0) or 0),
+            'streak_days': streaks.get(user.id, 0),
         })
 
-    return Response({
+    payload = {
         'count': len(leaderboard_rows),
         'results': leaderboard_rows
-    })
+    }
+    cache.set(LEADERBOARD_CACHE_KEY, payload, LEADERBOARD_CACHE_TTL)
+    response = Response(payload)
+    response['X-Leaderboard-Cache'] = 'MISS'
+    response['Cache-Control'] = 'private, max-age=300'
+    return response
 
 
 @api_view(['POST'])

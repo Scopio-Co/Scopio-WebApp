@@ -280,6 +280,28 @@ if AZURE_STORAGE_CONNECTION_STRING or (AZURE_ACCOUNT_NAME and AZURE_ACCOUNT_KEY)
         },
     }
 
+REDIS_URL = os.getenv('REDIS_URL', '').strip()
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'socket_connect_timeout': 5,
+                'socket_timeout': 5,
+            },
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'scopio-default-cache',
+            'TIMEOUT': 300,
+        }
+    }
+
 # CORS: restrict in production, allow dev origin by default
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
 CORS_ALLOW_ALL_ORIGINS = False

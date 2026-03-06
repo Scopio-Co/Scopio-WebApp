@@ -4,9 +4,9 @@ import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import streakBadge from '../assets/img/streak-badge.svg';
 import defaultProfileAvatar from '../assets/img/profileDefault.webp';
-import goldBadge from '../assets/img/leaderboard Badge/gold-badge.png';
-import silverBadge from '../assets/img/leaderboard Badge/silver-badge.png';
-import bronzeBadge from '../assets/img/leaderboard Badge/bronze-badge.png';
+import goldBadge from '../assets/img/leaderboard Badge/gold-badge.webp';
+import silverBadge from '../assets/img/leaderboard Badge/silver-badge.webp';
+import bronzeBadge from '../assets/img/leaderboard Badge/bronze-badge.webp';
 import api from '../api';
 import { LeaderboardPageSkeleton } from '../components/skeletons';
 
@@ -16,6 +16,9 @@ const LeaderboardPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [isPageLoading, setIsPageLoading] = useState(true);
+
+  const LEADERBOARD_UI_CACHE_KEY = 'leaderboard_ui_cache_v1';
+  const LEADERBOARD_UI_CACHE_TTL_MS = 5 * 60 * 1000;
 
   function getRowBackground(rank) {
     if (rank === 1) return 'linear-gradient(90deg, rgba(249, 211, 255, 0.30) 8.17%, rgba(148, 26, 255, 0.30) 66.83%, rgba(249, 211, 255, 0.30) 100%)';
@@ -27,8 +30,23 @@ const LeaderboardPage = () => {
   useEffect(() => {
     let isMounted = true;
 
+    const now = Date.now();
+    try {
+      const rawCached = sessionStorage.getItem(LEADERBOARD_UI_CACHE_KEY);
+      if (rawCached) {
+        const parsed = JSON.parse(rawCached);
+        const ageMs = now - (parsed.cachedAt || 0);
+        if (Array.isArray(parsed.rows) && ageMs >= 0 && ageMs < LEADERBOARD_UI_CACHE_TTL_MS) {
+          setLeaderboardData(parsed.rows);
+          setIsPageLoading(false);
+        }
+      }
+    } catch (e) {
+      sessionStorage.removeItem(LEADERBOARD_UI_CACHE_KEY);
+    }
+
     const fetchLeaderboard = async () => {
-      setIsPageLoading(true);
+      setIsPageLoading((prev) => prev && leaderboardData.length === 0);
       try {
         const response = await api.get('/api/video/leaderboard/');
         const rows = Array.isArray(response.data?.results) ? response.data.results : [];
@@ -49,6 +67,10 @@ const LeaderboardPage = () => {
 
         if (isMounted) {
           setLeaderboardData(mappedRows);
+          sessionStorage.setItem(
+            LEADERBOARD_UI_CACHE_KEY,
+            JSON.stringify({ cachedAt: Date.now(), rows: mappedRows })
+          );
         }
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error);
@@ -187,6 +209,8 @@ const LeaderboardPage = () => {
                             src={entry.profileImageUrl || defaultProfileAvatar}
                             alt={entry.name}
                             className="learner-avatar-image"
+                            loading="lazy"
+                            decoding="async"
                             onError={(e) => {
                               e.currentTarget.src = defaultProfileAvatar;
                             }}
