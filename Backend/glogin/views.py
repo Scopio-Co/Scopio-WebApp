@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.contrib.auth import logout as django_logout
 from rest_framework_simplejwt.tokens import RefreshToken
+from urllib.parse import urlencode
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,8 +30,9 @@ def google_finalize(request):
         refresh_str = str(refresh)
 
         frontend = settings.FRONTEND_URL
-        # Use query params instead of hash for better reliability
-        redirect_url = f"{frontend}/?access={access}&refresh={refresh_str}"
+        # Use urlencode to properly encode token query parameters (they contain special chars)
+        query_params = urlencode({'access': access, 'refresh': refresh_str})
+        redirect_url = f"{frontend}/?{query_params}"
         logger.info(f"Redirecting to: {redirect_url}")
         
         response = redirect(redirect_url)
