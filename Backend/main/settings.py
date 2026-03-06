@@ -304,6 +304,7 @@ else:
 
 # CORS: restrict in production, allow dev origin by default
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
+USE_HTTPS = os.getenv('USE_HTTPS', 'False').lower() in ('true', '1', 'yes')
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 if DEBUG:
@@ -331,14 +332,22 @@ if DEBUG:
     SESSION_COOKIE_DOMAIN = None
     SECURE_SSL_REDIRECT = False
 else:
-    # Production: cross-domain but allow HTTP for nip.io OAuth
-    CSRF_COOKIE_SAMESITE = 'None'
-    CSRF_COOKIE_SECURE = False  # Don't require HTTPS for nip.io
-    SESSION_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = False  # Don't require HTTPS for nip.io
+    # Production: choose secure cookie policy based on whether HTTPS termination exists.
+    if USE_HTTPS:
+        CSRF_COOKIE_SAMESITE = 'None'
+        CSRF_COOKIE_SECURE = True
+        SESSION_COOKIE_SAMESITE = 'None'
+        SESSION_COOKIE_SECURE = True
+        SECURE_SSL_REDIRECT = True
+    else:
+        # HTTP-only deployment (no TLS on backend): avoid SameSite=None because browsers require Secure.
+        CSRF_COOKIE_SAMESITE = 'Lax'
+        CSRF_COOKIE_SECURE = False
+        SESSION_COOKIE_SAMESITE = 'Lax'
+        SESSION_COOKIE_SECURE = False
+        SECURE_SSL_REDIRECT = False
     # Don't set SESSION_COOKIE_DOMAIN - let browser handle it
     SESSION_COOKIE_DOMAIN = None
-    SECURE_SSL_REDIRECT = False  # Don't redirect to HTTPS
 
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 SESSION_COOKIE_HTTPONLY = True  # Security: Don't expose session to JS
@@ -367,13 +376,14 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Enforce stronger defaults in production
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for social login
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # Use HTTP - backend only listens on port 80 (no HTTPS)
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if (not DEBUG and USE_HTTPS) else 'http'
 SOCIALACCOUNT_ADAPTER = 'glogin.adapter.SocialAdapter'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 LOGIN_ERROR_URL = '/glogin/error/'  # Redirect authentication errors to custom handler
 
-# Trust X-Forwarded-Proto headers from nginx reverse proxy
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
+# Trust X-Forwarded-Proto headers from nginx reverse proxy only when HTTPS is enabled.
+# Using 'http' here would incorrectly mark every request as secure and force HTTPS callback URLs.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if (not DEBUG and USE_HTTPS) else None
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
