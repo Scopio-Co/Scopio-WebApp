@@ -284,12 +284,8 @@ def auth_profile(request):
         image_file = validated.get('profile_image')
         if image_file is None:
             profile.profile_image = None
-            profile.profile_image_content_type = ''
-            profile.profile_image_name = ''
         else:
-            profile.profile_image = image_file.read()
-            profile.profile_image_content_type = getattr(image_file, 'content_type', '') or 'image/png'
-            profile.profile_image_name = getattr(image_file, 'name', '') or ''
+            profile.profile_image = image_file
 
     profile.save()
 

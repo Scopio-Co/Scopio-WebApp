@@ -124,6 +124,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'embed_video',  # For embedding videos in Django models
     'video',
+    'storages',
     
 ]
 
@@ -252,6 +253,31 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.parent / 'storage'
+
+AZURE_STORAGE_CONNECTION_STRING = os.getenv('AZURE_STORAGE_CONNECTION_STRING', '')
+AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME', '')
+AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY', '')
+AZURE_PROFILE_PFP_CONTAINER = os.getenv('AZURE_PROFILE_PFP_CONTAINER', 'pfp')
+AZURE_OBJECT_PARAMETERS = {
+    'cache_control': 'public, max-age=2592000, immutable',
+}
+DEFAULT_PROFILE_IMAGE_BLOB = os.getenv('DEFAULT_PROFILE_IMAGE_BLOB', 'defaults/profileDefault.webp')
+if AZURE_STORAGE_CONNECTION_STRING or (AZURE_ACCOUNT_NAME and AZURE_ACCOUNT_KEY):
+    STORAGES = {
+        'default': {
+            'BACKEND': 'storages.backends.azure_storage.AzureStorage',
+            'OPTIONS': {
+                'connection_string': AZURE_STORAGE_CONNECTION_STRING,
+                'account_name': AZURE_ACCOUNT_NAME,
+                'account_key': AZURE_ACCOUNT_KEY,
+                'azure_container': AZURE_PROFILE_PFP_CONTAINER,
+                'overwrite_files': False,
+            },
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 
 # CORS: restrict in production, allow dev origin by default
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
