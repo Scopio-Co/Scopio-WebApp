@@ -170,12 +170,7 @@ function AppContent() {
   }, []);
 
   const verifyAuthenticatedUserIdentity = useCallback(async () => {
-    const profileResponse = await api.get('/api/auth/profile/', {
-      headers: {
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-      },
-    });
+    const profileResponse = await api.get('/api/auth/profile/');
     const profileData = profileResponse?.data || {};
     const backendUserId = extractProfileUserId(profileData);
     const tokenUserId = getUserIdFromAccessToken();
@@ -292,8 +287,6 @@ function AppContent() {
 
   // Fetch and cache welcome data once when authenticated
   useEffect(() => {
-    let isCancelled = false;
-
     if (isCheckingAuth) {
       resetWelcomeState(true);
       return;
@@ -309,8 +302,6 @@ function AppContent() {
       resetWelcomeState(true);
       return;
     }
-
-    const requestUserId = activeUserId;
 
     const cachedProfile = getCachedProfile(activeUserId);
     const cachedStats = getCachedStats(activeUserId);
@@ -335,11 +326,6 @@ function AppContent() {
           api.get('/api/auth/profile/'),
           api.get('/api/video/leaderboard/')
         ]);
-
-        // Ignore stale responses from a previous user session.
-        if (isCancelled || getActiveUserId() !== requestUserId) {
-          return;
-        }
 
         const statsData = statsResult.status === 'fulfilled' ? (statsResult.value?.data || {}) : {};
         const profileData = profileResult.status === 'fulfilled' ? (profileResult.value?.data || {}) : {};
@@ -402,19 +388,12 @@ function AppContent() {
           }
         }
       } catch (error) {
-        if (isCancelled) {
-          return;
-        }
         console.error('❌ Failed to fetch welcome data:', error);
         setWelcomeData((prev) => ({ ...prev, isLoading: false }));
       }
     };
 
     fetchWelcomeData();
-
-    return () => {
-      isCancelled = true;
-    };
   }, [isAuthenticated, activeUserId, isCheckingAuth, resetWelcomeState]);
 
   // Handle OAuth callbacks
@@ -552,7 +531,7 @@ function AppContent() {
   // Home page with signup/login or welcome based on auth
   const HomePage = () => (
     <>
-      {isCheckingAuth ? null : (isAuthenticated ? <Welcome key={activeUserId || 'auth-user'} welcomeData={welcomeData} /> : <Signup onSwitchToWelcome={() => { void handleLoginSuccess(); }} />)}
+      {isCheckingAuth ? null : (isAuthenticated ? <Welcome welcomeData={welcomeData} /> : <Signup onSwitchToWelcome={() => { void handleLoginSuccess(); }} />)}
       <HeroSlider />
       <TopPicks />
       <Footer />
@@ -568,7 +547,6 @@ function AppContent() {
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
           isAuthenticated={isAuthenticated}
-          authUserId={activeUserId}
         />
       </div>
       <div className="main-content">
@@ -595,7 +573,7 @@ function AppContent() {
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated} isCheckingAuth={isCheckingAuth}>
                 <>
-                  <Welcome key={activeUserId || 'auth-user'} welcomeData={welcomeData} />
+                  <Welcome welcomeData={welcomeData} />
                   <HeroSlider />
                   <TopPicks />
                   <Footer />

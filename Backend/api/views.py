@@ -168,10 +168,6 @@ class CookieTokenObtainPairView(TokenObtainPairView):
                 "refresh": refresh,
                 "detail": "login successful"
             }, status=status.HTTP_200_OK)
-
-            response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            response["Pragma"] = "no-cache"
-            response["Expires"] = "0"
             
             # Also set cookies for backward compatibility
             _set_auth_cookies(response, access, refresh)
@@ -205,9 +201,6 @@ class CookieTokenRefreshView(TokenRefreshView):
             "access": access,
             "refresh": refresh,
         })
-        response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-        response["Pragma"] = "no-cache"
-        response["Expires"] = "0"
         _set_auth_cookies(response, access, refresh)
         return response
 
@@ -217,9 +210,6 @@ class CookieTokenRefreshView(TokenRefreshView):
 def cookie_logout(request):
     """Logout: clears auth cookies."""
     response = JsonResponse({"detail": "logout successful"})
-    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response["Pragma"] = "no-cache"
-    response["Expires"] = "0"
     response.delete_cookie("access")
     response.delete_cookie("refresh")
     return response
@@ -285,10 +275,8 @@ def auth_status(request):
             "date_joined": request.user.date_joined,
         }
     }, status=status.HTTP_200_OK)
-    # Never cache identity payloads; they must always reflect current authenticated user.
-    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
+    # Cache status for 1 minute (used for token validation, but should be fresh)
+    response['Cache-Control'] = 'private, max-age=60'
     return response
 
 
@@ -332,10 +320,8 @@ def auth_profile(request):
             }
 
         response = Response(data, status=status.HTTP_200_OK)
-        # Profile payload is auth-sensitive and must never be browser/proxy cached.
-        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-        response['Pragma'] = 'no-cache'
-        response['Expires'] = '0'
+        # Cache profile data for 5 minutes (can be invalidated on user action)
+        response['Cache-Control'] = 'private, max-age=300'
         return response
 
     serializer = ProfileSettingsSerializer(
