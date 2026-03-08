@@ -1,0 +1,15 @@
+[Unit]
+Description=Gunicorn daemon for Scopio Django
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/scopio/Backend
+EnvironmentFile=/var/www/scopio/Backend/.env.production
+ExecStart=/var/www/scopio/benv/bin/gunicorn main.wsgi:application --bind 127.0.0.1:8000 --workers 3 --threads 4 --timeout 60
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

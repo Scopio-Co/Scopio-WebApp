@@ -3,6 +3,26 @@
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
+const PROD_BACKEND_URL = 'https://20.17.98.254.nip.io';
+
+function stripTrailingSlash(url) {
+  return (url || '').replace(/\/+$/, '');
+}
+
+export function getBackendBaseUrl() {
+  const envUrl = stripTrailingSlash(import.meta.env.VITE_API_URL || '');
+  if (envUrl) {
+    return envUrl;
+  }
+
+  const host = window?.location?.hostname || '';
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return `${window.location.protocol}//localhost:8000`;
+  }
+
+  return PROD_BACKEND_URL;
+}
+
 // Helper function to get CSRF token from cookies
 function getCsrfToken() {
   const name = 'csrftoken';
@@ -21,7 +41,7 @@ function getCsrfToken() {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: getBackendBaseUrl(),
   withCredentials: true, // Enable sending cookies with requests
 });
 

@@ -4,7 +4,7 @@ import Login from './Login';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import googleIcon from '../assets/img/Google.svg';
 import githubIcon from '../assets/img/Github.svg';
-import api, { fetchCsrfToken, login } from '../api';
+import api, { fetchCsrfToken, login, getBackendBaseUrl } from '../api';
 
 const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [formData, setFormData] = useState({
@@ -166,7 +166,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
       // Redirect to backend Google OAuth endpoint
-      const backendURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const backendURL = getBackendBaseUrl();
       window.location.href = `${backendURL}/glogin/google/start/`;
     } else {
       console.log(`${provider} login not yet implemented`);
