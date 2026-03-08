@@ -13,6 +13,10 @@ function isLocalhostHost(hostname) {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
+function isVercelHost(hostname) {
+  return typeof hostname === 'string' && hostname.endsWith('.vercel.app');
+}
+
 function normalizeBackendUrl(url) {
   const normalized = stripTrailingSlash(url);
   if (!normalized) {
@@ -54,30 +58,47 @@ function getBackendBaseUrlCandidates() {
   const envUrl = normalizeBackendUrl(import.meta.env.VITE_API_URL || '');
   const primary = getBackendBaseUrl();
   const fallback = normalizeBackendUrl(PROD_BACKEND_URL);
+  const host = window?.location?.hostname || '';
 
-  // Keep same-origin proxy as a low-priority fallback in case rewrites are enabled.
-  return Array.from(new Set([primary, envUrl, fallback, ''].filter((value) => value !== null && value !== undefined)));
+  const candidates = isVercelHost(host)
+    ? ['', primary, envUrl, fallback]
+    : [primary, envUrl, fallback, ''];
+
+  return Array.from(new Set(candidates.filter((value) => value !== null && value !== undefined)));
 }
 
 function isNetworkLevelError(error) {
   return !error?.response;
 }
 
-async function requestWithBackendFallback(config) {
+function isRetryableFallbackStatus(error) {
+  const status = error?.response?.status;
+  return [404, 405, 502, 503, 504].includes(status);
+}
+
+async function requestWithBackendFallback(config, options = {}) {
   const baseUrlCandidates = getBackendBaseUrlCandidates();
+  const validateResponse = options.validateResponse;
   let lastError = null;
 
   for (const candidate of baseUrlCandidates) {
     try {
-      return await api.request({
+      const response = await api.request({
         ...config,
         baseURL: candidate,
       });
+
+      if (typeof validateResponse === 'function' && !validateResponse(response)) {
+        lastError = new Error(`Invalid response payload from ${candidate || 'same-origin'}`);
+        continue;
+      }
+
+      return response;
     } catch (error) {
       lastError = error;
 
-      // Only retry on network-level failures (DNS, TLS, mixed content, blocked request).
-      if (!isNetworkLevelError(error)) {
+      // Retry when endpoint is unreachable or the candidate path is not valid on this host.
+      if (!isNetworkLevelError(error) && !isRetryableFallbackStatus(error)) {
         throw error;
       }
     }
@@ -236,11 +257,19 @@ export default api;
 // Fetch CSRF token from backend
 export async function fetchCsrfToken() {
   try {
-    await requestWithBackendFallback({
-      method: 'GET',
-      url: '/api/auth/csrf/',
-      skipAuth: true,
-    });
+    await requestWithBackendFallback(
+      {
+        method: 'GET',
+        url: '/api/auth/csrf/',
+        skipAuth: true,
+      },
+      {
+        validateResponse: (response) => {
+          const detail = response?.data?.detail;
+          return typeof detail === 'string' && detail.toLowerCase().includes('csrf');
+        },
+      }
+    );
   } catch (error) {
     console.error('Failed to fetch CSRF token:', error);
   }
@@ -256,15 +285,22 @@ export async function fetchVideos() {
 // Login API call
 export async function login(username, password) {
   console.log('🔐 [API] Calling login endpoint...');
-  const { data } = await requestWithBackendFallback({
-    method: 'POST',
-    url: '/api/auth/login/',
-    data: {
-      username,
-      password,
+  const { data } = await requestWithBackendFallback(
+    {
+      method: 'POST',
+      url: '/api/auth/login/',
+      data: {
+        username,
+        password,
+      },
+      skipAuth: true,
     },
-    skipAuth: true,
-  });
+    {
+      validateResponse: (response) => {
+        return !!response?.data?.access && !!response?.data?.refresh;
+      },
+    }
+  );
   
   console.log('✓ [API] Login response received:', { 
     hasAccess: !!data.access, 
