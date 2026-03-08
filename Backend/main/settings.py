@@ -14,7 +14,6 @@ from pathlib import Path
 from datetime import timedelta
 import os
 import json
-import dj_database_url
 
 def _load_simple_env_file(path):
     """Fallback loader for KEY=VALUE .env files when python-dotenv is unavailable."""
@@ -70,6 +69,7 @@ if DEBUG:
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -191,7 +191,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Uses PostgreSQL hosted on NeonDB
 # DATABASE_URL environment variable is required
 
-_database_url = os.getenv('DATABASE_URL')
+_database_url = (os.getenv('DATABASE_URL') or '').strip()
 
 if not _database_url:
     raise RuntimeError(
@@ -261,9 +261,11 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.parent / 'storage'
 
 AZURE_STORAGE_CONNECTION_STRING = os.getenv('AZURE_STORAGE_CONNECTION_STRING', '')
-AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME', '')
-AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY', '')
-AZURE_PROFILE_PFP_CONTAINER = os.getenv('AZURE_PROFILE_PFP_CONTAINER', 'pfp')
+AZURE_ACCOUNT_NAME = (os.getenv('AZURE_ACCOUNT_NAME') or os.getenv('AZURE_STORAGE_ACCOUNT_NAME', '')).strip()
+AZURE_ACCOUNT_KEY = (os.getenv('AZURE_ACCOUNT_KEY') or os.getenv('AZURE_STORAGE_ACCOUNT_KEY', '')).strip()
+AZURE_PROFILE_PFP_CONTAINER = (
+    os.getenv('AZURE_PROFILE_PFP_CONTAINER') or os.getenv('AZURE_CONTAINER_PFP', 'pfp')
+).strip()
 AZURE_OBJECT_PARAMETERS = {
     'cache_control': 'public, max-age=2592000, immutable',
 }
@@ -309,7 +311,7 @@ else:
 
 # CORS/CSRF origins for both environments
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
-USE_HTTPS = os.getenv('USE_HTTPS', 'True').lower() in ('true', '1', 'yes')
+USE_HTTPS = os.getenv('USE_HTTPS', ('False' if DEBUG else 'True')).lower() in ('true', '1', 'yes')
 
 _prod_frontend_origins = [
     'https://scopio-web-app.vercel.app',
