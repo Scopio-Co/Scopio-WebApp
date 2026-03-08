@@ -226,92 +226,148 @@ def get_csrf_token(request):
 @permission_classes([IsAuthenticated])
 def auth_status(request):
     """Test auth: Returns info of authenticated user. Token validation endpoint."""
-    logger.info(f"Auth status check: {request.user.email}")
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    try:
+        # Safely check authentication
+        if not request.user or request.user.is_anonymous:
+            return Response(
+                {"authenticated": False, "error": "Not authenticated"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
-    profile_data = ProfileSettingsSerializer.to_representation_for(
-        user=request.user,
-        profile=profile,
-        request=request,
-    )
+        logger.info(f"Auth status check: {getattr(request.user, 'email', 'unknown')} (ID: {request.user.id})")
+        
+        # Get or create profile
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        if created:
+            logger.info(f"Created new profile for user {request.user.id}")
 
-    response = Response({
-        "authenticated": True,
-        "user": {
-            "id": request.user.id,
-            "username": request.user.username,
-            "email": request.user.email,
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
-            "college": profile.college,
-            "bio": profile.bio,
-            "profile_image_url": profile_data.get('profile_image_url', ''),
-            "date_joined": request.user.date_joined,
-        }
-    }, status=status.HTTP_200_OK)
-    # Cache status for 1 minute (used for token validation, but should be fresh)
-    response['Cache-Control'] = 'private, max-age=60'
-    return response
+        # Get profile data with error handling
+        try:
+            profile_data = ProfileSettingsSerializer.to_representation_for(
+                user=request.user,
+                profile=profile,
+                request=request,
+            )
+        except Exception as e:
+            logger.error(f"Failed to serialize profile data: {str(e)}")
+            profile_data = {'profile_image_url': ''}
+
+        response = Response({
+            "authenticated": True,
+            "user": {
+                "id": request.user.id,
+                "username": request.user.username,
+                "email": getattr(request.user, 'email', ''),
+                "first_name": request.user.first_name or '',
+                "last_name": request.user.last_name or '',
+                "college": profile.college or '',
+                "bio": profile.bio or '',
+                "profile_image_url": profile_data.get('profile_image_url', ''),
+                "date_joined": request.user.date_joined,
+            }
+        }, status=status.HTTP_200_OK)
+        # Cache status for 1 minute (used for token validation, but should be fresh)
+        response['Cache-Control'] = 'private, max-age=60'
+        return response
+    
+    except Exception as e:
+        logger.error(f"auth_status error for user {getattr(request.user, 'id', 'unknown')}: {str(e)}", exc_info=True)
+        return Response(
+            {"authenticated": False, "error": "Internal server error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["GET", "PATCH", "PUT"])
 @permission_classes([IsAuthenticated])
 @parser_classes([JSONParser, FormParser, MultiPartParser])
 def auth_profile(request):
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    try:
+        # Safely check authentication
+        if not request.user or request.user.is_anonymous:
+            return Response(
+                {"error": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
-    if request.method == "GET":
-        data = ProfileSettingsSerializer.to_representation_for(
-            user=request.user,
-            profile=profile,
-            request=request,
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        if created:
+            logger.info(f"Created new profile for user {request.user.id}")
+
+        if request.method == "GET":
+            try:
+                data = ProfileSettingsSerializer.to_representation_for(
+                    user=request.user,
+                    profile=profile,
+                    request=request,
+                )
+                response = Response(data, status=status.HTTP_200_OK)
+                # Cache profile data for 5 minutes (can be invalidated on user action)
+                response['Cache-Control'] = 'private, max-age=300'
+                return response
+            except Exception as e:
+                logger.error(f"Failed to get profile for user {request.user.id}: {str(e)}", exc_info=True)
+                return Response(
+                    {"error": "Failed to retrieve profile data"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        # Handle PATCH/PUT requests
+        serializer = ProfileSettingsSerializer(
+            data=request.data,
+            partial=True,
+            context={'request': request}
         )
-        response = Response(data, status=status.HTTP_200_OK)
-        # Cache profile data for 5 minutes (can be invalidated on user action)
-        response['Cache-Control'] = 'private, max-age=300'
-        return response
+        serializer.is_valid(raise_exception=True)
+        validated = serializer.validated_data
 
-    serializer = ProfileSettingsSerializer(
-        data=request.data,
-        partial=True,
-        context={'request': request}
-    )
-    serializer.is_valid(raise_exception=True)
-    validated = serializer.validated_data
+        if 'full_name' in validated:
+            full_name = validated.get('full_name', '').strip()
+            parts = full_name.split(None, 1)
+            request.user.first_name = parts[0] if parts else ''
+            request.user.last_name = parts[1] if len(parts) > 1 else ''
 
-    if 'full_name' in validated:
-        full_name = validated.get('full_name', '').strip()
-        parts = full_name.split(None, 1)
-        request.user.first_name = parts[0] if parts else ''
-        request.user.last_name = parts[1] if len(parts) > 1 else ''
+        if 'username' in validated:
+            request.user.username = validated.get('username')
 
-    if 'username' in validated:
-        request.user.username = validated.get('username')
+        if 'full_name' in validated or 'username' in validated:
+            request.user.save()
 
-    if 'full_name' in validated or 'username' in validated:
-        request.user.save()
+        if 'college' in validated:
+            profile.college = validated.get('college', '').strip()
 
-    if 'college' in validated:
-        profile.college = validated.get('college', '').strip()
+        if 'bio' in validated:
+            profile.bio = validated.get('bio', '').strip()
 
-    if 'bio' in validated:
-        profile.bio = validated.get('bio', '').strip()
+        if 'profile_image' in validated:
+            image_file = validated.get('profile_image')
+            if image_file is None:
+                profile.profile_image = None
+            else:
+                profile.profile_image = image_file
 
-    if 'profile_image' in validated:
-        image_file = validated.get('profile_image')
-        if image_file is None:
-            profile.profile_image = None
-        else:
-            profile.profile_image = image_file
+        profile.save()
 
-    profile.save()
-
-    response_data = ProfileSettingsSerializer.to_representation_for(
-        user=request.user,
-        profile=profile,
-        request=request,
-    )
-    return Response(response_data, status=status.HTTP_200_OK)
+        try:
+            response_data = ProfileSettingsSerializer.to_representation_for(
+                user=request.user,
+                profile=profile,
+                request=request,
+            )
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Failed to serialize updated profile: {str(e)}", exc_info=True)
+            return Response(
+                {"error": "Profile updated but failed to retrieve data"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    except Exception as e:
+        logger.error(f"auth_profile error for user {getattr(request.user, 'id', 'unknown')}: {str(e)}", exc_info=True)
+        return Response(
+            {"error": "Failed to update profile"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["GET"])
