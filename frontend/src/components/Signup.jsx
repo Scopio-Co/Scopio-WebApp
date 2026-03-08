@@ -4,7 +4,7 @@ import Login from './Login';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import googleIcon from '../assets/img/Google.svg';
 import githubIcon from '../assets/img/Github.svg';
-import api, { fetchCsrfToken, login } from '../api';
+import api, { fetchCsrfToken, login, getBackendBaseUrl } from '../api';
 
 const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [formData, setFormData] = useState({
@@ -167,9 +167,16 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
 
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
+<<<<<<< HEAD
       const backendBase = (import.meta.env.VITE_BACKEND_URL || 'http://20.17.98.254.nip.io').trim().replace(/\/+$/, '');
       const oauthUrl = `${backendBase}/glogin/google/start/`;
       window.location.href = oauthUrl;
+=======
+      // Redirect to backend Google OAuth endpoint
+      const backendURL = getBackendBaseUrl();
+      const frontendOrigin = encodeURIComponent(window.location.origin);
+      window.location.href = `${backendURL}/glogin/google/start/?frontend_origin=${frontendOrigin}`;
+>>>>>>> 89459963909f64cf5eb0c13fb49158c8fcac954d
     } else {
       console.log(`${provider} login not yet implemented`);
     }

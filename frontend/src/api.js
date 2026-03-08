@@ -3,16 +3,6 @@
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
-function resolveApiBaseUrl() {
-  const configured = (import.meta.env.VITE_API_URL || '').trim();
-
-  if (!configured) {
-    return '/';
-  }
-
-  return configured.replace(/\/+$/, '');
-}
-
 // Helper function to get CSRF token from cookies
 function getCsrfToken() {
   const name = 'csrftoken';
@@ -31,7 +21,7 @@ function getCsrfToken() {
 }
 
 const api = axios.create({
-  baseURL: resolveApiBaseUrl(),
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // Enable sending cookies with requests
 });
 
@@ -135,9 +125,7 @@ api.interceptors.response.use(
           } catch (refreshError) {
             // Refresh token is invalid - clear all tokens and emit global unauthorized event
             console.error('❌ [API] Token refresh failed - clearing tokens and redirecting to login');
-            localStorage.removeItem(ACCESS_TOKEN);
-            localStorage.removeItem(REFRESH_TOKEN);
-            localStorage.removeItem('welcomeData');
+            clearAllAuthAndUserCache();
             
             // Emit a global event that App.jsx can listen to for logout/redirect
             window.dispatchEvent(new Event('auth:unauthorized'));
@@ -147,9 +135,7 @@ api.interceptors.response.use(
         } else {
           // No refresh token - emit unauthorized event
           console.warn('⚠️ [API] No refresh token available - logging out');
-          localStorage.removeItem(ACCESS_TOKEN);
-          localStorage.removeItem(REFRESH_TOKEN);
-          localStorage.removeItem('welcomeData');
+          clearAllAuthAndUserCache();
           window.dispatchEvent(new Event('auth:unauthorized'));
         }
       }
@@ -163,7 +149,19 @@ export default api;
 // Fetch CSRF token from backend
 export async function fetchCsrfToken() {
   try {
-    await api.get('/api/auth/csrf/');
+    await requestWithBackendFallback(
+      {
+        method: 'GET',
+        url: '/api/auth/csrf/',
+        skipAuth: true,
+      },
+      {
+        validateResponse: (response) => {
+          const detail = response?.data?.detail;
+          return typeof detail === 'string' && detail.toLowerCase().includes('csrf');
+        },
+      }
+    );
   } catch (error) {
     console.error('Failed to fetch CSRF token:', error);
   }
@@ -179,10 +177,22 @@ export async function fetchVideos() {
 // Login API call
 export async function login(username, password) {
   console.log('🔐 [API] Calling login endpoint...');
-  const { data } = await api.post('/api/auth/login/', {
-    username,
-    password,
-  });
+  const { data } = await requestWithBackendFallback(
+    {
+      method: 'POST',
+      url: '/api/auth/login/',
+      data: {
+        username,
+        password,
+      },
+      skipAuth: true,
+    },
+    {
+      validateResponse: (response) => {
+        return !!response?.data?.access && !!response?.data?.refresh;
+      },
+    }
+  );
   
   console.log('✓ [API] Login response received:', { 
     hasAccess: !!data.access, 
@@ -190,6 +200,9 @@ export async function login(username, password) {
     accessLength: data.access?.length || 0,
     refreshLength: data.refresh?.length || 0
   });
+
+  // Prevent previous-user cache leakage before storing the new session tokens.
+  clearAllAuthAndUserCache();
   
   // Store tokens in localStorage (primary storage)
   if (data.access) {

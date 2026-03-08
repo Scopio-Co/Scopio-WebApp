@@ -14,7 +14,6 @@ from pathlib import Path
 from datetime import timedelta
 import os
 import json
-import dj_database_url
 
 def _load_simple_env_file(path):
     """Fallback loader for KEY=VALUE .env files when python-dotenv is unavailable."""
@@ -70,6 +69,7 @@ if DEBUG:
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -154,12 +154,12 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    "corsheaders.middleware.CorsMiddleware",  # MUST be first for CORS preflight
+    "django.middleware.security.SecurityMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
     'django.middleware.http.ConditionalGetMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -191,7 +191,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Uses PostgreSQL hosted on NeonDB
 # DATABASE_URL environment variable is required
 
-_database_url = os.getenv('DATABASE_URL')
+_database_url = (os.getenv('DATABASE_URL') or '').strip()
 
 if not _database_url:
     raise RuntimeError(
@@ -261,9 +261,11 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.parent / 'storage'
 
 AZURE_STORAGE_CONNECTION_STRING = os.getenv('AZURE_STORAGE_CONNECTION_STRING', '')
-AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME', '')
-AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY', '')
-AZURE_PROFILE_PFP_CONTAINER = os.getenv('AZURE_PROFILE_PFP_CONTAINER', 'pfp')
+AZURE_ACCOUNT_NAME = (os.getenv('AZURE_ACCOUNT_NAME') or os.getenv('AZURE_STORAGE_ACCOUNT_NAME', '')).strip()
+AZURE_ACCOUNT_KEY = (os.getenv('AZURE_ACCOUNT_KEY') or os.getenv('AZURE_STORAGE_ACCOUNT_KEY', '')).strip()
+AZURE_PROFILE_PFP_CONTAINER = (
+    os.getenv('AZURE_PROFILE_PFP_CONTAINER') or os.getenv('AZURE_CONTAINER_PFP', 'pfp')
+).strip()
 AZURE_OBJECT_PARAMETERS = {
     'cache_control': 'public, max-age=2592000, immutable',
 }
@@ -307,25 +309,93 @@ else:
         }
     }
 
-# CORS: restrict in production, allow dev origin by default
+# CORS/CSRF origins for both environments
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
-USE_HTTPS = os.getenv('USE_HTTPS', 'False').lower() in ('true', '1', 'yes')
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
-if DEBUG:
-    CORS_ALLOWED_ORIGINS.append('http://localhost:5173')
-CORS_ALLOW_CREDENTIALS = True
+USE_HTTPS = os.getenv('USE_HTTPS', ('False' if DEBUG else 'True')).lower() in ('true', '1', 'yes')
 
-# CSRF settings for cross-origin requests
-CSRF_TRUSTED_ORIGINS = [
-    FRONTEND_URL,
-    'https://scopio-webapp.onrender.com',
+_prod_frontend_origins = [
     'https://scopio-web-app.vercel.app',
-    'http://20.17.98.254.nip.io',  # Azure VM backend (nip.io for OAuth)
-    'http://20.17.98.254',  # Azure VM backend (direct IP)
+]
+_dev_frontend_origins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
+_env_frontend_origins = [
+    o.strip().rstrip('/')
+    for o in os.getenv('FRONTEND_ALLOWED_ORIGINS', '').split(',')
+    if o.strip()
+]
+
+FRONTEND_ALLOWED_ORIGINS = _env_frontend_origins if _env_frontend_origins else (
+    _prod_frontend_origins + _dev_frontend_origins
+)
+if FRONTEND_URL and FRONTEND_URL not in FRONTEND_ALLOWED_ORIGINS:
+    FRONTEND_ALLOWED_ORIGINS.append(FRONTEND_URL)
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+# Allow specific origins for localhost development
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
+# Use regex patterns for Vercel deployments (handles preview URLs)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://scopio-web-app.*\.vercel\.app$",  # Production and preview deployments
+    r"^https://.*\.vercel\.app$",  # Any Vercel deployment (if you rename the project)
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
+CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours
+
+_backend_trusted_origins = [
+    'https://20.17.98.254.nip.io',
+    'https://20.17.98.254',
 ]
 if DEBUG:
-    CSRF_TRUSTED_ORIGINS.extend(['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:8000'])
+    _backend_trusted_origins.extend([
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ])
+
+# CSRF_TRUSTED_ORIGINS doesn't support regex, so we must use wildcards
+# Django 4.0+ supports https://*.domain.com syntax
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(
+    CORS_ALLOWED_ORIGINS +  # Localhost origins
+    _backend_trusted_origins +  # Backend origins
+    [
+        'https://*.vercel.app',  # Wildcard for all Vercel deployments
+    ]
+))
 
 # Cookie settings for cross-domain authentication
 if DEBUG:
@@ -337,20 +407,12 @@ if DEBUG:
     SESSION_COOKIE_DOMAIN = None
     SECURE_SSL_REDIRECT = False
 else:
-    # Production: choose secure cookie policy based on whether HTTPS termination exists.
-    if USE_HTTPS:
-        CSRF_COOKIE_SAMESITE = 'None'
-        CSRF_COOKIE_SECURE = True
-        SESSION_COOKIE_SAMESITE = 'None'
-        SESSION_COOKIE_SECURE = True
-        SECURE_SSL_REDIRECT = True
-    else:
-        # HTTP-only deployment (no TLS on backend): avoid SameSite=None because browsers require Secure.
-        CSRF_COOKIE_SAMESITE = 'Lax'
-        CSRF_COOKIE_SECURE = False
-        SESSION_COOKIE_SAMESITE = 'Lax'
-        SESSION_COOKIE_SECURE = False
-        SECURE_SSL_REDIRECT = False
+    # Production requires secure cross-site cookies for Vercel -> Django auth flows.
+    CSRF_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = USE_HTTPS
     # Don't set SESSION_COOKIE_DOMAIN - let browser handle it
     SESSION_COOKIE_DOMAIN = None
 
@@ -382,7 +444,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Enforce stronger defaults in production
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Don't require email verification for social login
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if (not DEBUG and USE_HTTPS) else 'http'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if (not DEBUG) else 'http'
 SOCIALACCOUNT_ADAPTER = 'glogin.adapter.SocialAdapter'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 LOGIN_ERROR_URL = '/glogin/error/'  # Redirect authentication errors to custom handler

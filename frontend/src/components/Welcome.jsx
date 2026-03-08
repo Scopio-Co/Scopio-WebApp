@@ -32,6 +32,7 @@ const WelcomeDashboard = ({ welcomeData = null }) => {
   );
   const [displayName, setDisplayName] = useState(welcomeData?.displayName || 'User');
   const [userRank, setUserRank] = useState(welcomeData?.userRank || { rank: 0, totalUsers: 0 });
+  const [profileImageUrl, setProfileImageUrl] = useState(welcomeData?.profileImageUrl || profilePic);
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   // Initialize from cached welcome data on mount
@@ -47,6 +48,7 @@ const WelcomeDashboard = ({ welcomeData = null }) => {
       });
       
       setDisplayName(welcomeData.displayName || 'User');
+      setProfileImageUrl(welcomeData.profileImageUrl || profilePic);
       setIsFirstVisit(welcomeData.isFirstVisit === true);
       setGreetingMessage(welcomeData.isFirstVisit === true ? 'Welcome to Scopio!' : 'Welcome Back!');
       setUserRank(welcomeData.userRank || { rank: 0, totalUsers: 0 });
@@ -224,9 +226,12 @@ const WelcomeDashboard = ({ welcomeData = null }) => {
                 
                 <div className="profile-image-container">
                   <img 
-                    src={profilePic} 
+                    src={profileImageUrl || profilePic} 
                     alt="Profile" 
                     className="profile-image"
+                    onError={(event) => {
+                      event.currentTarget.src = profilePic;
+                    }}
                   />
                 </div>
                 

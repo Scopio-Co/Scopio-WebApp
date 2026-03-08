@@ -18,10 +18,18 @@ benv/
 # Secrets
 OAUTH.json
 .env
+.env.local
+.env.production
+.env.*.local
 Backend/.env
+Backend/.env.local
+Backend/.env.production
+Backend/.env.*.local
 
 # Python/Django artifacts
 __pycache__/
+*/__pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
@@ -29,5 +37,4 @@ __pycache__/
 *.sqlite3
 Backend/db.sqlite3
 
-.env
-.env.production
+docs/

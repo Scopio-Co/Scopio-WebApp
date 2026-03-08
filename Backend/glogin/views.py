@@ -7,7 +7,20 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+def _resolve_frontend_url(request):
+    session_frontend = (request.session.get('oauth_frontend_origin') or '').rstrip('/')
+    allowed_origins = set(getattr(settings, 'FRONTEND_ALLOWED_ORIGINS', []))
+    if session_frontend and session_frontend in allowed_origins:
+        return session_frontend
+    return settings.FRONTEND_URL
+
 def google_start(request):
+    frontend_origin = (request.GET.get('frontend_origin') or '').strip().rstrip('/')
+    allowed_origins = set(getattr(settings, 'FRONTEND_ALLOWED_ORIGINS', []))
+    if frontend_origin and frontend_origin in allowed_origins:
+        request.session['oauth_frontend_origin'] = frontend_origin
+
     next_url = '/glogin/google/finalize/'
     return redirect(f'/accounts/google/login/?process=login&next={next_url}')
 
@@ -17,7 +30,7 @@ def google_finalize(request):
         logger.info(f"Session key: {request.session.session_key}")
         
         if not request.user.is_authenticated:
-            frontend = settings.FRONTEND_URL
+            frontend = _resolve_frontend_url(request)
             logger.error("User not authenticated in google_finalize")
             return redirect(f"{frontend}/?error=google_auth_failed")
 
@@ -30,9 +43,8 @@ def google_finalize(request):
         refresh_str = str(refresh)
 
         frontend = settings.FRONTEND_URL
-        # Use urlencode to properly encode token query parameters (they contain special chars)
-        query_params = urlencode({'access': access, 'refresh': refresh_str})
-        redirect_url = f"{frontend}/?{query_params}"
+        # Use query params instead of hash for better reliability
+        redirect_url = f"{frontend}/?access={access}&refresh={refresh_str}"
         logger.info(f"Redirecting to: {redirect_url}")
         
         response = redirect(redirect_url)
@@ -59,12 +71,12 @@ def google_finalize(request):
         return response
     except Exception as e:
         logger.exception(f"Error in google_finalize: {str(e)}")
-        frontend = settings.FRONTEND_URL
+        frontend = _resolve_frontend_url(request)
         error_message = str(e).replace('#', '%23').replace('&', '%26')
         return redirect(f"{frontend}/?error=auth_error&message={error_message}")
 
 def google_logout(request):
     django_logout(request)
-    frontend = settings.FRONTEND_URL
+    frontend = _resolve_frontend_url(request)
     return redirect(frontend)
 

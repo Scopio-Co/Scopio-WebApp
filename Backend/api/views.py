@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
+from rest_framework.exceptions import ValidationError
 from django.urls import reverse
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
@@ -226,26 +227,51 @@ def get_csrf_token(request):
 @permission_classes([IsAuthenticated])
 def auth_status(request):
     """Test auth: Returns info of authenticated user. Token validation endpoint."""
-    logger.info(f"Auth status check: {request.user.email}")
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    # Extra guard: permission class should already enforce auth, but this keeps response stable.
+    if not request.user or request.user.is_anonymous:
+        return Response(
+            {"authenticated": False, "error": "Not authenticated"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
-    profile_data = ProfileSettingsSerializer.to_representation_for(
-        user=request.user,
-        profile=profile,
-        request=request,
-    )
+    logger.info(f"Auth status check: {getattr(request.user, 'email', 'unknown')} (ID: {request.user.id})")
+
+    # Avoid bubbling DB/storage faults to a 500 response for this heartbeat endpoint.
+    try:
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        if created:
+            logger.info(f"Created new profile for user {request.user.id}")
+    except Exception as exc:
+        logger.error("auth_status profile lookup failed for user %s: %s", request.user.id, str(exc), exc_info=True)
+        profile = None
+
+    profile_image_url = ''
+    college = ''
+    bio = ''
+    if profile is not None:
+        college = profile.college or ''
+        bio = profile.bio or ''
+        try:
+            profile_data = ProfileSettingsSerializer.to_representation_for(
+                user=request.user,
+                profile=profile,
+                request=request,
+            )
+            profile_image_url = profile_data.get('profile_image_url', '')
+        except Exception as exc:
+            logger.error("auth_status profile serialization failed for user %s: %s", request.user.id, str(exc), exc_info=True)
 
     response = Response({
         "authenticated": True,
         "user": {
             "id": request.user.id,
             "username": request.user.username,
-            "email": request.user.email,
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
-            "college": profile.college,
-            "bio": profile.bio,
-            "profile_image_url": profile_data.get('profile_image_url', ''),
+            "email": getattr(request.user, 'email', ''),
+            "first_name": request.user.first_name or '',
+            "last_name": request.user.last_name or '',
+            "college": college,
+            "bio": bio,
+            "profile_image_url": profile_image_url,
             "date_joined": request.user.date_joined,
         }
     }, status=status.HTTP_200_OK)
@@ -258,14 +284,41 @@ def auth_status(request):
 @permission_classes([IsAuthenticated])
 @parser_classes([JSONParser, FormParser, MultiPartParser])
 def auth_profile(request):
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if not request.user or request.user.is_anonymous:
+        return Response(
+            {"error": "Authentication required"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    try:
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        if created:
+            logger.info(f"Created new profile for user {request.user.id}")
+    except Exception as exc:
+        logger.error("auth_profile profile lookup failed for user %s: %s", request.user.id, str(exc), exc_info=True)
+        return Response(
+            {"error": "Unable to load profile"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     if request.method == "GET":
-        data = ProfileSettingsSerializer.to_representation_for(
-            user=request.user,
-            profile=profile,
-            request=request,
-        )
+        try:
+            data = ProfileSettingsSerializer.to_representation_for(
+                user=request.user,
+                profile=profile,
+                request=request,
+            )
+        except Exception as exc:
+            logger.error("auth_profile serialization failed for user %s: %s", request.user.id, str(exc), exc_info=True)
+            data = {
+                'full_name': request.user.get_full_name(),
+                'username': request.user.username,
+                'email': request.user.email,
+                'college': profile.college or '',
+                'bio': profile.bio or '',
+                'profile_image_url': '',
+            }
+
         response = Response(data, status=status.HTTP_200_OK)
         # Cache profile data for 5 minutes (can be invalidated on user action)
         response['Cache-Control'] = 'private, max-age=300'
@@ -276,41 +329,61 @@ def auth_profile(request):
         partial=True,
         context={'request': request}
     )
-    serializer.is_valid(raise_exception=True)
+    if not serializer.is_valid():
+        return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
     validated = serializer.validated_data
 
-    if 'full_name' in validated:
-        full_name = validated.get('full_name', '').strip()
-        parts = full_name.split(None, 1)
-        request.user.first_name = parts[0] if parts else ''
-        request.user.last_name = parts[1] if len(parts) > 1 else ''
+    try:
+        if 'full_name' in validated:
+            full_name = validated.get('full_name', '').strip()
+            parts = full_name.split(None, 1)
+            request.user.first_name = parts[0] if parts else ''
+            request.user.last_name = parts[1] if len(parts) > 1 else ''
 
-    if 'username' in validated:
-        request.user.username = validated.get('username')
+        if 'username' in validated:
+            request.user.username = validated.get('username')
 
-    if 'full_name' in validated or 'username' in validated:
-        request.user.save()
+        if 'full_name' in validated or 'username' in validated:
+            request.user.save()
 
-    if 'college' in validated:
-        profile.college = validated.get('college', '').strip()
+        if 'college' in validated:
+            profile.college = validated.get('college', '').strip()
 
-    if 'bio' in validated:
-        profile.bio = validated.get('bio', '').strip()
+        if 'bio' in validated:
+            profile.bio = validated.get('bio', '').strip()
 
-    if 'profile_image' in validated:
-        image_file = validated.get('profile_image')
-        if image_file is None:
-            profile.profile_image = None
-        else:
-            profile.profile_image = image_file
+        if 'profile_image' in validated:
+            image_file = validated.get('profile_image')
+            if image_file is None:
+                profile.profile_image = None
+            else:
+                profile.profile_image = image_file
 
-    profile.save()
+        profile.save()
+    except ValidationError as exc:
+        return Response({"errors": exc.detail}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as exc:
+        logger.error("auth_profile update failed for user %s: %s", request.user.id, str(exc), exc_info=True)
+        return Response({"error": "Failed to update profile"}, status=status.HTTP_400_BAD_REQUEST)
 
-    response_data = ProfileSettingsSerializer.to_representation_for(
-        user=request.user,
-        profile=profile,
-        request=request,
-    )
+    try:
+        response_data = ProfileSettingsSerializer.to_representation_for(
+            user=request.user,
+            profile=profile,
+            request=request,
+        )
+    except Exception as exc:
+        logger.error("auth_profile post-update serialization failed for user %s: %s", request.user.id, str(exc), exc_info=True)
+        response_data = {
+            'full_name': request.user.get_full_name(),
+            'username': request.user.username,
+            'email': request.user.email,
+            'college': profile.college or '',
+            'bio': profile.bio or '',
+            'profile_image_url': '',
+        }
+
     return Response(response_data, status=status.HTTP_200_OK)
 
 

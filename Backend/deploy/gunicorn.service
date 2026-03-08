@@ -1,0 +1,17 @@
+[Unit]
+Description=Gunicorn daemon for Scopio Django
+After=network.target
+
+[Service]
+User=azureuser
+Group=azureuser
+WorkingDirectory=/home/azureuser/Scopio-WebApp/Backend
+EnvironmentFile=/home/azureuser/Scopio-WebApp/Backend/.env.production
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/azureuser/Scopio-WebApp/benv/bin/gunicorn main.wsgi:application --bind 127.0.0.1:8000 --workers 3 --threads 4 --timeout 60 --graceful-timeout 30 --access-logfile - --error-logfile -
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Auth.css';
 import googleIcon from '../assets/img/Google.svg';
-import { login, fetchCsrfToken } from '../api';
+import { login, fetchCsrfToken, getBackendBaseUrl } from '../api';
 
 const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -73,10 +73,13 @@ const Login = ({ onLoginSuccess }) => {
         if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
       } catch (error) {
         console.error('❌ [Login] Login failed:', error);
-        // Display error message from backend
-        const errorMessage = error.response?.data?.detail || 
-                           error.response?.data?.error ||
-                           'Login failed. Please try again.';
+        // Display actionable message for network-level failures.
+        const isNetworkError = !error.response;
+        const errorMessage = isNetworkError
+          ? 'Unable to reach the authentication server. Please refresh and try again. If it keeps failing, use Google sign-in or confirm the backend API URL is HTTPS.'
+          : error.response?.data?.detail ||
+            error.response?.data?.error ||
+            'Login failed. Please try again.';
         
         setErrors({ 
           general: errorMessage
@@ -96,9 +99,9 @@ const Login = ({ onLoginSuccess }) => {
 
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
-      const backendBase = (import.meta.env.VITE_BACKEND_URL || 'http://20.17.98.254.nip.io').trim().replace(/\/+$/, '');
-      const oauthUrl = `${backendBase}/glogin/google/start/`;
-      window.location.href = oauthUrl;
+      // Redirect to backend Google OAuth endpoint
+      const backendURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      window.location.href = `${backendURL}/glogin/google/start/`;
     } else {
       console.log(`${provider} login not yet implemented`);
     }
