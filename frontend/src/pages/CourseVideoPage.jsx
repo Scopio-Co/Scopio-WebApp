@@ -13,6 +13,7 @@ import defaultProfileAvatar from '../assets/img/profileDefault.webp';
 import api from '../api';
 import { CourseVideoSkeleton } from '../components/skeletons';
 import DiscussionLikeButton from '../components/DiscussionLikeButton';
+import CertificateModal from '../components/CertificateModal';
 
 // Helper function to extract video embed URL
 const getVideoEmbedUrl = (url) => {
@@ -70,6 +71,72 @@ const CourseVideoPage = () => {
   const [youtubePlayer, setYoutubePlayer] = useState(null); // YouTube player instance
   const [playerReady, setPlayerReady] = useState(false);
   const [lessonsVisible, setLessonsVisible] = useState(false); // Mobile lessons visibility
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'info' });
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [certificateData, setCertificateData] = useState(null);
+  const [hasShownCertificate, setHasShownCertificate] = useState(false);
+
+  // Generate helper functions for certificate
+  const generateCertificateId = () => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `CERT-${timestamp}-${random}`;
+  };
+
+  const getUserName = () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        return user.username || user.name || 'Student';
+      }
+    } catch (e) {
+      console.error('Error getting user name:', e);
+    }
+    return 'Student';
+  };
+
+  const viewCertificate = () => {
+    // Use backend-provided flag `certificate_unlocked` instead of local 100% checks
+    const isUnlocked = courseData?.certificate_unlocked === true;
+    if (!isUnlocked) {
+      setToast({ visible: true, message: 'Finish the course to unlock the certificate.', type: 'error' });
+      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3000);
+      return;
+    }
+
+    // Prepare certificate data and show modal
+    setCertificateData({
+      userName: getUserName(),
+      courseTitle: courseData?.title || 'Course',
+      completionDate: new Date().toISOString(),
+      certificateId: generateCertificateId()
+    });
+    setShowCertificateModal(true);
+  };
+
+  const handleCertificateDownload = async () => {
+    try {
+      setToast({ visible: true, message: 'Preparing certificate...', type: 'info' });
+      // Attempt to download certificate from backend endpoint
+      const resp = await api.get(`/api/video/courses/${courseId}/certificate/download/`, { responseType: 'blob' });
+      const blob = new Blob([resp.data], { type: resp.headers['content-type'] || 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(courseData?.title || 'course')}-certificate.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setToast({ visible: true, message: 'Certificate download started', type: 'info' });
+      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3000);
+    } catch (err) {
+      console.error('Error downloading certificate:', err);
+      setToast({ visible: true, message: 'Failed to download certificate.', type: 'error' });
+      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3000);
+    }
+  };
 
   // Fetch course data from API
   useEffect(() => {
@@ -494,7 +561,8 @@ const CourseVideoPage = () => {
         const watchPercentage = err.response?.data?.watch_percentage || 0;
         const required = err.response?.data?.required_percentage || 90;
         console.log(`⚠️ Video must be ${required}% watched. Current: ${watchPercentage}%`);
-        alert(`Please watch at least ${required}% of the video before completing the lesson. Currently watched: ${watchPercentage}%`);
+        setToast({ visible: true, message: `Please watch at least ${required}% of the video before completing the lesson. Currently watched: ${watchPercentage}%` });
+        setTimeout(() => setToast({ visible: false, message: '' }), 3500);
       } else if (err.response?.status === 403) {
         alert('You do not have permission to mark this lesson complete.');
       } else if (err.response?.status === 404) {
@@ -630,7 +698,7 @@ const CourseVideoPage = () => {
     {
       id: 1,
       author: "Hamdan Husain",
-      role: "son_of_baheev",
+      role: "son_of_baheer",
       avatar: defaultProfileAvatar,
       comment: "Greyt lesson! The examples really helped me understand the concepts better.",
       likes: 12,
@@ -710,6 +778,21 @@ const CourseVideoPage = () => {
               <p className="component-count">{courseDuration}</p>
             </div>
           </div>
+          <div className="header-right">
+            <button
+              type="button"
+              className={`certificate-btn ${(courseData?.certificate_unlocked === true) ? 'unlocked' : 'locked'}`}
+              onClick={viewCertificate}
+              aria-label="View certificate"
+            >
+              {/* Lock / Download Icon */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M12 17a2 2 0 100-4 2 2 0 000 4z" fill="currentColor" />
+                <path d="M17 8h-1V7a4 4 0 10-8 0v1H7a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1zm-8-1a3 3 0 116 0v1H9V7z" fill="currentColor" />
+              </svg>
+              <span className="certificate-text">Certificate</span>
+            </button>
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -782,16 +865,22 @@ const CourseVideoPage = () => {
 
             {/* Course Lessons */}
             <div className={`lessons-sidebar ${lessonsVisible ? 'lessons-visible' : ''}`}>
-              <div className="lessons-header">
+              <div
+                className="lessons-header"
+                onClick={() => setLessonsVisible(!lessonsVisible)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setLessonsVisible(!lessonsVisible); }}
+              >
                 <div className="lessons-header-content">
                   <h2>Course Lessons</h2>
                   <p className="progress-text">{completedLessonsCount}/{totalLessons} completed</p>
                 </div>
-                <button 
-                  className="lessons-toggle-btn"
-                  onClick={() => setLessonsVisible(!lessonsVisible)}
-                  aria-label="Toggle lessons"
-                >
+                  <button 
+                    className="lessons-toggle-btn"
+                    aria-label="Toggle lessons"
+                    tabIndex={-1}
+                  >
                   <svg 
                     width="24" 
                     height="24" 
@@ -1220,7 +1309,25 @@ const CourseVideoPage = () => {
         </div>
       )}
 
+      {/* Certificate Modal */}
+      <CertificateModal
+        isOpen={showCertificateModal}
+        onClose={() => setShowCertificateModal(false)}
+        userName={certificateData?.userName}
+        courseTitle={certificateData?.courseTitle}
+        completionDate={certificateData?.completionDate}
+        certificateId={certificateData?.certificateId}
+        onDownload={handleCertificateDownload}
+      />
+
       <Footer />
+      {toast.visible && (
+        <div className={`toast ${toast.type || ''} ${toast.visible ? '' : 'hide'}`} role="status" aria-live="polite">
+          {toast.type === 'error' && <span className="toast-icon">✕</span>}
+          {toast.type !== 'error' && <span className="toast-icon">✓</span>}
+          <span className="toast-message">{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 };

@@ -241,7 +241,22 @@ const SettingsPage = () => {
         <h1 className="settings-title">Profile Settings</h1>
 
         {loading ? (
-          <p className="settings-status">Loading profile...</p>
+          <div className="settings-skeleton">
+            <div className="skeleton-photo-row">
+              <div className="skeleton-avatar skeleton-pulse" />
+              <div className="skeleton-change-photo skeleton-pulse" />
+            </div>
+            {['Full Name', 'Username', 'College / Organization', 'Bio'].map((_, i) => (
+              <div key={i} className="skeleton-field-group">
+                <div className="skeleton-label skeleton-pulse" />
+                <div className={`skeleton-input skeleton-pulse${i === 3 ? ' skeleton-textarea' : ''}`} />
+              </div>
+            ))}
+            <div className="skeleton-actions">
+              <div className="skeleton-action-btn skeleton-pulse" />
+              <div className="skeleton-action-btn skeleton-pulse" />
+            </div>
+          </div>
         ) : (
           <form className="settings-form" onSubmit={handleSubmit}>
             <div className="photo-row">

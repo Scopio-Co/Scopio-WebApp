@@ -13,6 +13,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
 
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [userData, setUserData] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(() => !!isAuthenticated);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,6 +41,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (isAuthenticated) {
+        setLoadingProfile(true);
         try {
           const response = await api.get('/api/auth/status/');
           setUserData(response.data.user);
@@ -47,9 +49,12 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
         } catch (error) {
           console.error('❌ Failed to fetch user data:', error);
           setUserData(null);
+        } finally {
+          setLoadingProfile(false);
         }
       } else {
         setUserData(null);
+        setLoadingProfile(false);
       }
     };
 
@@ -153,20 +158,30 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
         tabIndex={0}
         style={{ cursor: 'pointer' }}
       >
-        <div className="profile-info">
-          <div className="profile-avatar">
-            <img
-              src={userData?.profile_image_url || profileAvatar}
-              alt="Profile"
-              className="avatar-image"
-              key={userData?.profile_image_url || 'default-profile-avatar'}
-            />
+        {loadingProfile ? (
+          <div className="profile-info">
+            <div className="profile-skeleton-avatar navbar-skeleton-pulse" />
+            <div className="profile-skeleton-text">
+              <div className="profile-skeleton-name navbar-skeleton-pulse" />
+              <div className="profile-skeleton-sub navbar-skeleton-pulse" />
+            </div>
           </div>
-          <div className="profile-text">
-            <h3>{(userData?.first_name || userData?.username || 'Profile')}</h3>
-            <p>{userData?.username || 'Log in / Sign up'}</p>
+        ) : (
+          <div className="profile-info">
+            <div className="profile-avatar">
+              <img
+                src={userData?.profile_image_url || profileAvatar}
+                alt="Profile"
+                className="avatar-image"
+                key={userData?.profile_image_url || 'default-profile-avatar'}
+              />
+            </div>
+            <div className="profile-text">
+              <h3>{(userData?.first_name || userData?.username || 'Profile')}</h3>
+              <p>{userData?.username || 'Log in / Sign up'}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ✅ Dark Mode Toggle */}
         {/* <div className="toggle-switch">

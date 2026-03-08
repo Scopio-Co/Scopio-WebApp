@@ -24,7 +24,7 @@
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
-  gap: 30px;
+  gap: 16px;
   padding: 24px 60px;
   border: 1px solid var(--border-primary);
 background: var(--bg-tertiary);
@@ -35,10 +35,9 @@ background: var(--bg-tertiary);
 }
 
 .slider-item {
-  flex: 1 0 auto;
-  display: flex; 
-  max-width: 85%;
-  scroll-snap-align: center;
+  flex: 0 0 340px;
+  display: flex;
+  scroll-snap-align: start;
 }
 
 .nav-arrow {
@@ -74,41 +73,32 @@ background: var(--bg-tertiary);
 .nav-arrow.right {
   right: 20px;
 }
-@media (max-width:1024px){
-  .hero-content{
-    padding:15px;
-  }
-}
 @media (max-width: 900px) {
-  .hero-card{
-    height:auto;
-    display: block; 
+  .slider-item {
+    flex: 0 0 280px;
   }
-    .slider-item{
-        width:70%;
-    }
+
   .slider-content {
     padding: 20px;
-    gap: 20px;
   }
-  .hero-card{
-    height:auto;
-  }
+
   .nav-arrow {
     width: 40px;
     height: 40px;
     font-size: 20px;
   }
 
-  .nav-arrow.left {
-    left: 14px;
-  }
+  .nav-arrow.left  { left: 14px; }
+  .nav-arrow.right { right: 14px; }
 
-  .nav-arrow.right {
-    right: 14px;
-  }
   .slider-heading {
     font-size: 1.75rem;
-    margin-left: 5;
+    margin-left: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .slider-item {
+    flex: 0 0 240px;
   }
 }

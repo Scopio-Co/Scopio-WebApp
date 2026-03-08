@@ -342,6 +342,13 @@
   }
 }
 @media (max-width: 480px) {
+  .learning-page-header{
+    align-items: flex-start;
+    padding: 10px 20px;
+  }
+  .learning-stats{
+    gap:10px;
+  }
   .learning-page .reviews-section{
     background: transparent;
   }
