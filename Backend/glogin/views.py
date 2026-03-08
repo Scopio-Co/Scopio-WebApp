@@ -8,6 +8,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _auth_cookie_options():
+    use_https = getattr(settings, 'USE_HTTPS', False)
+    secure = (not settings.DEBUG) and use_https
+    samesite = 'None' if secure else 'Lax'
+    return {
+        'secure': secure,
+        'samesite': samesite,
+        'path': '/',
+        'domain': getattr(settings, 'SESSION_COOKIE_DOMAIN', None),
+    }
+
+
 def _resolve_frontend_url(request):
     session_frontend = (request.session.get('oauth_frontend_origin') or '').rstrip('/')
     allowed_origins = set(getattr(settings, 'FRONTEND_ALLOWED_ORIGINS', []))
@@ -48,25 +60,42 @@ def google_finalize(request):
         logger.info(f"Redirecting to: {redirect_url}")
         
         response = redirect(redirect_url)
-        use_https = getattr(settings, 'USE_HTTPS', False)
-        cookie_secure = (not settings.DEBUG) and use_https
-        cookie_samesite = 'None' if cookie_secure else 'Lax'
-        # Ensure cookies are set with correct settings
+        cookie_options = _auth_cookie_options()
+
+        # Keep OAuth and password login cookie names aligned.
         response.set_cookie(
-            'jwt_access',
+            'access',
             access,
             max_age=1800,  # 30 minutes
-            secure=cookie_secure,
-            httponly=False,
-            samesite=cookie_samesite
+            httponly=True,
+            **cookie_options,
         )
         response.set_cookie(
-            'jwt_refresh',
+            'refresh',
             refresh_str,
             max_age=86400,  # 1 day
-            secure=cookie_secure,
-            httponly=False,
-            samesite=cookie_samesite
+            httponly=True,
+            **cookie_options,
+        )
+
+        # Compatibility aliases for older clients.
+        response.set_cookie('accessToken', access, max_age=1800, httponly=True, **cookie_options)
+        response.set_cookie('refreshToken', refresh_str, max_age=86400, httponly=True, **cookie_options)
+
+        # Clear legacy non-HttpOnly OAuth cookie names if present.
+        response.delete_cookie(
+            'jwt_access',
+            path=cookie_options['path'],
+            domain=cookie_options['domain'],
+            samesite=cookie_options['samesite'],
+            secure=cookie_options['secure'],
+        )
+        response.delete_cookie(
+            'jwt_refresh',
+            path=cookie_options['path'],
+            domain=cookie_options['domain'],
+            samesite=cookie_options['samesite'],
+            secure=cookie_options['secure'],
         )
         return response
     except Exception as e:

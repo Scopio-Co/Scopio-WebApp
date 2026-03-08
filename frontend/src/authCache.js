@@ -5,7 +5,16 @@ const ACTIVE_USER_ID_KEY = 'activeUserId';
 // Never store profile/stats/leaderboard under generic keys like "profile" or "user".
 const USER_CACHE_PREFIXES = ['welcomeData', 'profile', 'stats', 'leaderboard', 'courseProgress'];
 const LEGACY_USER_KEYS = ['welcomeData', 'profile', 'leaderboard', 'userStats', 'stats', 'courseProgress'];
-const CLIENT_CLEARABLE_AUTH_COOKIES = ['access', 'refresh', 'csrftoken', 'sessionid'];
+const CLIENT_CLEARABLE_AUTH_COOKIES = [
+  'access',
+  'refresh',
+  'accessToken',
+  'refreshToken',
+  'jwt_access',
+  'jwt_refresh',
+  'csrftoken',
+  'sessionid',
+];
 
 function safeStorageRemove(storage, key) {
   try {

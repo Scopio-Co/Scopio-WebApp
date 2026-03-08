@@ -840,8 +840,11 @@ def user_stats(request):
         'total_xp': user_xp.total_xp,
         'is_first_visit': is_first_visit
     })
-    # Cache user stats for 5 minutes (frontend will refetch frequently anyway via manual navigation)
-    response['Cache-Control'] = 'private, max-age=300'
+    # User-scoped endpoint: never cache to avoid cross-account stale payload reuse.
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    response['Vary'] = 'Authorization, Cookie'
     return response
 
 
