@@ -72,10 +72,13 @@ const Login = ({ onLoginSuccess }) => {
         if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
       } catch (error) {
         console.error('❌ [Login] Login failed:', error);
-        // Display error message from backend
-        const errorMessage = error.response?.data?.detail || 
-                           error.response?.data?.error ||
-                           'Login failed. Please try again.';
+        // Display actionable message for network-level failures.
+        const isNetworkError = !error.response;
+        const errorMessage = isNetworkError
+          ? 'Unable to reach the authentication server. Please refresh and try again. If it keeps failing, use Google sign-in or confirm the backend API URL is HTTPS.'
+          : error.response?.data?.detail ||
+            error.response?.data?.error ||
+            'Login failed. Please try again.';
         
         setErrors({ 
           general: errorMessage

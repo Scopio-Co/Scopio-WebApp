@@ -13,6 +13,10 @@ function isLocalhostHost(hostname) {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
+function isVercelHost(hostname) {
+  return typeof hostname === 'string' && hostname.endsWith('.vercel.app');
+}
+
 function normalizeBackendUrl(url) {
   const normalized = stripTrailingSlash(url);
   if (!normalized) {
@@ -36,17 +40,61 @@ function normalizeBackendUrl(url) {
 }
 
 export function getBackendBaseUrl() {
+  const host = window?.location?.hostname || '';
+
+  // On Vercel, prefer same-origin API proxy rewrites to reduce CORS/cookie issues.
+  if (isVercelHost(host)) {
+    return '';
+  }
+
   const envUrl = normalizeBackendUrl(import.meta.env.VITE_API_URL || '');
   if (envUrl) {
     return envUrl;
   }
 
-  const host = window?.location?.hostname || '';
   if (isLocalhostHost(host)) {
     return `${window.location.protocol}//localhost:8000`;
   }
 
   return normalizeBackendUrl(PROD_BACKEND_URL);
+}
+
+function getBackendBaseUrlCandidates() {
+  const envUrl = normalizeBackendUrl(import.meta.env.VITE_API_URL || '');
+  const primary = getBackendBaseUrl();
+  const fallback = normalizeBackendUrl(PROD_BACKEND_URL);
+
+  const host = window?.location?.hostname || '';
+  const sameOrigin = isVercelHost(host) ? '' : null;
+
+  return Array.from(new Set([sameOrigin, primary, envUrl, fallback].filter((value) => value !== null && value !== undefined)));
+}
+
+function isNetworkLevelError(error) {
+  return !error?.response;
+}
+
+async function requestWithBackendFallback(config) {
+  const baseUrlCandidates = getBackendBaseUrlCandidates();
+  let lastError = null;
+
+  for (const candidate of baseUrlCandidates) {
+    try {
+      return await api.request({
+        ...config,
+        baseURL: candidate,
+      });
+    } catch (error) {
+      lastError = error;
+
+      // Only retry on network-level failures (DNS, TLS, mixed content, blocked request).
+      if (!isNetworkLevelError(error)) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 // Helper function to get CSRF token from cookies
@@ -199,7 +247,11 @@ export default api;
 // Fetch CSRF token from backend
 export async function fetchCsrfToken() {
   try {
-    await api.get('/api/auth/csrf/');
+    await requestWithBackendFallback({
+      method: 'GET',
+      url: '/api/auth/csrf/',
+      skipAuth: true,
+    });
   } catch (error) {
     console.error('Failed to fetch CSRF token:', error);
   }
@@ -215,9 +267,14 @@ export async function fetchVideos() {
 // Login API call
 export async function login(username, password) {
   console.log('🔐 [API] Calling login endpoint...');
-  const { data } = await api.post('/api/auth/login/', {
-    username,
-    password,
+  const { data } = await requestWithBackendFallback({
+    method: 'POST',
+    url: '/api/auth/login/',
+    data: {
+      username,
+      password,
+    },
+    skipAuth: true,
   });
   
   console.log('✓ [API] Login response received:', { 
