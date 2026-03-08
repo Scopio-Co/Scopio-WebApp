@@ -255,7 +255,10 @@
   color: var(--text-secondary);
   text-decoration: underline;
 }
-
+.smce-logo{
+  width: 70px !important;
+  height: 80px !important;
+}
 /* Responsive Design */
 @media (max-width: 1024px) {
   .footer-brand{
@@ -374,6 +377,9 @@
   .social-icons {
     flex-wrap: wrap;
   }
+  .footer-section-combined{
+    justify-content: space-evenly;
+  }
 }
 
 /* Animation keyframes for continuous logo loop */
@@ -385,4 +391,32 @@
 @-webkit-keyframes techLoop {
   0% { -webkit-transform: translateX(0); }
   100% { -webkit-transform: translateX(calc(-1 * (var(--seq-width, 50%) + 2rem))); }
+}
+
+/* Ensure the three main footer columns take equal space on wide screens */
+@media (min-width: 1025px) {
+  .footer-content {
+    display: flex;
+    gap: clamp(0.5rem, 1vw + 0.5rem, 3rem);
+  }
+
+  .footer-content > .footer-brand,
+  .footer-content > .footer-section-combined,
+  .footer-content > .footer-section {
+    flex: 1 1 0;
+    width: auto; /* override any fixed widths */
+    min-width: 0;
+  }
+
+  /* Keep the brand's right border but align spacing consistently */
+  .footer-brand {
+    border-right: 2px solid var(--border-primary);
+    padding-right: 1rem;
+  }
+
+  .footer-section-combined {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
 }

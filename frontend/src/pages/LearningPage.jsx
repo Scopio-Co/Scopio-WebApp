@@ -6,6 +6,7 @@ import Pagination from '../components/Pagination';
 import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
 import profilePic from '../assets/img/profilePic (2).png';
+import tutorAvatar from '../assets/img/scopio/tutor-dolmo.png';
 import api from '../api';
 import { LearningPageSkeleton } from '../components/skeletons';
 
@@ -229,10 +230,8 @@ const LearningPage = ({ onLogout, isLoading }) => {
                       <div className="course-author">
                         <div className="author-section">
                           <div className="author-avatar">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
-                              <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" strokeWidth="5"/>
-                            </svg>
-                          </div>
+                      <img src={tutorAvatar} alt={course.instructor_name} className="author-avatar-img" />
+                    </div>
                           <div className="author-info">
                             <span className="author-name">{course.instructor_name || 'Instructor'}</span>
                             <span className="author-title">{course.instructor_title || ''}</span>

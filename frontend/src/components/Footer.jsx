@@ -8,10 +8,11 @@ import xIcon from '../assets/img/x.svg';
 import mailIcon from '../assets/img/Mail.svg';
 import phoneIcon from '../assets/img/Phone.svg';
 import locationIcon from '../assets/img/Location.svg';
-import freecodec from '../assets/img/FreeCodeCamp_logo 1.png';
-import brototype from '../assets/img/brototype.png';
-import arduinoIcon from '../assets/img/arduino.svg';
-import linkedin1 from '../assets/img/Linkedin (1).svg';
+import smiifIcon from '../assets/img/smiif.png';
+import smceIcon from '../assets/img/smce.png';
+import agIcon from '../assets/img/ag.png';
+import startupIcon from '../assets/img/startuptn.png';
+import freecodecampIcon from '../assets/img/FreeCodeCamp_logo 1.png';
 
 const Footer = () => {
   const handleSocialLogin = (platform) => {
@@ -21,10 +22,11 @@ const Footer = () => {
   // Logos used in the powered-by track. We render two identical sequences
   // and measure the sequence width to animate by exactly one sequence width.
   const techLogos = [
-    { src: freecodec, alt: 'FreeCodeCamp' },
-    { src: brototype, alt: 'Brototype' },
-    { src: arduinoIcon, alt: 'Arduino' },
-    { src: linkedin1, alt: 'LinkedIn' },
+    { src: smiifIcon, alt: 'Smiif Icon'},
+    { src: smceIcon, alt: 'Smce Icon', className: 'smce-logo' },
+    { src: agIcon, alt: 'AgileTribe Icon' , className: 'smce-logo' },
+    { src: startupIcon, alt: 'StartupTN Icon' },
+    { src: freecodecampIcon, alt: 'Freecodecamp Icon' },
   ];
 
   const trackRef = useRef(null);
@@ -85,16 +87,23 @@ const Footer = () => {
                 <button
                 type="button"
                 className="social-button Instagram"
-                onClick={() => handleSocialLogin('Instagram')}
+                onClick={() => window.open('https://www.instagram.com/scopiotech?igsh=OHpzeDJ2enA0cTI2', '_blank', 'noopener,noreferrer')}
               >
                 <img src={instagramIcon} alt="Instagram" className='social-icon'/>
               </button>
               <button
                 type="button"
                 className="social-button linkedin"
-                onClick={() => handleSocialLogin('LinkedIn')}
+                onClick={() => window.open('https://www.linkedin.com/in/scopio-learn-2672b7374?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app', '_blank', 'noopener,noreferrer')}
               >
                 <img src={linkedinIcon} alt="LinkedIn" className='social-icon'/>
+              </button>
+              <button
+                type="button"
+                className="social-button whatsapp"
+                onClick={() => window.open('https://chat.whatsapp.com/CT8BRmbJq8fC2AFjWzT6k0', '_blank', 'noopener,noreferrer')}
+              >
+                <img src={whatsappIcon} alt="WhatsApp" className="social-icon" />
               </button>
               <button
                 type="button"
@@ -103,13 +112,7 @@ const Footer = () => {
               >
                 <img src={discordIcon} alt="Discord" className='social-icon'/>
               </button>
-              <button
-                type="button"
-                className="social-button whatsapp"
-                onClick={() => handleSocialLogin('WhatsApp')}
-              >
-                <img src={whatsappIcon} alt="WhatsApp" className="social-icon" />
-              </button>
+              
               <button
                 type="button"
                 className="social-button x"
@@ -152,21 +155,21 @@ const Footer = () => {
                 <div className="contact-icon email">
                   <img src={mailIcon} alt="Email" className='social-icon'/>
                 </div>
-                <span>scopio@gmail.com</span>
+                <span>scopioedutech@gmail.com</span>
               </div>
               
               <div className="contact-item">
                 <div className="contact-icon phone">
                   <img src={phoneIcon} alt="Phone" className='social-icon'/>
                 </div>
-                <span>+91 25525 26253</span>
+                <span>+91 94883 38010</span>
               </div>
               
               <div className="contact-item">
                 <div className="contact-icon location">
                   <img src={locationIcon} alt="Location" className='social-icon'/>
                 </div>
-                <span>24/103, Apprt street, Nagercoil</span>
+                <span>Stella Mary's Innovation and Incubation Foundation, Ganapathipuram, Nagercoil, Tamil Nadu 629202</span>
               </div>
             </div>
           </div>
@@ -181,7 +184,7 @@ const Footer = () => {
               <div className="tech-logos-sequence" ref={seqRef}>
                 {techLogos.map((logo, idx) => (
                   <div className="tech-logo" key={`tech-a-${idx}`}>
-                    <img src={logo.src} alt={logo.alt} />
+                    <img src={logo.src} alt={logo.alt} className={logo.className || ''} />
                   </div>
                 ))}
               </div>
@@ -189,7 +192,7 @@ const Footer = () => {
               <div className="tech-logos-sequence">
                 {techLogos.map((logo, idx) => (
                   <div className="tech-logo" key={`tech-b-${idx}`}>
-                    <img src={logo.src} alt={logo.alt} />
+                    <img src={logo.src} alt={logo.alt} className={logo.className || ''} />
                   </div>
                 ))}
               </div>
@@ -197,7 +200,7 @@ const Footer = () => {
               <div className="tech-logos-sequence">
                 {techLogos.map((logo, idx) => (
                   <div className="tech-logo" key={`tech-c-${idx}`}>
-                    <img src={logo.src} alt={logo.alt} />
+                    <img src={logo.src} alt={logo.alt} className={logo.className || ''} />
                   </div>
                 ))}
               </div>
@@ -211,7 +214,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div className="copyright">
-            <span>©{new Date().getFullYear()} SCOPIO. All rights reserved.</span>
+            <span>SCOPIO {new Date().getFullYear()} (Version 1.0)</span>
           </div>
           <div className="footer-legal">
             <a href="#privacy">Privacy Policy</a>

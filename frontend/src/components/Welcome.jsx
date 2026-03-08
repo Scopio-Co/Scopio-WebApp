@@ -8,11 +8,11 @@ import badge1 from '../assets/img/Award 4.png';
 import badge2 from '../assets/img/Award 5.png';
 import badge3 from '../assets/img/Award 6.png';
 import medal from '../assets/img/Medal Purple.png';
-import clockIcon from '../assets/img/timer.png';
-import targetIcon from '../assets/img/progress.png';
-import flameIcon from '../assets/img/fire.png';
-import achievementIcon from '../assets/img/achieved.png';
-import trophyIcon from '../assets/img/trophy-cham.png';
+import clockIcon from '../assets/img/scopio/learning-dolmo.png';
+import targetIcon from '../assets/img/scopio/c-d.png';
+import flameIcon from '../assets/img/scopio/s-d.png';
+import achievementIcon from '../assets/img/scopio/j-d.png';
+import trophyIcon from '../assets/img/scopio/champion-dolmo.webp';
 import api from '../api';
 
 const WelcomeDashboard = ({ welcomeData = null }) => {

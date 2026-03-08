@@ -8,7 +8,6 @@ import Signup from './components/Signup'
 import Login from './components/Login'
 import HeroCard from './components/HeroCard'
 import HeroSlider from './components/HeroSlider'
-import TopPicks from './components/TopPicks'
 import Footer from './components/Footer'
 import Welcome from './components/Welcome'
 import LearningPage from './pages/LearningPage'
@@ -521,7 +520,6 @@ function AppContent() {
     <>
       {isCheckingAuth ? null : (isAuthenticated ? <Welcome welcomeData={welcomeData} /> : <Signup onSwitchToWelcome={handleLoginSuccess} />)}
       <HeroSlider />
-      <TopPicks />
       <Footer />
     </>
   );
@@ -562,7 +560,6 @@ function AppContent() {
                 <>
                   <Welcome welcomeData={welcomeData} />
                   <HeroSlider />
-                  <TopPicks />
                   <Footer />
                 </>
               </ProtectedRoute>

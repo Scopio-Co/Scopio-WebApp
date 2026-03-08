@@ -13,9 +13,6 @@ const ExplorePage = () => {
   const scrollRef1 = useRef(null);
   const scrollRef2 = useRef(null);
   const scrollRef3 = useRef(null);
-  const scrollRef4 = useRef(null);
-  const scrollRef5 = useRef(null);
-  const scrollRef6 = useRef(null);
 
   // State for courses from API
   const [courses, setCourses] = useState([]);
@@ -274,7 +271,7 @@ const ExplorePage = () => {
 
               {/* Section 2 */}
               <div className="explore-section">
-                <h2 className="section-title">Latest</h2>
+                <h2 className="section-title">Scopio Originals</h2>
                 <div className="section-container">
                   <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef2, 'left')}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -300,7 +297,7 @@ const ExplorePage = () => {
 
               {/* Section 3 */}
               <div className="explore-section">
-                <h2 className="section-title">Latest</h2>
+                <h2 className="section-title">Freecodecamp</h2>
                 <div className="section-container">
                   <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef3, 'left')}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -324,83 +321,6 @@ const ExplorePage = () => {
                 </div>
               </div>
 
-              {/* Section 4 */}
-              <div className="explore-section">
-                <h2 className="section-title">Latest</h2>
-                <div className="section-container">
-                  <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef4, 'left')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <div className="courses-scroll-container" ref={scrollRef4}>
-                    <div className="courses-row">
-                      {courses.map((course, index) => (
-                        <div className="course-card-cont" key={`section4-${index}`}>
-                          <CourseCard {...course} onCourseClick={onCourseClick} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef4, 'right')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Section 5 */}
-              <div className="explore-section">
-                <h2 className="section-title">Latest</h2>
-                <div className="section-container">
-                  <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef5, 'left')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <div className="courses-scroll-container" ref={scrollRef5}>
-                    <div className="courses-row">
-                      {courses.map((course, index) => (
-                        <div className="course-card-cont" key={`section5-${index}`}>
-                          <CourseCard {...course} onCourseClick={onCourseClick} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef5, 'right')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Section 6 */}
-              <div className="explore-section">
-                <h2 className="section-title">Latest</h2>
-                <div className="section-container">
-                  <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef6, 'left')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <div className="courses-scroll-container" ref={scrollRef6}>
-                    <div className="courses-row">
-                      {courses.map((course, index) => (
-                        <div className="course-card-cont" key={`section6-${index}`}>
-                          <CourseCard {...course} onCourseClick={onCourseClick} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef6, 'right')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
             </>
           )}
         </div>

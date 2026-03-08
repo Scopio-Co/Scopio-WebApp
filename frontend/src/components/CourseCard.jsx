@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './CourseCard.css';
 import RatingComponent from './RatingComponent';
 import defaultCourseImage from '../assets/img/course_card.webp';
+import tutorAvatar from '../assets/img/scopio/tutor-dolmo.png';
 
 const CourseCard = ({ 
   id,
@@ -104,9 +105,7 @@ const CourseCard = ({
           <div className="card-author-section">
             <div className="author-section">
                     <div className="author-avatar">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34" fill="none">
-  <circle cx="17" cy="17" r="14.5" fill="white" stroke="#8A8A8A" strokeWidth="5"/>
-</svg>
+                      <img src={tutorAvatar} alt={authorName} className="author-avatar-img" />
                     </div>
                     <div className="author-info">
                       <span className="author-name">{authorName}</span>

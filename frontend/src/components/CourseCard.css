@@ -4,6 +4,7 @@
   width: 300px;
   max-width: 100%;
   overflow: visible;
+  height: 100%;
 }
 
 .course-card-component.expanded {
@@ -19,7 +20,7 @@
   width: 100%;
   transition: all 0.3s ease;
   position: relative;
-  height: auto;
+  height: 100%;
   min-height: 280px;
   border-radius: 20px;
   border: 1px solid var(--border-primary);
@@ -51,6 +52,7 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 0;
   border-top: 1px solid var(--border-primary);
   background: linear-gradient(135deg, rgba(197, 180, 255, 0.4) 0%, rgba(158, 205, 255, 0.3) 50%, rgba(167, 139, 250, 0.2) 100%);
@@ -64,6 +66,7 @@
   color: var(--text-tertiary);
   margin: 0 0 16px 0;
   line-height: 1.4;
+  flex: 1;
 }
 
 
@@ -73,6 +76,14 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+}
+
+.author-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 
