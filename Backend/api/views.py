@@ -14,12 +14,22 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth import logout as django_logout
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 import logging
 from .models import UserProfile
 
 logger = logging.getLogger(__name__)
 
 AUTH_COOKIE_NAMES = ("access", "refresh", "accessToken", "refreshToken", "jwt_access", "jwt_refresh")
+
+
+def _set_no_cache_headers(response):
+    """Prevent browser/proxy reuse of user-scoped auth responses across accounts."""
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    response["Vary"] = "Authorization, Cookie"
+    return response
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -227,6 +237,22 @@ class CookieTokenRefreshView(TokenRefreshView):
 @permission_classes([AllowAny])
 def cookie_logout(request):
     """Logout: clears auth cookies."""
+    refresh_token = (
+        request.data.get("refresh")
+        or request.COOKIES.get("refresh")
+        or request.COOKIES.get("refreshToken")
+        or request.COOKIES.get("jwt_refresh")
+    )
+
+    # Revoke refresh token when available to prevent replay after account switches.
+    if refresh_token:
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except (TokenError, AttributeError, Exception):
+            # Continue logout even if token is already invalid/expired.
+            pass
+
     # Clear Django session so SessionAuthentication cannot keep prior user authenticated.
     django_logout(request)
     response = JsonResponse({"detail": "logout successful"})
@@ -320,9 +346,7 @@ def auth_status(request):
             "date_joined": request.user.date_joined,
         }
     }, status=status.HTTP_200_OK)
-    # Cache status for 1 minute (used for token validation, but should be fresh)
-    response['Cache-Control'] = 'private, max-age=60'
-    return response
+    return _set_no_cache_headers(response)
 
 
 @api_view(["GET", "PATCH", "PUT"])
@@ -365,9 +389,7 @@ def auth_profile(request):
             }
 
         response = Response(data, status=status.HTTP_200_OK)
-        # Cache profile data for 5 minutes (can be invalidated on user action)
-        response['Cache-Control'] = 'private, max-age=300'
-        return response
+        return _set_no_cache_headers(response)
 
     serializer = ProfileSettingsSerializer(
         data=request.data,
