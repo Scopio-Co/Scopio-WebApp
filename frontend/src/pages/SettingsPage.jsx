@@ -2,6 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import api from '../api';
 import './SettingsPage.css';
 import defaultProfileAvatar from '../assets/img/profilePic (2).png';
+import {
+  getActiveUserId,
+  getCachedProfile,
+  getUserIdFromAccessToken,
+  clearUserScopedCache,
+  setCachedProfile,
+  setActiveUserId,
+} from '../authCache';
 
 const defaultForm = {
   fullName: '',
@@ -29,9 +37,50 @@ const SettingsPage = () => {
 
   useEffect(() => {
     const loadUserProfile = async () => {
+      const tokenUserId = getUserIdFromAccessToken();
+      const storedUserId = getActiveUserId();
+
+      // If user identity changed, drop stale auth/cache immediately.
+      if (storedUserId && tokenUserId && storedUserId !== tokenUserId) {
+        clearUserScopedCache(storedUserId);
+        setActiveUserId(tokenUserId);
+      }
+
+      const resolvedUserId = tokenUserId || storedUserId;
+
+      // User-scoped cache read: safe because key is tied to userId.
+      if (resolvedUserId) {
+        const cachedProfile = getCachedProfile(resolvedUserId);
+        if (cachedProfile) {
+          const cachedForm = {
+            fullName: cachedProfile.full_name || '',
+            username: cachedProfile.username || '',
+            college: cachedProfile.college || '',
+            bio: cachedProfile.bio || '',
+            photoFile: null,
+            photoPreview: cachedProfile.profile_image_url || defaultProfileAvatar
+          };
+          setFormData(cachedForm);
+          setInitialFormData(cachedForm);
+          setOriginalData({
+            fullName: cachedForm.fullName,
+            username: cachedForm.username,
+            college: cachedForm.college,
+            bio: cachedForm.bio,
+          });
+          setLoading(false);
+        }
+      }
+
       try {
         const response = await api.get('/api/auth/profile/');
         const user = response?.data || {};
+
+        if (resolvedUserId) {
+          setActiveUserId(resolvedUserId);
+          setCachedProfile(resolvedUserId, user);
+        }
+
         const loadedForm = {
           fullName: user.full_name || '',
           username: user.username || '',
@@ -128,6 +177,12 @@ const SettingsPage = () => {
       }
 
       const saved = response?.data || {};
+      const resolvedUserId = getUserIdFromAccessToken() || getActiveUserId();
+      if (resolvedUserId) {
+        setActiveUserId(resolvedUserId);
+        setCachedProfile(resolvedUserId, saved);
+      }
+
       const rawImageUrl = saved.profile_image_url || '';
       const imageUrl = rawImageUrl
         ? (rawImageUrl.startsWith('data:')

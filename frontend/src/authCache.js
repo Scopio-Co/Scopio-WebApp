@@ -1,8 +1,10 @@
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 
 const ACTIVE_USER_ID_KEY = 'activeUserId';
-const USER_CACHE_PREFIXES = ['welcomeData', 'profile', 'leaderboard', 'userStats', 'courseProgress'];
-const LEGACY_USER_KEYS = ['welcomeData', 'profile', 'leaderboard', 'userStats', 'courseProgress'];
+// User-scoped cache keys are mandatory to prevent cross-account data leakage.
+// Never store profile/stats/leaderboard under generic keys like "profile" or "user".
+const USER_CACHE_PREFIXES = ['welcomeData', 'profile', 'stats', 'leaderboard', 'courseProgress'];
+const LEGACY_USER_KEYS = ['welcomeData', 'profile', 'leaderboard', 'userStats', 'stats', 'courseProgress'];
 const CLIENT_CLEARABLE_AUTH_COOKIES = ['access', 'refresh', 'csrftoken', 'sessionid'];
 
 function safeStorageRemove(storage, key) {
@@ -161,13 +163,41 @@ export function clearAuthTokens() {
   safeStorageRemove(localStorage, REFRESH_TOKEN);
 }
 
-export function clearAllAuthAndUserCache() {
+export function clearAuthCache() {
   clearAuthTokens();
   clearLegacyUserCacheKeys();
   clearUserScopedCache();
   setActiveUserId(null);
   clearSessionStorage();
   clearClientAccessibleAuthCookies();
+}
+
+export function clearAllAuthAndUserCache() {
+  clearAuthCache();
+}
+
+export function getCachedProfile(userId) {
+  return getUserScopedJson('profile', userId);
+}
+
+export function setCachedProfile(userId, data) {
+  setUserScopedJson('profile', userId, data);
+}
+
+export function getCachedStats(userId) {
+  return getUserScopedJson('stats', userId);
+}
+
+export function setCachedStats(userId, data) {
+  setUserScopedJson('stats', userId, data);
+}
+
+export function getCachedLeaderboard(userId) {
+  return getUserScopedJson('leaderboard', userId);
+}
+
+export function setCachedLeaderboard(userId, data) {
+  setUserScopedJson('leaderboard', userId, data);
 }
 
 export function handleUserSwitch(newUserId) {

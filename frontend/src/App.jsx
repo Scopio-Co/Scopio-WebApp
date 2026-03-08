@@ -22,11 +22,17 @@ import ProtectedRoute from './components/ProtectedRoute';
 import api from './api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import {
-  clearAllAuthAndUserCache,
+  clearAuthCache,
+  getCachedLeaderboard,
+  getCachedProfile,
+  getCachedStats,
   getActiveUserId,
   getUserIdFromAccessToken,
   getUserScopedJson,
   handleUserSwitch,
+  setCachedLeaderboard,
+  setCachedProfile,
+  setCachedStats,
   setUserScopedJson,
 } from './authCache';
 
@@ -102,24 +108,7 @@ function AppContent() {
   });
 
   // Initialize welcome state from user-scoped cache only.
-  const [welcomeData, setWelcomeData] = useState(() => {
-    const initialUserId = getActiveUserId() || getUserIdFromAccessToken();
-    if (!initialUserId) {
-      return { ...DEFAULT_WELCOME_DATA };
-    }
-
-    const cached = getUserScopedJson('welcomeData', initialUserId);
-    if (cached) {
-      console.log('📱 [App] Loaded user-scoped welcome data from localStorage');
-      return {
-        ...DEFAULT_WELCOME_DATA,
-        ...cached,
-        isLoading: false,
-      };
-    }
-
-    return { ...DEFAULT_WELCOME_DATA };
-  });
+  const [welcomeData, setWelcomeData] = useState(() => ({ ...DEFAULT_WELCOME_DATA }));
   
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -159,7 +148,7 @@ function AppContent() {
       }
     }
 
-    clearAllAuthAndUserCache();
+    clearAuthCache();
     setIsAuthenticated(false);
     setActiveUserId(null);
     resetWelcomeState(false);
@@ -251,6 +240,11 @@ function AppContent() {
 
   // Fetch and cache welcome data once when authenticated
   useEffect(() => {
+    if (isCheckingAuth) {
+      resetWelcomeState(true);
+      return;
+    }
+
     if (!isAuthenticated) {
       // Clear welcome data on logout
       resetWelcomeState(false);
@@ -262,8 +256,11 @@ function AppContent() {
       return;
     }
 
+    const cachedProfile = getCachedProfile(activeUserId);
+    const cachedStats = getCachedStats(activeUserId);
+    const cachedLeaderboard = getCachedLeaderboard(activeUserId);
     const cachedWelcomeData = getUserScopedJson('welcomeData', activeUserId);
-    if (cachedWelcomeData) {
+    if (cachedProfile && cachedStats && cachedLeaderboard && cachedWelcomeData) {
       setWelcomeData({
         ...DEFAULT_WELCOME_DATA,
         ...cachedWelcomeData,
@@ -325,9 +322,9 @@ function AppContent() {
         setWelcomeData(newWelcomeData);
 
         // Save user-scoped caches so data can never leak across accounts.
-        setUserScopedJson('userStats', activeUserId, statsData);
-        setUserScopedJson('profile', activeUserId, profileData);
-        setUserScopedJson('leaderboard', activeUserId, leaderboardData);
+        setCachedStats(activeUserId, statsData);
+        setCachedProfile(activeUserId, profileData);
+        setCachedLeaderboard(activeUserId, leaderboardData);
         setUserScopedJson('welcomeData', activeUserId, newWelcomeData);
         setUserScopedJson('courseProgress', activeUserId, {
           progress: statsData.progress || 0,
@@ -350,7 +347,7 @@ function AppContent() {
     };
 
     fetchWelcomeData();
-  }, [isAuthenticated, activeUserId, resetWelcomeState]);
+  }, [isAuthenticated, activeUserId, isCheckingAuth, resetWelcomeState]);
 
   // Handle OAuth callbacks
   useEffect(() => {
@@ -363,7 +360,7 @@ function AppContent() {
     
     // Handle OAuth success - tokens in query params
     if (accessToken && refreshToken) {
-      clearAllAuthAndUserCache();
+      clearAuthCache();
 
       // Store tokens in localStorage only (more reliable)
       localStorage.setItem(ACCESS_TOKEN, accessToken);
@@ -405,7 +402,7 @@ function AppContent() {
       const hashRefreshToken = hashParams.get('refresh');
       
       if (hashAccessToken && hashRefreshToken) {
-        clearAllAuthAndUserCache();
+        clearAuthCache();
 
         // Store tokens in localStorage
         localStorage.setItem(ACCESS_TOKEN, hashAccessToken);
@@ -452,6 +449,14 @@ function AppContent() {
     setAuthError(null);
 
     const tokenUserId = getUserIdFromAccessToken();
+    const previousUserId = getActiveUserId();
+    if (previousUserId && tokenUserId && previousUserId !== tokenUserId) {
+      // Immediate full auth cache reset on account switch prevents stale UI from flashing.
+      clearAuthCache();
+      localStorage.setItem(ACCESS_TOKEN, access);
+      localStorage.setItem(REFRESH_TOKEN, refresh);
+    }
+
     applyResolvedUserId(tokenUserId);
     resetWelcomeState(true);
     
@@ -490,7 +495,7 @@ function AppContent() {
   // Home page with signup/login or welcome based on auth
   const HomePage = () => (
     <>
-      {isAuthenticated ? <Welcome welcomeData={welcomeData} /> : <Signup onSwitchToWelcome={handleLoginSuccess} />}
+      {isCheckingAuth ? null : (isAuthenticated ? <Welcome welcomeData={welcomeData} /> : <Signup onSwitchToWelcome={handleLoginSuccess} />)}
       <HeroSlider />
       <TopPicks />
       <Footer />
