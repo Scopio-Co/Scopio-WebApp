@@ -13,10 +13,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth import logout as django_logout
 import logging
 from .models import UserProfile
 
 logger = logging.getLogger(__name__)
+
+AUTH_COOKIE_NAMES = ("access", "refresh", "accessToken", "refreshToken", "jwt_access", "jwt_refresh")
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -90,30 +93,41 @@ def api_root(request):
 
 
 # ---- Cookie-based JWT auth helpers ----
-def _set_auth_cookies(response, access_token: str | None, refresh_token: str | None):
+def _auth_cookie_options():
     use_https = getattr(settings, 'USE_HTTPS', False)
     secure = (not settings.DEBUG) and use_https
     # SameSite=None requires Secure; for HTTP deployments use Lax.
     samesite = "None" if secure else "Lax"
+    return {
+        "secure": secure,
+        "samesite": samesite,
+        "path": "/",
+        "domain": getattr(settings, 'SESSION_COOKIE_DOMAIN', None),
+    }
+
+
+def _set_auth_cookies(response, access_token: str | None, refresh_token: str | None):
+    cookie_options = _auth_cookie_options()
     
     if access_token:
-        response.set_cookie(
-            "access",
-            access_token,
-            httponly=True,
-            secure=secure,
-            samesite=samesite,
-            max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
-        )
+        # Set both canonical and legacy aliases to support existing clients.
+        for cookie_name in ("access", "accessToken"):
+            response.set_cookie(
+                cookie_name,
+                access_token,
+                httponly=True,
+                max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
+                **cookie_options,
+            )
     if refresh_token:
-        response.set_cookie(
-            "refresh",
-            refresh_token,
-            httponly=True,
-            secure=secure,
-            samesite=samesite,
-            max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
-        )
+        for cookie_name in ("refresh", "refreshToken"):
+            response.set_cookie(
+                cookie_name,
+                refresh_token,
+                httponly=True,
+                max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
+                **cookie_options,
+            )
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
@@ -188,7 +202,11 @@ class CookieTokenRefreshView(TokenRefreshView):
 
     def post(self, request, *args, **kwargs):
         # If refresh token is in cookie, copy it into request data for serializer
-        cookie_refresh = request.COOKIES.get("refresh")
+        cookie_refresh = (
+            request.COOKIES.get("refresh")
+            or request.COOKIES.get("refreshToken")
+            or request.COOKIES.get("jwt_refresh")
+        )
         if cookie_refresh and not request.data.get("refresh"):
             request._full_data = request.data.copy()
             request._full_data["refresh"] = cookie_refresh
@@ -209,9 +227,36 @@ class CookieTokenRefreshView(TokenRefreshView):
 @permission_classes([AllowAny])
 def cookie_logout(request):
     """Logout: clears auth cookies."""
+    # Clear Django session so SessionAuthentication cannot keep prior user authenticated.
+    django_logout(request)
     response = JsonResponse({"detail": "logout successful"})
-    response.delete_cookie("access")
-    response.delete_cookie("refresh")
+    cookie_options = _auth_cookie_options()
+
+    # Clear all known auth cookie aliases to prevent stale credentials across account switches.
+    for cookie_name in AUTH_COOKIE_NAMES:
+        response.delete_cookie(
+            cookie_name,
+            path=cookie_options["path"],
+            domain=cookie_options["domain"],
+            samesite=cookie_options["samesite"],
+            secure=cookie_options["secure"],
+        )
+
+    # Explicitly clear Django auth/session cookies as defense-in-depth.
+    response.delete_cookie(
+        settings.SESSION_COOKIE_NAME,
+        path='/',
+        domain=getattr(settings, 'SESSION_COOKIE_DOMAIN', None),
+        samesite=settings.SESSION_COOKIE_SAMESITE,
+        secure=settings.SESSION_COOKIE_SECURE,
+    )
+    response.delete_cookie(
+        settings.CSRF_COOKIE_NAME,
+        path='/',
+        domain=getattr(settings, 'CSRF_COOKIE_DOMAIN', None),
+        samesite=settings.CSRF_COOKIE_SAMESITE,
+        secure=settings.CSRF_COOKIE_SECURE,
+    )
     return response
 
 
