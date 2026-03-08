@@ -31,3 +31,5 @@ Backend/db.sqlite3
 
 .env
 .env.production
+
+docs/
