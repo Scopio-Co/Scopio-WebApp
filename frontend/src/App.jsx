@@ -22,6 +22,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import api from './api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import {
+  clearAllCachedUserData,
   clearAuthCache,
   getCachedLeaderboard,
   getCachedProfile,
@@ -118,6 +119,15 @@ function isUserAuthenticated() {
   }
 }
 
+function extractProfileUserId(profileData) {
+  const candidate = profileData?.id ?? profileData?.user_id ?? profileData?.user?.id ?? null;
+  if (candidate === null || candidate === undefined) {
+    return null;
+  }
+  const normalized = String(candidate).trim();
+  return normalized || null;
+}
+
 // AppContent component handles authentication and routing
 function AppContent() {
   // Initialize auth state synchronously from localStorage to prevent logout on hard refresh
@@ -159,6 +169,27 @@ function AppContent() {
     return activeId;
   }, []);
 
+  const verifyAuthenticatedUserIdentity = useCallback(async () => {
+    const profileResponse = await api.get('/api/auth/profile/');
+    const profileData = profileResponse?.data || {};
+    const backendUserId = extractProfileUserId(profileData);
+    const tokenUserId = getUserIdFromAccessToken();
+    const previousUserId = getActiveUserId();
+    const resolvedUserId = backendUserId || tokenUserId;
+
+    if (!resolvedUserId) {
+      throw new Error('Unable to determine authenticated user identity');
+    }
+
+    if (previousUserId && previousUserId !== resolvedUserId) {
+      // Clear all cached user payloads on account switch to prevent stale profile leakage.
+      clearAllCachedUserData();
+    }
+
+    applyResolvedUserId(resolvedUserId);
+    return { resolvedUserId, profileData };
+  }, [applyResolvedUserId]);
+
   const performClientLogout = useCallback(async ({
     redirect = true,
     authMessage = null,
@@ -182,7 +213,7 @@ function AppContent() {
     }
 
     if (redirect) {
-      navigate('/', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [navigate, resetWelcomeState]);
 
@@ -194,16 +225,8 @@ function AppContent() {
       
       if (isAuthenticated) {
         try {
-          // Try a simple authenticated request to validate tokens
-          const response = await api.get('/api/auth/status/', { 
-            skipAuth: false,
-            _retry: false // Prevent automatic retry on first check
-          });
-          console.log('✓ [App] Tokens validated with backend:', response.data);
-
-          const backendUserId = response?.data?.user?.id;
-          const tokenUserId = getUserIdFromAccessToken();
-          applyResolvedUserId(backendUserId || tokenUserId);
+          await verifyAuthenticatedUserIdentity();
+          console.log('✓ [App] Tokens validated with backend profile endpoint');
           setIsCheckingAuth(false);
         } catch (error) {
           console.error('❌ [App] Token validation failed:', error.response?.status, error.message);
@@ -225,7 +248,7 @@ function AppContent() {
     };
 
     validateTokens();
-  }, [isAuthenticated, applyResolvedUserId, performClientLogout]);
+  }, [isAuthenticated, performClientLogout, verifyAuthenticatedUserIdentity]);
 
   // Set up global 401 error handler for when tokens become invalid during session
   useEffect(() => {
@@ -390,18 +413,11 @@ function AppContent() {
       localStorage.setItem(ACCESS_TOKEN, accessToken);
       localStorage.setItem(REFRESH_TOKEN, refreshToken);
 
-      const oauthUserId = getUserIdFromAccessToken();
-      applyResolvedUserId(oauthUserId);
-      resetWelcomeState(true);
-      
       console.log('✓ OAuth tokens stored successfully in localStorage');
-      
-      // Update authentication state
-      setIsAuthenticated(true);
-      
-      // Navigate to home page and clean URL
+
+      // Clean the URL before the verified login flow runs.
       window.history.replaceState({}, document.title, '/home');
-      navigate('/home', { replace: true });
+      void handleLoginSuccess();
       return;
     }
     
@@ -432,24 +448,17 @@ function AppContent() {
         localStorage.setItem(ACCESS_TOKEN, hashAccessToken);
         localStorage.setItem(REFRESH_TOKEN, hashRefreshToken);
 
-        const oauthUserId = getUserIdFromAccessToken();
-        applyResolvedUserId(oauthUserId);
-        resetWelcomeState(true);
-        
-        // Update authentication state
-        setIsAuthenticated(true);
-        
         console.log('✓ OAuth tokens stored successfully (from hash in localStorage)');
-        
-        // Navigate to home page and clean URL
+
+        // Clean the URL before the verified login flow runs.
         window.history.replaceState({}, document.title, '/home');
-        navigate('/home', { replace: true });
+        void handleLoginSuccess();
       }
     }
-  }, [navigate, applyResolvedUserId, resetWelcomeState]);
+  }, [navigate]);
 
   // Callback for successful login/signup
-  const handleLoginSuccess = () => {
+  async function handleLoginSuccess() {
     console.log('✓ [App] handleLoginSuccess callback triggered');
     
     // Double-check tokens are in localStorage
@@ -472,26 +481,29 @@ function AppContent() {
     // Clear any previous auth errors
     setAuthError(null);
 
-    const tokenUserId = getUserIdFromAccessToken();
-    const previousUserId = getActiveUserId();
-    if (previousUserId && tokenUserId && previousUserId !== tokenUserId) {
-      // Immediate full auth cache reset on account switch prevents stale UI from flashing.
-      clearAuthCache();
-      localStorage.setItem(ACCESS_TOKEN, access);
-      localStorage.setItem(REFRESH_TOKEN, refresh);
-    }
+    setIsCheckingAuth(true);
 
-    applyResolvedUserId(tokenUserId);
-    resetWelcomeState(true);
-    
-    // Set authenticated state
-    console.log('✓ [App] Setting isAuthenticated to true');
-    setIsAuthenticated(true);
-    
-    // Navigate to home
-    console.log('✓ [App] Navigating to /home');
-    navigate('/home');
-  };
+    try {
+      await verifyAuthenticatedUserIdentity();
+      resetWelcomeState(true);
+
+      // Set authenticated state only after backend identity verification.
+      console.log('✓ [App] Setting isAuthenticated to true');
+      setIsAuthenticated(true);
+
+      // Navigate to home
+      console.log('✓ [App] Navigating to /home');
+      navigate('/home');
+    } catch (error) {
+      console.error('❌ [App] Post-login identity verification failed:', error);
+      await performClientLogout({
+        authMessage: 'Login verification failed. Please sign in again.',
+        invalidateServerCookies: true,
+      });
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  }
 
   const handleLogout = async () => {
     console.log('🚪 [App] Logging out user...');
@@ -519,7 +531,7 @@ function AppContent() {
   // Home page with signup/login or welcome based on auth
   const HomePage = () => (
     <>
-      {isCheckingAuth ? null : (isAuthenticated ? <Welcome welcomeData={welcomeData} /> : <Signup onSwitchToWelcome={handleLoginSuccess} />)}
+      {isCheckingAuth ? null : (isAuthenticated ? <Welcome welcomeData={welcomeData} /> : <Signup onSwitchToWelcome={() => { void handleLoginSuccess(); }} />)}
       <HeroSlider />
       <TopPicks />
       <Footer />
@@ -553,6 +565,7 @@ function AppContent() {
         <Routes>
           {/* Public route - Login/Signup or Welcome */}
           <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<Signup onSwitchToWelcome={() => { void handleLoginSuccess(); }} />} />
           
           {/* Protected routes */}
           <Route 

@@ -40,8 +40,12 @@ const ProtectedRoute = ({ children, isAuthenticated, isCheckingAuth }) => {
 
   const handleLogin = () => {
     setShowModal(false);
-    navigate('/', { replace: true });
+    navigate('/login', { replace: true });
   };
+
+  if (isCheckingAuth) {
+    return null;
+  }
 
   // If authenticated, render children
   if (isAuthenticated) {

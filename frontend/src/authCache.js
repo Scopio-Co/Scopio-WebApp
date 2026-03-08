@@ -6,6 +6,15 @@ const ACTIVE_USER_ID_KEY = 'activeUserId';
 const USER_CACHE_PREFIXES = ['welcomeData', 'profile', 'stats', 'leaderboard', 'courseProgress'];
 const LEGACY_USER_KEYS = ['welcomeData', 'profile', 'leaderboard', 'userStats', 'stats', 'courseProgress'];
 const CLIENT_CLEARABLE_AUTH_COOKIES = ['access', 'refresh', 'csrftoken', 'sessionid'];
+const CACHE_SCHEMA_VERSION = 1;
+
+// Cache TTLs are intentionally short to keep data fresh while still avoiding
+// duplicate requests during navigation, refreshes, and same-tab transitions.
+const CACHE_TTL_MS = {
+  profile: 5 * 60 * 1000,
+  stats: 2 * 60 * 1000,
+  leaderboard: 1 * 60 * 1000,
+};
 
 function safeStorageRemove(storage, key) {
   try {
@@ -43,6 +52,39 @@ function safeJsonParse(raw) {
   }
 }
 
+function getNowMs() {
+  return Date.now();
+}
+
+function normalizeUserId(userId) {
+  const normalized = String(userId || '').trim();
+  return normalized || null;
+}
+
+function buildCacheEnvelope({ userId, value, ttlMs }) {
+  const cachedAt = getNowMs();
+  const expiresAt = Number(ttlMs) > 0 ? cachedAt + Number(ttlMs) : null;
+  return {
+    v: CACHE_SCHEMA_VERSION,
+    userId,
+    cachedAt,
+    expiresAt,
+    value,
+  };
+}
+
+function isCacheEnvelopeExpired(envelope) {
+  if (!envelope || typeof envelope !== 'object') {
+    return true;
+  }
+
+  if (envelope.expiresAt === null || envelope.expiresAt === undefined) {
+    return false;
+  }
+
+  return Number(envelope.expiresAt) <= getNowMs();
+}
+
 function decodeJwtPayload(token) {
   if (!token || typeof token !== 'string') {
     return null;
@@ -65,7 +107,7 @@ function decodeJwtPayload(token) {
 }
 
 export function buildUserScopedKey(baseKey, userId) {
-  const normalizedUserId = String(userId || '').trim();
+  const normalizedUserId = normalizeUserId(userId);
   if (!normalizedUserId) {
     return baseKey;
   }
@@ -92,7 +134,7 @@ export function getActiveUserId() {
 }
 
 export function setActiveUserId(userId) {
-  const normalizedUserId = String(userId || '').trim();
+  const normalizedUserId = normalizeUserId(userId);
   if (!normalizedUserId) {
     safeStorageRemove(localStorage, ACTIVE_USER_ID_KEY);
     return null;
@@ -109,7 +151,7 @@ export function clearLegacyUserCacheKeys() {
 export function clearUserScopedCache(userId = null) {
   const storageLength = localStorage.length;
   const keysToDelete = [];
-  const normalizedUserId = userId ? String(userId).trim() : '';
+  const normalizedUserId = normalizeUserId(userId) || '';
 
   for (let i = 0; i < storageLength; i += 1) {
     const key = localStorage.key(i);
@@ -138,6 +180,54 @@ export function getUserScopedJson(baseKey, userId) {
 export function setUserScopedJson(baseKey, userId, data) {
   const key = buildUserScopedKey(baseKey, userId);
   safeStorageSet(localStorage, key, JSON.stringify(data));
+}
+
+function getUserScopedCacheValue(baseKey, userId) {
+  const normalizedUserId = normalizeUserId(userId);
+  if (!normalizedUserId) {
+    return null;
+  }
+
+  const key = buildUserScopedKey(baseKey, normalizedUserId);
+  const parsed = safeJsonParse(safeStorageGet(localStorage, key));
+  if (!parsed || typeof parsed !== 'object') {
+    safeStorageRemove(localStorage, key);
+    return null;
+  }
+
+  // Support legacy plain payloads by treating them as stale.
+  if (!Object.prototype.hasOwnProperty.call(parsed, 'value')) {
+    safeStorageRemove(localStorage, key);
+    return null;
+  }
+
+  const envelopeUserId = normalizeUserId(parsed.userId);
+  if (!envelopeUserId || envelopeUserId !== normalizedUserId) {
+    safeStorageRemove(localStorage, key);
+    return null;
+  }
+
+  if (isCacheEnvelopeExpired(parsed)) {
+    safeStorageRemove(localStorage, key);
+    return null;
+  }
+
+  return parsed.value;
+}
+
+function setUserScopedCacheValue(baseKey, userId, value, ttlMs) {
+  const normalizedUserId = normalizeUserId(userId);
+  if (!normalizedUserId) {
+    return;
+  }
+
+  const key = buildUserScopedKey(baseKey, normalizedUserId);
+  const envelope = buildCacheEnvelope({
+    userId: normalizedUserId,
+    value,
+    ttlMs,
+  });
+  safeStorageSet(localStorage, key, JSON.stringify(envelope));
 }
 
 export function clearSessionStorage() {
@@ -172,32 +262,42 @@ export function clearAuthCache() {
   clearClientAccessibleAuthCookies();
 }
 
+export function clearAllCachedUserData() {
+  clearLegacyUserCacheKeys();
+  clearUserScopedCache();
+  clearSessionStorage();
+}
+
 export function clearAllAuthAndUserCache() {
   clearAuthCache();
 }
 
 export function getCachedProfile(userId) {
-  return getUserScopedJson('profile', userId);
+  return getUserScopedCacheValue('profile', userId);
 }
 
 export function setCachedProfile(userId, data) {
-  setUserScopedJson('profile', userId, data);
+  setUserScopedCacheValue('profile', userId, data, CACHE_TTL_MS.profile);
 }
 
 export function getCachedStats(userId) {
-  return getUserScopedJson('stats', userId);
+  return getUserScopedCacheValue('stats', userId);
 }
 
 export function setCachedStats(userId, data) {
-  setUserScopedJson('stats', userId, data);
+  setUserScopedCacheValue('stats', userId, data, CACHE_TTL_MS.stats);
 }
 
 export function getCachedLeaderboard(userId) {
-  return getUserScopedJson('leaderboard', userId);
+  return getUserScopedCacheValue('leaderboard', userId);
 }
 
 export function setCachedLeaderboard(userId, data) {
-  setUserScopedJson('leaderboard', userId, data);
+  setUserScopedCacheValue('leaderboard', userId, data, CACHE_TTL_MS.leaderboard);
+}
+
+export function getCacheTtlConfig() {
+  return { ...CACHE_TTL_MS };
 }
 
 export function handleUserSwitch(newUserId) {

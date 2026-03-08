@@ -14,6 +14,7 @@ import api from '../api';
 import { CourseVideoSkeleton } from '../components/skeletons';
 import DiscussionLikeButton from '../components/DiscussionLikeButton';
 import CertificateModal from '../components/CertificateModal';
+import { getActiveUserId, getCachedProfile } from '../authCache';
 
 // Helper function to extract video embed URL
 const getVideoEmbedUrl = (url) => {
@@ -85,10 +86,12 @@ const CourseVideoPage = () => {
 
   const getUserName = () => {
     try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        return user.username || user.name || 'Student';
+      const activeUserId = getActiveUserId();
+      if (activeUserId) {
+        const cachedProfile = getCachedProfile(activeUserId);
+        if (cachedProfile) {
+          return cachedProfile.username || cachedProfile.full_name || 'Student';
+        }
       }
     } catch (e) {
       console.error('Error getting user name:', e);
