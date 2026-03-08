@@ -154,12 +154,12 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    "corsheaders.middleware.CorsMiddleware",  # MUST be first for CORS preflight
+    "django.middleware.security.SecurityMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
     'django.middleware.http.ConditionalGetMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -336,10 +336,20 @@ if FRONTEND_URL and FRONTEND_URL not in FRONTEND_ALLOWED_ORIGINS:
     FRONTEND_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
 CORS_ALLOW_ALL_ORIGINS = False
-if DEBUG:
-    CORS_ALLOWED_ORIGINS = list(dict.fromkeys(FRONTEND_ALLOWED_ORIGINS))
-else:
-    CORS_ALLOWED_ORIGINS = list(dict.fromkeys([origin for origin in FRONTEND_ALLOWED_ORIGINS if origin.startswith('https://')]))
+
+# Allow specific origins for localhost development
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
+# Use regex patterns for Vercel deployments (handles preview URLs)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://scopio-web-app.*\.vercel\.app$",  # Production and preview deployments
+    r"^https://.*\.vercel\.app$",  # Any Vercel deployment (if you rename the project)
+]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -377,7 +387,15 @@ if DEBUG:
         'http://127.0.0.1:8000',
     ])
 
-CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CORS_ALLOWED_ORIGINS + _backend_trusted_origins))
+# CSRF_TRUSTED_ORIGINS doesn't support regex, so we must use wildcards
+# Django 4.0+ supports https://*.domain.com syntax
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(
+    CORS_ALLOWED_ORIGINS +  # Localhost origins
+    _backend_trusted_origins +  # Backend origins
+    [
+        'https://*.vercel.app',  # Wildcard for all Vercel deployments
+    ]
+))
 
 # Cookie settings for cross-domain authentication
 if DEBUG:
