@@ -338,7 +338,32 @@ if DEBUG:
     CORS_ALLOWED_ORIGINS = list(dict.fromkeys(FRONTEND_ALLOWED_ORIGINS))
 else:
     CORS_ALLOWED_ORIGINS = list(dict.fromkeys([origin for origin in FRONTEND_ALLOWED_ORIGINS if origin.startswith('https://')]))
+
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
+CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours
 
 _backend_trusted_origins = [
     'https://20.17.98.254.nip.io',
