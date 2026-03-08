@@ -13,10 +13,6 @@ function isLocalhostHost(hostname) {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
-function isVercelHost(hostname) {
-  return typeof hostname === 'string' && hostname.endsWith('.vercel.app');
-}
-
 function normalizeBackendUrl(url) {
   const normalized = stripTrailingSlash(url);
   if (!normalized) {
@@ -40,17 +36,12 @@ function normalizeBackendUrl(url) {
 }
 
 export function getBackendBaseUrl() {
-  const host = window?.location?.hostname || '';
-
-  // On Vercel, prefer same-origin API proxy rewrites to reduce CORS/cookie issues.
-  if (isVercelHost(host)) {
-    return '';
-  }
-
   const envUrl = normalizeBackendUrl(import.meta.env.VITE_API_URL || '');
   if (envUrl) {
     return envUrl;
   }
+
+  const host = window?.location?.hostname || '';
 
   if (isLocalhostHost(host)) {
     return `${window.location.protocol}//localhost:8000`;
@@ -64,10 +55,8 @@ function getBackendBaseUrlCandidates() {
   const primary = getBackendBaseUrl();
   const fallback = normalizeBackendUrl(PROD_BACKEND_URL);
 
-  const host = window?.location?.hostname || '';
-  const sameOrigin = isVercelHost(host) ? '' : null;
-
-  return Array.from(new Set([sameOrigin, primary, envUrl, fallback].filter((value) => value !== null && value !== undefined)));
+  // Keep same-origin proxy as a low-priority fallback in case rewrites are enabled.
+  return Array.from(new Set([primary, envUrl, fallback, ''].filter((value) => value !== null && value !== undefined)));
 }
 
 function isNetworkLevelError(error) {

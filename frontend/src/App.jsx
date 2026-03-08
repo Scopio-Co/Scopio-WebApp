@@ -203,30 +203,47 @@ function AppContent() {
       console.log('📥 [App] Fetching welcome data...');
       setWelcomeData(prev => ({ ...prev, isLoading: true }));
       try {
-        const [statsResponse, profileResponse] = await Promise.all([
+        const [statsResult, profileResult, leaderboardResult] = await Promise.allSettled([
           api.get('/api/video/user-stats/'),
-          api.get('/api/auth/profile/')
+          api.get('/api/auth/profile/'),
+          api.get('/api/video/leaderboard/')
         ]);
 
-        const fullName = (profileResponse?.data?.full_name || '').trim();
-        const username = (profileResponse?.data?.username || '').trim();
+        const statsData = statsResult.status === 'fulfilled' ? (statsResult.value?.data || {}) : {};
+        const profileData = profileResult.status === 'fulfilled' ? (profileResult.value?.data || {}) : {};
+        const leaderboardData = leaderboardResult.status === 'fulfilled' ? (leaderboardResult.value?.data || {}) : {};
+
+        const fullName = (profileData.full_name || '').trim();
+        const username = (profileData.username || '').trim();
         const firstName = fullName ? fullName.split(/\s+/)[0] : '';
         const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
         const displayName = capitalize(firstName) || capitalize(username) || 'User';
 
-        const isFirstVisit = statsResponse.data.is_first_visit === true;
+        const isFirstVisit = statsData.is_first_visit === true;
+        const leaderboardRows = Array.isArray(leaderboardData.results) ? leaderboardData.results : [];
+        const leaderboardCount = Number(leaderboardData.count) || leaderboardRows.length || 0;
+        const currentUserRow = leaderboardRows.find((row) => {
+          const rowUsername = (row?.username || '').toLowerCase();
+          return rowUsername && rowUsername === username.toLowerCase();
+        });
+
+        const userRank = {
+          rank: Number(currentUserRow?.rank) || 0,
+          totalUsers: leaderboardCount
+        };
         
         const newWelcomeData = {
           isFirstVisit,
           isLoading: false,
           displayName,
+          profileImageUrl: profileData.profile_image_url || '',
           stats: {
-            learningHours: statsResponse.data.learning_hours || 0,
-            streakDays: statsResponse.data.streak_days || 0,
-            progress: statsResponse.data.progress || 0,
-            achievements: statsResponse.data.achievements || 0
+            learningHours: statsData.learning_hours || 0,
+            streakDays: statsData.streak_days || 0,
+            progress: statsData.progress || 0,
+            achievements: statsData.achievements || 0
           },
-          userRank: { rank: 3, totalUsers: 250 }, // TODO: Replace with actual API call
+          userRank,
           fetchedAt: Date.now()
         };
 
