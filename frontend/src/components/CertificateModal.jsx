@@ -1,84 +1,74 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import './CertificateModal.css';
+import certificateBg from '../assets/img/scopio/course-certificate.webp';
 
-const CertificateModal = ({ 
-  isOpen, 
-  onClose, 
-  userName, 
-  courseTitle, 
-  completionDate, 
+const CertificateModal = ({
+  isOpen,
+  onClose,
+  userName = 'Student Name',
+  courseTitle = 'Course Title',
+  completionDate,
   certificateId,
-  onDownload 
+  onDownload,
 }) => {
   if (!isOpen) return null;
 
   const formatDate = (dateString) => {
-    if (!dateString) return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    if (!dateString) return new Date().toLocaleDateString('en-GB');
+    return new Date(dateString).toLocaleDateString('en-GB');
   };
 
+  // split user name into first and rest so we can render on two lines
+  const nameParts = (userName || 'Student Name').toString().trim().split(/\s+/);
+
   const handleDownload = () => {
-    if (onDownload) onDownload();
+    if (onDownload) { onDownload(); }
   };
 
   return (
-    <div className="certificate-modal-overlay" onClick={onClose}>
-      <div className="certificate-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          className="certificate-modal-close"
-          onClick={onClose}
-          aria-label="Close certificate"
-        >
-          ✕
-        </button>
+    <div className="cert-overlay" onClick={onClose}>
+      <div className="cert-wrapper" onClick={(e) => e.stopPropagation()}>
 
-        <div className="certificate-modal-content">
-          <div className="certificate-header">
-            <h2 className="certificate-title">Certificate of Completion</h2>
-            <p className="certificate-subtitle">Congratulations on completing your course!</p>
+        {/* Close button */}
+        <button className="cert-close" onClick={onClose} aria-label="Close">✕</button>
+
+        {/* Certificate visual */}
+        <div className="cert-visual">
+          <img src={certificateBg} alt="Certificate background" className="cert-bg" />
+
+          {/* Left-half text overlay — matching the screenshot layout */}
+          <div className="cert-text-layer">
+            <p className="cert-intro">This is to proudly certify that</p>
+
+            <h2 className="cert-name">
+              {nameParts[0]}
+              {nameParts.length > 1 && (
+                <>
+                  <br />
+                  {nameParts.slice(1).join(' ')}
+                </>
+              )}
+            </h2>
+
+            <div className="cert-divider" />
+
+            <p className="cert-body">
+              Has successfully completed all the modules 
+              in our video course of &ldquo;{courseTitle}&rdquo;
+              on {formatDate(completionDate)}.
+            </p>
           </div>
+        </div>
 
-          <div className="certificate-body">
-            <div className="certificate-card">
-              <div className="certificate-decoration-top"></div>
-              
-              <div className="certificate-info">
-                <p className="certificate-label">This certifies that</p>
-                <h3 className="certificate-name">{userName || 'Student Name'}</h3>
-                
-                <p className="certificate-label">has successfully completed</p>
-                <h4 className="certificate-course">{courseTitle || 'Course Title'}</h4>
-                
-                <div className="certificate-details">
-                  <div className="certificate-detail-item">
-                    <span className="detail-label">Completion Date</span>
-                    <span className="detail-value">{formatDate(completionDate)}</span>
-                  </div>
-                  <div className="certificate-detail-item">
-                    <span className="detail-label">Certificate ID</span>
-                    <span className="detail-value">{certificateId || 'CERT-XXXX-XXXX'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="certificate-decoration-bottom"></div>
-            </div>
-          </div>
-
-          <div className="certificate-actions">
-            <button
-              type="button"
-              className="certificate-download-btn"
-              onClick={handleDownload}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Download Certificate
-            </button>
-          </div>
+        {/* Download button */}
+        <div className="cert-actions">
+          <button className="cert-download-btn" onClick={handleDownload}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Download Certificate
+          </button>
         </div>
       </div>
     </div>

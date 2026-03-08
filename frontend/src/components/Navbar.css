@@ -95,6 +95,49 @@
   text-overflow: ellipsis;
 }
 
+/* ─── Navbar profile skeleton ───────────────────────────────── */
+@keyframes navbar-skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.navbar-skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    #e0e0e0 25%,
+    #f5f5f5 50%,
+    #e0e0e0 75%
+  );
+  background-size: 800px 100%;
+  animation: navbar-skeleton-shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
+
+.profile-skeleton-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.profile-skeleton-text {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.profile-skeleton-name {
+  width: 90px;
+  height: 16px;
+  border-radius: 6px;
+}
+
+.profile-skeleton-sub {
+  width: 64px;
+  height: 12px;
+  border-radius: 6px;
+}
+
 /* Toggle Switch */
 .switch {
   position: relative;

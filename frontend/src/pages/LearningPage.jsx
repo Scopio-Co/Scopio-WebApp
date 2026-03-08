@@ -16,12 +16,11 @@ const LearningPage = ({ onLogout, isLoading }) => {
   const [userXP, setUserXP] = useState(0);
   const [completedLessons, setCompletedLessons] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortAsc, setSortAsc] = useState(false);
   const navigate = useNavigate();
-  
+
   // Pagination constants
   const COURSES_PER_PAGE = 8;
-
-  /* No dummy data here — use enrolled courses from the backend only */
 
   // Fetch enrolled courses from backend
   useEffect(() => {
@@ -43,12 +42,13 @@ const LearningPage = ({ onLogout, isLoading }) => {
             instructor_title: enrollment.instructor_title,
             rating: enrollment.rating,
             total_duration: enrollment.total_duration,
-            progress_percentage: enrollment.progress_percentage, // Now from backend
-            completed_lessons: enrollment.completed_lessons, // Lessons completed
+            progress_percentage: enrollment.progress_percentage,
+            completed_lessons: enrollment.completed_lessons,
             total_lessons: enrollment.total_lessons,
             is_published: true
           }));
-          
+
+          // Merge real enrollments with static test data (test data shown alongside real)
           setCourses(enrolledCourses);
           setError(null);
           console.log(`✓ Loaded ${enrolledCourses.length} enrolled course(s)`);
@@ -100,11 +100,16 @@ const LearningPage = ({ onLogout, isLoading }) => {
     return match ? match[1] + '%' : '0%';
   };
 
-  // Pagination logic: show only enrolled courses from the backend
-  const totalPages = Math.max(1, Math.ceil(courses.length / COURSES_PER_PAGE));
+  // Sorting: ascending by title when sortAsc is true
+  const sortedCourses = sortAsc
+    ? [...courses].sort((a, b) => a.title.localeCompare(b.title))
+    : courses;
+
+  // Pagination logic
+  const totalPages = Math.max(1, Math.ceil(sortedCourses.length / COURSES_PER_PAGE));
   const startIndex = (currentPage - 1) * COURSES_PER_PAGE;
   const endIndex = startIndex + COURSES_PER_PAGE;
-  const displayCourses = courses.slice(startIndex, endIndex);
+  const displayCourses = sortedCourses.slice(startIndex, endIndex);
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -146,9 +151,18 @@ const LearningPage = ({ onLogout, isLoading }) => {
             </div>
           </div>
           <div className="learning-page-sort">
-            <button className="sort-button">Sort <svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 16 16" fill="none">
-  <path d="M4.14225 13.8296V0H3.01725V13.8296L0.795375 11.6077L0 12.4031L3.18206 15.5852C3.28755 15.6906 3.4306 15.7499 3.57975 15.7499C3.7289 15.7499 3.87195 15.6906 3.97744 15.5852L7.1595 12.4031L6.36413 11.6077L4.14225 13.8296ZM15.0345 3.34687L11.8524 0.164812C11.747 0.05936 11.6039 0.000120163 11.4548 0.000120163C11.3056 0.000120163 11.1625 0.05936 11.0571 0.164812L7.875 3.34687L8.67037 4.14225L10.8923 1.92037V15.75H12.0173V1.92037L14.2391 4.14225L15.0345 3.34687Z"/>
-</svg></button>
+            <button
+              className="sort-button"
+              onClick={() => {
+                setSortAsc(prev => !prev);
+                setCurrentPage(1);
+              }}
+            >
+              Sort{' '}
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M4.14225 13.8296V0H3.01725V13.8296L0.795375 11.6077L0 12.4031L3.18206 15.5852C3.28755 15.6906 3.4306 15.7499 3.57975 15.7499C3.7289 15.7499 3.87195 15.6906 3.97744 15.5852L7.1595 12.4031L6.36413 11.6077L4.14225 13.8296ZM15.0345 3.34687L11.8524 0.164812C11.747 0.05936 11.6039 0.000120163 11.4548 0.000120163C11.3056 0.000120163 11.1625 0.05936 11.0571 0.164812L7.875 3.34687L8.67037 4.14225L10.8923 1.92037V15.75H12.0173V1.92037L14.2391 4.14225L15.0345 3.34687Z"/>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -238,7 +252,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
           <div className="pagination-wrapper">
             <Pagination
               currentPage={currentPage}
-              totalItems={sourceCourses.length}
+              totalItems={sortedCourses.length}
               itemsPerPage={COURSES_PER_PAGE}
               onPageChange={handlePageChange}
             />

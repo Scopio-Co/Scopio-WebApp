@@ -101,9 +101,33 @@ function PullToRefresh() {
 // ScrollToTop component for smooth navigation
 function ScrollToTop() {
   const location = useLocation();
-  
+  // Disable browser automatic scroll restoration so back/forward won't restore positions
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    try {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+    } catch (e) {
+      // ignore if not supported or blocked
+    }
+
+    return () => {
+      try {
+        if ('scrollRestoration' in window.history) {
+          window.history.scrollRestoration = 'auto';
+        }
+      } catch (e) {}
+    };
+  }, []);
+
+  useEffect(() => {
+    // Scroll the top-level window and the app's main content container (if present)
+    try {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    } catch (e) {}
+
+    const mainEl = document.querySelector('.main-content');
+    if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
   }, [location.pathname]);
 
   return null;
