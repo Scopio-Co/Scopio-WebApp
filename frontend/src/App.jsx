@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom'
 import reactLogo from './assets/img/react.svg'
 import viteLogo from '/vite.svg'
@@ -20,6 +20,30 @@ import ArticlePage from './pages/ArticlePage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
 import ProtectedRoute from './components/ProtectedRoute';
 import api from './api';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
+import {
+  clearAllAuthAndUserCache,
+  getActiveUserId,
+  getUserIdFromAccessToken,
+  getUserScopedJson,
+  handleUserSwitch,
+  setUserScopedJson,
+} from './authCache';
+
+const DEFAULT_WELCOME_DATA = {
+  isFirstVisit: null,
+  isLoading: true,
+  displayName: 'User',
+  profileImageUrl: '',
+  stats: {
+    learningHours: 0,
+    streakDays: 0,
+    progress: 0,
+    achievements: 0
+  },
+  userRank: { rank: 0, totalUsers: 0 },
+  fetchedAt: null
+};
 
 // ScrollToTop component for smooth navigation
 function ScrollToTop() {
@@ -44,8 +68,8 @@ function App() {
 // Helper function to check if user is authenticated (synchronous)
 function isUserAuthenticated() {
   try {
-    const accessToken = localStorage.getItem('access');
-    const refreshToken = localStorage.getItem('refresh');
+    const accessToken = localStorage.getItem(ACCESS_TOKEN);
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN);
     
     const isAuthenticated = !!(accessToken && refreshToken);
     
@@ -73,31 +97,28 @@ function AppContent() {
     return result;
   });
   
-  // Initialize welcome state from localStorage (cached like auth)
+  const [activeUserId, setActiveUserId] = useState(() => {
+    return getActiveUserId() || getUserIdFromAccessToken();
+  });
+
+  // Initialize welcome state from user-scoped cache only.
   const [welcomeData, setWelcomeData] = useState(() => {
-    try {
-      const cached = localStorage.getItem('welcomeData');
-      if (cached) {
-        const data = JSON.parse(cached);
-        console.log('📱 [App] Loaded cached welcome data from localStorage');
-        return data;
-      }
-    } catch (e) {
-      console.error('❌ Error loading cached welcome data:', e);
+    const initialUserId = getActiveUserId() || getUserIdFromAccessToken();
+    if (!initialUserId) {
+      return { ...DEFAULT_WELCOME_DATA };
     }
-    return {
-      isFirstVisit: null,
-      isLoading: true,
-      displayName: 'User',
-      stats: {
-        learningHours: 0,
-        streakDays: 0,
-        progress: 0,
-        achievements: 0
-      },
-      userRank: { rank: 0, totalUsers: 0 },
-      fetchedAt: null
-    };
+
+    const cached = getUserScopedJson('welcomeData', initialUserId);
+    if (cached) {
+      console.log('📱 [App] Loaded user-scoped welcome data from localStorage');
+      return {
+        ...DEFAULT_WELCOME_DATA,
+        ...cached,
+        isLoading: false,
+      };
+    }
+
+    return { ...DEFAULT_WELCOME_DATA };
   });
   
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -105,6 +126,52 @@ function AppContent() {
   const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const resetWelcomeState = useCallback((isLoading = false) => {
+    setWelcomeData({
+      ...DEFAULT_WELCOME_DATA,
+      isLoading,
+    });
+  }, []);
+
+  const applyResolvedUserId = useCallback((candidateUserId) => {
+    const resolvedUserId = String(candidateUserId || '').trim();
+    if (!resolvedUserId) {
+      setActiveUserId(null);
+      return null;
+    }
+
+    const activeId = handleUserSwitch(resolvedUserId);
+    setActiveUserId(activeId);
+    return activeId;
+  }, []);
+
+  const performClientLogout = useCallback(async ({
+    redirect = true,
+    authMessage = null,
+    invalidateServerCookies = false,
+  } = {}) => {
+    if (invalidateServerCookies) {
+      try {
+        await api.post('/api/auth/logout/', {}, { skipAuth: true });
+      } catch (error) {
+        console.warn('⚠️ [App] Backend logout cookie invalidation failed:', error?.message || error);
+      }
+    }
+
+    clearAllAuthAndUserCache();
+    setIsAuthenticated(false);
+    setActiveUserId(null);
+    resetWelcomeState(false);
+
+    if (authMessage) {
+      setAuthError(authMessage);
+    }
+
+    if (redirect) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate, resetWelcomeState]);
 
   // Validate tokens with backend on mount
   useEffect(() => {
@@ -120,6 +187,10 @@ function AppContent() {
             _retry: false // Prevent automatic retry on first check
           });
           console.log('✓ [App] Tokens validated with backend:', response.data);
+
+          const backendUserId = response?.data?.user?.id;
+          const tokenUserId = getUserIdFromAccessToken();
+          applyResolvedUserId(backendUserId || tokenUserId);
           setIsCheckingAuth(false);
         } catch (error) {
           console.error('❌ [App] Token validation failed:', error.response?.status, error.message);
@@ -127,13 +198,10 @@ function AppContent() {
           // If we get a 401/403, tokens are invalid - log out and redirect
           if (error.response?.status === 401 || error.response?.status === 403) {
             console.log('🚪 [App] Invalid or expired tokens detected - logging out');
-            localStorage.removeItem('access');
-            localStorage.removeItem('refresh');
-            localStorage.removeItem('welcomeData');
-            setIsAuthenticated(false);
-            setWelcomeData(prev => ({ ...prev, isFirstVisit: null, isLoading: false }));
-            setAuthError('Session expired. Please log in again.');
-            navigate('/', { replace: true });
+            await performClientLogout({
+              authMessage: 'Session expired. Please log in again.',
+              invalidateServerCookies: true,
+            });
           }
           setIsCheckingAuth(false);
         }
@@ -144,24 +212,21 @@ function AppContent() {
     };
 
     validateTokens();
-  }, []);
+  }, [isAuthenticated, applyResolvedUserId, performClientLogout]);
 
   // Set up global 401 error handler for when tokens become invalid during session
   useEffect(() => {
-    const handleUnauthorized = (event) => {
+    const handleUnauthorized = async () => {
       console.log('🚨 [App] Global 401 error detected - logging out user');
-      localStorage.removeItem('access');
-      localStorage.removeItem('refresh');
-      localStorage.removeItem('welcomeData');
-      setIsAuthenticated(false);
-      setWelcomeData(prev => ({ ...prev, isFirstVisit: null, isLoading: false }));
-      setAuthError('Your session has expired. Please log in again.');
-      navigate('/', { replace: true });
+      await performClientLogout({
+        authMessage: 'Your session has expired. Please log in again.',
+        invalidateServerCookies: true,
+      });
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
-  }, [navigate]);
+  }, [performClientLogout]);
 
   // Auto-clear auth error after 10 seconds
   useEffect(() => {
@@ -188,20 +253,29 @@ function AppContent() {
   useEffect(() => {
     if (!isAuthenticated) {
       // Clear welcome data on logout
-      setWelcomeData(prev => ({ ...prev, isFirstVisit: null, isLoading: false }));
+      resetWelcomeState(false);
       return;
     }
 
-    // Only fetch if not already cached with recent data
-    if (welcomeData.fetchedAt && Date.now() - welcomeData.fetchedAt < 5 * 60 * 1000) {
-      // Cache is fresh (less than 5 minutes old)
-      setWelcomeData(prev => ({ ...prev, isLoading: false }));
+    if (!activeUserId) {
+      resetWelcomeState(true);
       return;
+    }
+
+    const cachedWelcomeData = getUserScopedJson('welcomeData', activeUserId);
+    if (cachedWelcomeData) {
+      setWelcomeData({
+        ...DEFAULT_WELCOME_DATA,
+        ...cachedWelcomeData,
+        isLoading: false,
+      });
+    } else {
+      resetWelcomeState(true);
     }
 
     const fetchWelcomeData = async () => {
       console.log('📥 [App] Fetching welcome data...');
-      setWelcomeData(prev => ({ ...prev, isLoading: true }));
+      setWelcomeData((prev) => ({ ...prev, isLoading: true }));
       try {
         const [statsResult, profileResult, leaderboardResult] = await Promise.allSettled([
           api.get('/api/video/user-stats/'),
@@ -250,13 +324,15 @@ function AppContent() {
         console.log('✓ [App] Welcome data cached:', newWelcomeData);
         setWelcomeData(newWelcomeData);
 
-        // Save to localStorage for persistence across page reloads
-        try {
-          localStorage.setItem('welcomeData', JSON.stringify(newWelcomeData));
-          console.log('✓ [App] Welcome data saved to localStorage');
-        } catch (e) {
-          console.error('❌ Error saving welcome data to localStorage:', e);
-        }
+        // Save user-scoped caches so data can never leak across accounts.
+        setUserScopedJson('userStats', activeUserId, statsData);
+        setUserScopedJson('profile', activeUserId, profileData);
+        setUserScopedJson('leaderboard', activeUserId, leaderboardData);
+        setUserScopedJson('welcomeData', activeUserId, newWelcomeData);
+        setUserScopedJson('courseProgress', activeUserId, {
+          progress: statsData.progress || 0,
+          fetchedAt: newWelcomeData.fetchedAt,
+        });
 
         // Mark welcome as seen if it's first visit
         if (isFirstVisit) {
@@ -269,12 +345,12 @@ function AppContent() {
         }
       } catch (error) {
         console.error('❌ Failed to fetch welcome data:', error);
-        setWelcomeData(prev => ({ ...prev, isLoading: false }));
+        setWelcomeData((prev) => ({ ...prev, isLoading: false }));
       }
     };
 
     fetchWelcomeData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, activeUserId, resetWelcomeState]);
 
   // Handle OAuth callbacks
   useEffect(() => {
@@ -287,9 +363,15 @@ function AppContent() {
     
     // Handle OAuth success - tokens in query params
     if (accessToken && refreshToken) {
+      clearAllAuthAndUserCache();
+
       // Store tokens in localStorage only (more reliable)
-      localStorage.setItem('access', accessToken);
-      localStorage.setItem('refresh', refreshToken);
+      localStorage.setItem(ACCESS_TOKEN, accessToken);
+      localStorage.setItem(REFRESH_TOKEN, refreshToken);
+
+      const oauthUserId = getUserIdFromAccessToken();
+      applyResolvedUserId(oauthUserId);
+      resetWelcomeState(true);
       
       console.log('✓ OAuth tokens stored successfully in localStorage');
       
@@ -323,9 +405,15 @@ function AppContent() {
       const hashRefreshToken = hashParams.get('refresh');
       
       if (hashAccessToken && hashRefreshToken) {
+        clearAllAuthAndUserCache();
+
         // Store tokens in localStorage
-        localStorage.setItem('access', hashAccessToken);
-        localStorage.setItem('refresh', hashRefreshToken);
+        localStorage.setItem(ACCESS_TOKEN, hashAccessToken);
+        localStorage.setItem(REFRESH_TOKEN, hashRefreshToken);
+
+        const oauthUserId = getUserIdFromAccessToken();
+        applyResolvedUserId(oauthUserId);
+        resetWelcomeState(true);
         
         // Update authentication state
         setIsAuthenticated(true);
@@ -337,15 +425,15 @@ function AppContent() {
         navigate('/home', { replace: true });
       }
     }
-  }, [navigate]);
+  }, [navigate, applyResolvedUserId, resetWelcomeState]);
 
   // Callback for successful login/signup
   const handleLoginSuccess = () => {
     console.log('✓ [App] handleLoginSuccess callback triggered');
     
     // Double-check tokens are in localStorage
-    const access = localStorage.getItem('access');
-    const refresh = localStorage.getItem('refresh');
+    const access = localStorage.getItem(ACCESS_TOKEN);
+    const refresh = localStorage.getItem(REFRESH_TOKEN);
     
     console.log('✓ [App] Checking tokens in handleLoginSuccess:', {
       hasAccess: !!access,
@@ -362,6 +450,10 @@ function AppContent() {
     
     // Clear any previous auth errors
     setAuthError(null);
+
+    const tokenUserId = getUserIdFromAccessToken();
+    applyResolvedUserId(tokenUserId);
+    resetWelcomeState(true);
     
     // Set authenticated state
     console.log('✓ [App] Setting isAuthenticated to true');
@@ -372,20 +464,10 @@ function AppContent() {
     navigate('/home');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     console.log('🚪 [App] Logging out user...');
-    // Clear tokens from localStorage
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    
-    console.log('🚪 [App] Tokens cleared from localStorage');
-    
-    // Update authentication state
-    setIsAuthenticated(false);
-    
-    console.log('🚪 [App] isAuthenticated set to false, navigating to home');
-    // Navigate to login page
-    navigate('/');
+    await performClientLogout({ invalidateServerCookies: true });
+    console.log('🚪 [App] User logged out and cache cleared');
   };
 
   const handleLogoClick = (e) => {

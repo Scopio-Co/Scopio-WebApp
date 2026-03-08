@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
+import { clearAllAuthAndUserCache } from './authCache';
 
 const PROD_BACKEND_URL = 'https://20.17.98.254.nip.io';
 
@@ -229,9 +230,7 @@ api.interceptors.response.use(
           } catch (refreshError) {
             // Refresh token is invalid - clear all tokens and emit global unauthorized event
             console.error('❌ [API] Token refresh failed - clearing tokens and redirecting to login');
-            localStorage.removeItem(ACCESS_TOKEN);
-            localStorage.removeItem(REFRESH_TOKEN);
-            localStorage.removeItem('welcomeData');
+            clearAllAuthAndUserCache();
             
             // Emit a global event that App.jsx can listen to for logout/redirect
             window.dispatchEvent(new Event('auth:unauthorized'));
@@ -241,9 +240,7 @@ api.interceptors.response.use(
         } else {
           // No refresh token - emit unauthorized event
           console.warn('⚠️ [API] No refresh token available - logging out');
-          localStorage.removeItem(ACCESS_TOKEN);
-          localStorage.removeItem(REFRESH_TOKEN);
-          localStorage.removeItem('welcomeData');
+          clearAllAuthAndUserCache();
           window.dispatchEvent(new Event('auth:unauthorized'));
         }
       }
@@ -308,6 +305,9 @@ export async function login(username, password) {
     accessLength: data.access?.length || 0,
     refreshLength: data.refresh?.length || 0
   });
+
+  // Prevent previous-user cache leakage before storing the new session tokens.
+  clearAllAuthAndUserCache();
   
   // Store tokens in localStorage (primary storage)
   if (data.access) {
