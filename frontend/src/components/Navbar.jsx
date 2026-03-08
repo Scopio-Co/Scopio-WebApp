@@ -4,7 +4,7 @@ import "./Navbar.css";
 import profileAvatar from '../assets/img/profilePic (2).png';
 import api from '../api';
 
-const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
+const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated, authUserId = null }) => {
   // ✅ Initialize dark mode state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -39,18 +39,33 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
 
   // ✅ Fetch user data when authenticated
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchUserData = async () => {
       if (isAuthenticated) {
         setLoadingProfile(true);
         try {
-          const response = await api.get('/api/auth/status/');
+          const response = await api.get('/api/auth/status/', {
+            headers: {
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+            },
+          });
+          if (isCancelled) {
+            return;
+          }
           setUserData(response.data.user);
           console.log('✓ User data fetched:', response.data.user);
         } catch (error) {
+          if (isCancelled) {
+            return;
+          }
           console.error('❌ Failed to fetch user data:', error);
           setUserData(null);
         } finally {
-          setLoadingProfile(false);
+          if (!isCancelled) {
+            setLoadingProfile(false);
+          }
         }
       } else {
         setUserData(null);
@@ -59,7 +74,11 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
     };
 
     fetchUserData();
-  }, [isAuthenticated]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, authUserId]);
 
   useEffect(() => {
     const handleProfileUpdated = (event) => {

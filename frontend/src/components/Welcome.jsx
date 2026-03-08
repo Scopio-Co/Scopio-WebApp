@@ -226,7 +226,7 @@ const WelcomeDashboard = ({ welcomeData = null }) => {
                 
                 <div className="profile-image-container">
                   <img 
-                    src={profilePic} 
+                    src={profileImageUrl || profilePic}
                     alt="Profile" 
                     className="profile-image"
                     onError={(event) => {

@@ -103,6 +103,8 @@ class ProfileSettingsSerializer(serializers.Serializer):
         image_url = get_profile_image_url(profile, request)
 
         return {
+            'id': user.id,
+            'user_id': user.id,
             'full_name': user.get_full_name(),
             'username': user.username,
             'email': user.email,
