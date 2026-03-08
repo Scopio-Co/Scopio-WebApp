@@ -9,18 +9,44 @@ function stripTrailingSlash(url) {
   return (url || '').replace(/\/+$/, '');
 }
 
+function isLocalhostHost(hostname) {
+  return hostname === 'localhost' || hostname === '127.0.0.1';
+}
+
+function normalizeBackendUrl(url) {
+  const normalized = stripTrailingSlash(url);
+  if (!normalized) {
+    return '';
+  }
+
+  // Prevent mixed content: upgrade non-local HTTP API URLs when app is served over HTTPS.
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    try {
+      const parsed = new URL(normalized);
+      if (parsed.protocol === 'http:' && !isLocalhostHost(parsed.hostname)) {
+        parsed.protocol = 'https:';
+        return stripTrailingSlash(parsed.toString());
+      }
+    } catch (_e) {
+      // Ignore parse errors and return the original value.
+    }
+  }
+
+  return normalized;
+}
+
 export function getBackendBaseUrl() {
-  const envUrl = stripTrailingSlash(import.meta.env.VITE_API_URL || '');
+  const envUrl = normalizeBackendUrl(import.meta.env.VITE_API_URL || '');
   if (envUrl) {
     return envUrl;
   }
 
   const host = window?.location?.hostname || '';
-  if (host === 'localhost' || host === '127.0.0.1') {
+  if (isLocalhostHost(host)) {
     return `${window.location.protocol}//localhost:8000`;
   }
 
-  return PROD_BACKEND_URL;
+  return normalizeBackendUrl(PROD_BACKEND_URL);
 }
 
 // Helper function to get CSRF token from cookies

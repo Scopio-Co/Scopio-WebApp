@@ -307,25 +307,50 @@ else:
         }
     }
 
-# CORS: restrict in production, allow dev origin by default
+# CORS/CSRF origins for both environments
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
 USE_HTTPS = os.getenv('USE_HTTPS', 'True').lower() in ('true', '1', 'yes')
+
+_prod_frontend_origins = [
+    'https://scopio-web-app.vercel.app',
+]
+_dev_frontend_origins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
+_env_frontend_origins = [
+    o.strip().rstrip('/')
+    for o in os.getenv('FRONTEND_ALLOWED_ORIGINS', '').split(',')
+    if o.strip()
+]
+
+FRONTEND_ALLOWED_ORIGINS = _env_frontend_origins if _env_frontend_origins else (
+    _prod_frontend_origins + _dev_frontend_origins
+)
+if FRONTEND_URL and FRONTEND_URL not in FRONTEND_ALLOWED_ORIGINS:
+    FRONTEND_ALLOWED_ORIGINS.append(FRONTEND_URL)
+
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 if DEBUG:
-    CORS_ALLOWED_ORIGINS.append('http://localhost:5173')
+    CORS_ALLOWED_ORIGINS = list(dict.fromkeys(FRONTEND_ALLOWED_ORIGINS))
+else:
+    CORS_ALLOWED_ORIGINS = list(dict.fromkeys([origin for origin in FRONTEND_ALLOWED_ORIGINS if origin.startswith('https://')]))
 CORS_ALLOW_CREDENTIALS = True
 
-# CSRF settings for cross-origin requests
-CSRF_TRUSTED_ORIGINS = [
-    FRONTEND_URL,
-    'https://scopio-webapp.onrender.com',
-    'https://scopio-web-app.vercel.app',
-    'https://20.17.98.254.nip.io',  # Azure VM backend (nip.io for OAuth)
-    'https://20.17.98.254',  # Azure VM backend (direct IP)
+_backend_trusted_origins = [
+    'https://20.17.98.254.nip.io',
+    'https://20.17.98.254',
 ]
 if DEBUG:
-    CSRF_TRUSTED_ORIGINS.extend(['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:8000'])
+    _backend_trusted_origins.extend([
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ])
+
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CORS_ALLOWED_ORIGINS + _backend_trusted_origins))
 
 # Cookie settings for cross-domain authentication
 if DEBUG:

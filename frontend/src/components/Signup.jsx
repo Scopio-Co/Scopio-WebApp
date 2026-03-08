@@ -167,7 +167,8 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
     if (provider === 'Google') {
       // Redirect to backend Google OAuth endpoint
       const backendURL = getBackendBaseUrl();
-      window.location.href = `${backendURL}/glogin/google/start/`;
+      const frontendOrigin = encodeURIComponent(window.location.origin);
+      window.location.href = `${backendURL}/glogin/google/start/?frontend_origin=${frontendOrigin}`;
     } else {
       console.log(`${provider} login not yet implemented`);
     }
