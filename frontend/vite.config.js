@@ -15,7 +15,7 @@ export default defineConfig({
     // Proxy API requests to backend - prevents ad blocker blocking
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
       }

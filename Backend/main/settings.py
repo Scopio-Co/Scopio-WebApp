@@ -314,6 +314,7 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-webapp.pages.dev').rstr
 USE_HTTPS = os.getenv('USE_HTTPS', ('False' if DEBUG else 'True')).lower() in ('true', '1', 'yes')
 
 _default_frontend_origins = [
+    'http://localhost:3000',
     'http://localhost:5173',
     'https://scopio-webapp.pages.dev',
 ]
@@ -364,9 +365,11 @@ CORS_EXPOSE_HEADERS = [
 CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours
 
 CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5173',
     'https://scopio-webapp.pages.dev',
     'https://scopio.in',
-    "http://localhost:8000",
+    'http://localhost:8000',
 ]
 
 # Cookie settings for cross-domain authentication
@@ -374,6 +377,7 @@ if DEBUG:
     # Development: localhost same-origin
     CSRF_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_SECURE = False
+    CSRF_COOKIE_DOMAIN = 'localhost'
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_DOMAIN = None
@@ -385,6 +389,7 @@ else:
     SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = USE_HTTPS
+    CSRF_COOKIE_DOMAIN = None
     # Don't set SESSION_COOKIE_DOMAIN - let browser handle it
     SESSION_COOKIE_DOMAIN = None
 
