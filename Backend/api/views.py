@@ -265,13 +265,7 @@ def cookie_logout(request):
 
     # Clear all known auth cookie aliases to prevent stale credentials across account switches.
     for cookie_name in AUTH_COOKIE_NAMES:
-        response.delete_cookie(
-            cookie_name,
-            path=cookie_options["path"],
-            domain=cookie_options["domain"],
-            samesite=cookie_options["samesite"],
-            secure=cookie_options["secure"],
-        )
+        response.delete_cookie("refresh_token")
 
     # Explicitly clear Django auth/session cookies as defense-in-depth.
     response.delete_cookie(
