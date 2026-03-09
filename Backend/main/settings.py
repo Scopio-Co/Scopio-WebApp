@@ -330,6 +330,11 @@ FRONTEND_ALLOWED_ORIGINS = _env_frontend_origins if _env_frontend_origins else _
 if FRONTEND_URL and FRONTEND_URL not in FRONTEND_ALLOWED_ORIGINS:
     FRONTEND_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
+# Always allow canonical production frontend origins.
+for _origin in ['https://scopio.in', 'https://scopio-webapp.pages.dev']:
+    if _origin not in FRONTEND_ALLOWED_ORIGINS:
+        FRONTEND_ALLOWED_ORIGINS.append(_origin)
+
 CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = FRONTEND_ALLOWED_ORIGINS
