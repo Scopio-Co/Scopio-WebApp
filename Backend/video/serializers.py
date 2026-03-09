@@ -140,6 +140,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     user_rating = serializers.SerializerMethodField()
     total_ratings = serializers.SerializerMethodField()
     instructor_avatar_url = serializers.SerializerMethodField()
+    certificate_unlocked = serializers.SerializerMethodField()
     
     class Meta:
         model = Course
@@ -149,7 +150,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'instructor_avatar_url', 'instructor_social_links',
             'what_you_learn', 'prerequisites', 'rating', 'average_rating', 
             'user_rating', 'total_ratings', 'total_duration',
-            'total_lessons', 'progress_info',
+            'total_lessons', 'progress_info', 'certificate_unlocked',
             'lessons', 'discussions', 'resources',
             'is_published', 'created_at', 'updated_at'
         ]
@@ -194,6 +195,23 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             return obj.instructor_avatar_url
         request = self.context.get('request')
         return get_default_profile_image_url(request)
+
+    def get_certificate_unlocked(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+
+        total_lessons = obj.lessons.count()
+        if total_lessons == 0:
+            return False
+
+        completed_lessons = UserProgress.objects.filter(
+            user=request.user,
+            course=obj,
+            completed=True
+        ).count()
+
+        return completed_lessons >= total_lessons
 
 # ========== PROGRESS SERIALIZERS ==========
 class UserProgressSerializer(serializers.ModelSerializer):

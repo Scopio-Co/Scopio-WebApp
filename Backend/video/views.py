@@ -1,13 +1,19 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from django.http import HttpResponse
 from django.core.cache import cache
 from django.utils import timezone
 from django.db.models import Avg, Sum, Prefetch
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.db.models.functions import Coalesce
+from io import BytesIO
 from datetime import date, timedelta
+import re
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.pdfgen import canvas
 from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
 from api.avatar_utils import get_profile_image_url
 from .serializers import (
@@ -153,6 +159,83 @@ class CourseViewSet(viewsets.ModelViewSet):
             'enrolled_courses': enrolled_courses
         })
 
+    @action(detail=True, methods=['get'], url_path='certificate/download', permission_classes=[permissions.IsAuthenticated])
+    def certificate_download(self, request, pk=None):
+        """Download certificate only when user completed all lessons in the course."""
+        course = self.get_object()
+
+        total_lessons = course.lessons.count()
+        completed_lessons = UserProgress.objects.filter(
+            user=request.user,
+            course=course,
+            completed=True
+        ).count()
+
+        if total_lessons == 0 or completed_lessons < total_lessons:
+            return Response(
+                {
+                    'error': 'Certificate is locked. Complete all modules to unlock.',
+                    'completed_lessons': completed_lessons,
+                    'total_lessons': total_lessons,
+                    'certificate_unlocked': False,
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        display_name = request.user.get_full_name().strip() or request.user.username
+        issued_on = timezone.now().strftime('%Y-%m-%d')
+        certificate_id = f"CERT-{request.user.id}-{course.id}-{timezone.now().strftime('%Y%m%d')}"
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer, pagesize=A4)
+        page_width, page_height = A4
+
+        pdf.setFillColor(colors.HexColor('#1F2937'))
+        pdf.setFont('Helvetica-Bold', 28)
+        pdf.drawCentredString(page_width / 2, page_height - 110, 'Certificate of Completion')
+
+        pdf.setStrokeColor(colors.HexColor('#3B82F6'))
+        pdf.setLineWidth(2)
+        pdf.line(90, page_height - 130, page_width - 90, page_height - 130)
+
+        pdf.setFillColor(colors.HexColor('#374151'))
+        pdf.setFont('Helvetica', 14)
+        pdf.drawCentredString(page_width / 2, page_height - 185, 'This certifies that')
+
+        pdf.setFillColor(colors.HexColor('#0EA5E9'))
+        pdf.setFont('Helvetica-Bold', 30)
+        pdf.drawCentredString(page_width / 2, page_height - 240, display_name)
+
+        pdf.setFillColor(colors.HexColor('#111827'))
+        pdf.setFont('Helvetica', 14)
+        pdf.drawCentredString(page_width / 2, page_height - 285, 'has successfully completed all modules of')
+
+        pdf.setFont('Helvetica-Bold', 18)
+        pdf.drawCentredString(page_width / 2, page_height - 320, f'"{course.title}"')
+
+        pdf.setFont('Helvetica', 12)
+        pdf.setFillColor(colors.HexColor('#4B5563'))
+        pdf.drawCentredString(page_width / 2, page_height - 370, f'Completed Modules: {completed_lessons}/{total_lessons}')
+        pdf.drawCentredString(page_width / 2, page_height - 392, f'Issued On: {issued_on}')
+        pdf.drawCentredString(page_width / 2, page_height - 414, f'Certificate ID: {certificate_id}')
+
+        pdf.setStrokeColor(colors.HexColor('#9CA3AF'))
+        pdf.setLineWidth(1)
+        pdf.line(90, 140, page_width - 90, 140)
+        pdf.setFont('Helvetica', 10)
+        pdf.setFillColor(colors.HexColor('#6B7280'))
+        pdf.drawCentredString(page_width / 2, 120, 'Scopio Learning Platform')
+
+        pdf.showPage()
+        pdf.save()
+        pdf_data = buffer.getvalue()
+        buffer.close()
+
+        filename = f"{course.title.strip().replace(' ', '_')}_certificate.pdf"
+        response = HttpResponse(pdf_data, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
 
 # ========== LESSON VIEWS ==========
 class LessonViewSet(viewsets.ModelViewSet):
@@ -233,37 +316,45 @@ class LessonViewSet(viewsets.ModelViewSet):
         xp_awarded = 0
         
         try:
-            # Only award XP if this is the first time marking complete
+            # Mark completion (first-time only)
             if not progress.completed:
-                print(f"✅ First completion - awarding XP")
+                print(f"✅ First completion - marking complete")
                 progress.completed = True
                 progress.completed_at = timezone.now()
                 progress.save()
                 print(f"✅ Progress marked complete")
-                
-                # *** XP MUST come from lesson.time_xp field in database ***
-                # Extract XP from lesson's time_xp field (e.g., "450.00" -> 450)
-                # NO RANDOM GENERATION - only database values
+            else:
+                print(f"ℹ️ Lesson already completed")
+
+            # Award XP once per lesson progress record.
+            # Use xp_chunks_awarded as durable guard so old records (completed without XP)
+            # can still receive XP exactly once after this fix.
+            should_award_xp = (progress.xp_chunks_awarded or 0) == 0
+            if should_award_xp:
+                print(f"✅ XP not yet awarded for this lesson progress")
                 print(f"Lesson time_xp value: '{lesson.time_xp}'")
+
                 if lesson.time_xp:
                     try:
-                        xp_value = float(lesson.time_xp)
-                        xp_awarded = int(xp_value)
-                        print(f"✅ XP converted: {lesson.time_xp} → {xp_awarded}")
-                        
-                        # Validate XP is positive (sanity check)
+                        xp_text = str(lesson.time_xp).strip()
+                        xp_match = re.search(r'-?\d+(?:\.\d+)?', xp_text)
+                        if xp_match:
+                            xp_value = float(xp_match.group(0))
+                            xp_awarded = int(xp_value)
+                            print(f"✅ XP parsed: {lesson.time_xp} → {xp_awarded}")
+                        else:
+                            xp_awarded = 0
+                            print(f"⚠️ No numeric XP found in time_xp: {lesson.time_xp}")
+
                         if xp_awarded < 0:
                             xp_awarded = 0
                             print(f"⚠️ Negative XP reset to 0")
-                        
                     except (ValueError, TypeError) as ve:
-                        # If time_xp is invalid, award 0 XP
                         xp_awarded = 0
                         print(f"⚠️ Invalid XP value: {lesson.time_xp} - Error: {str(ve)}")
                 else:
                     print(f"⚠️ Lesson has no time_xp value, XP = 0")
-                
-                # Award XP to user (only if xp_awarded > 0)
+
                 if xp_awarded > 0:
                     try:
                         user_xp, _ = UserXP.objects.get_or_create(
@@ -272,8 +363,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                         )
                         user_xp.add_xp(xp_awarded)
                         print(f"✅ XP added to UserXP: {xp_awarded}")
-                        
-                        # Track daily XP for streak calculation
+
                         today = date.today()
                         daily_xp, _ = DailyXP.objects.get_or_create(
                             user=request.user,
@@ -282,6 +372,11 @@ class LessonViewSet(viewsets.ModelViewSet):
                         daily_xp.xp_earned += xp_awarded
                         daily_xp.save()
                         print(f"✅ Daily XP updated: {daily_xp.xp_earned}")
+
+                        progress.xp_chunks_awarded = 1
+                        progress.save(update_fields=['xp_chunks_awarded', 'updated_at'])
+                        print(f"✅ Marked XP as awarded for progress {progress.id}")
+
                         invalidate_leaderboard_cache()
                     except Exception as xpe:
                         print(f"❌ XP Error: {type(xpe).__name__}: {str(xpe)}")
@@ -290,9 +385,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                 else:
                     print(f"⚠️ No XP to award (xp_awarded={xp_awarded})")
             else:
-                # Lesson already completed, no new XP
-                print(f"⚠️ Already completed - no new XP")
-                progress.save()
+                print(f"ℹ️ XP already awarded previously for this lesson progress")
                 
         except Exception as ce:
             print(f"❌ Logic Error: {type(ce).__name__}: {str(ce)}")

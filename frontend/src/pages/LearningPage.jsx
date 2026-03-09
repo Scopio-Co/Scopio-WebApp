@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LearningPage.css';
 import Footer from '../components/Footer';
@@ -23,60 +23,75 @@ const LearningPage = ({ onLogout, isLoading }) => {
   // Pagination constants
   const COURSES_PER_PAGE = 8;
 
+  const fetchEnrolledCourses = useCallback(async (showLoader = true) => {
+    try {
+      if (showLoader) setLoading(true);
+      console.log('🔍 Fetching enrolled courses from API...');
+      const response = await api.get('/api/video/enrollments/');
+      console.log('✓ Received enrollments:', response.data);
+
+      if (response.data && response.data.length > 0) {
+        const enrolledCourses = response.data.map((enrollment) => ({
+          id: enrollment.course,
+          title: enrollment.course_title,
+          description: enrollment.course_description,
+          thumbnail_url: enrollment.course_thumbnail,
+          instructor_name: enrollment.instructor_name,
+          instructor_title: enrollment.instructor_title,
+          rating: enrollment.rating,
+          total_duration: enrollment.total_duration,
+          progress_percentage: enrollment.progress_percentage,
+          completed_lessons: enrollment.completed_lessons,
+          total_lessons: enrollment.total_lessons,
+          is_published: true
+        }));
+
+        setCourses(enrolledCourses);
+        setError(null);
+        console.log(`✓ Loaded ${enrolledCourses.length} enrolled course(s)`);
+      } else {
+        console.warn('⚠️ No enrolled courses found');
+        setCourses([]);
+      }
+    } catch (err) {
+      console.error('❌ Error fetching enrolled courses:', err);
+      console.error('Error details:', err.response?.data || err.message);
+
+      if (err.response?.status === 401) {
+        setCourses([]);
+        setError(null);
+      } else {
+        setError('Failed to load courses. Please check your connection.');
+        setCourses([]);
+      }
+    } finally {
+      if (showLoader) setLoading(false);
+    }
+  }, []);
+
   // Fetch enrolled courses from backend
   useEffect(() => {
-    const fetchEnrolledCourses = async () => {
-      try {
-        setLoading(true);
-        console.log('🔍 Fetching enrolled courses from API...');
-        const response = await api.get('/api/video/enrollments/');
-        console.log('✓ Received enrollments:', response.data);
-        
-        if (response.data && response.data.length > 0) {
-          // Transform enrollment data to course format
-          const enrolledCourses = response.data.map((enrollment) => ({
-            id: enrollment.course,
-            title: enrollment.course_title,
-            description: enrollment.course_description,
-            thumbnail_url: enrollment.course_thumbnail,
-            instructor_name: enrollment.instructor_name,
-            instructor_title: enrollment.instructor_title,
-            rating: enrollment.rating,
-            total_duration: enrollment.total_duration,
-            progress_percentage: enrollment.progress_percentage,
-            completed_lessons: enrollment.completed_lessons,
-            total_lessons: enrollment.total_lessons,
-            is_published: true
-          }));
+    fetchEnrolledCourses(true);
+  }, [fetchEnrolledCourses]);
 
-          // Merge real enrollments with static test data (test data shown alongside real)
-          setCourses(enrolledCourses);
-          setError(null);
-          console.log(`✓ Loaded ${enrolledCourses.length} enrolled course(s)`);
-        } else {
-          // No enrollments yet
-          console.warn('⚠️ No enrolled courses found');
-          setCourses([]);
-        }
-      } catch (err) {
-        console.error('❌ Error fetching enrolled courses:', err);
-        console.error('Error details:', err.response?.data || err.message);
-        
-        // If user is not authenticated, don't show error
-        if (err.response?.status === 401) {
-          setCourses([]);
-          setError(null);
-        } else {
-          setError('Failed to load courses. Please check your connection.');
-          setCourses([]);
-        }
-      } finally {
-        setLoading(false);
+  // Refresh on tab/window focus so updated tracking reflects immediately
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchEnrolledCourses(false);
       }
     };
 
-    fetchEnrolledCourses();
-  }, []);
+    const handleFocus = () => fetchEnrolledCourses(false);
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchEnrolledCourses]);
 
   // Fetch user XP and stats
   useEffect(() => {

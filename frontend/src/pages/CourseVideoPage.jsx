@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -11,6 +11,9 @@ import whatsappIcon from '../assets/img/Whatsapp.svg';
 import xIcon from '../assets/img/x.svg';
 import defaultProfileAvatar from '../assets/img/profileDefault.webp';
 import api from '../api';
+import { getActiveUserId, getCachedProfile } from '../authCache';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { CourseVideoSkeleton } from '../components/skeletons';
 import DiscussionLikeButton from '../components/DiscussionLikeButton';
 import CertificateModal from '../components/CertificateModal';
@@ -77,7 +80,32 @@ const CourseVideoPage = () => {
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [certificateData, setCertificateData] = useState(null);
   const [hasShownCertificate, setHasShownCertificate] = useState(false);
+  const [certificateUserName, setCertificateUserName] = useState('Student');
   const directVideoRef = useRef(null);
+  const directVideoAutoplayAttemptedRef = useRef(false);
+  const directVideoTrackingRef = useRef({
+    lastTrackedSecond: -1,
+    lastTrackedPercentage: 0
+  });
+
+  const refreshCourseData = useCallback(async (showLoader = false) => {
+    if (!courseId) return;
+
+    try {
+      if (showLoader) setLoading(true);
+      const response = await api.get(`/api/video/courses/${courseId}/`);
+      setCourseData(response.data);
+      setUserRating(response.data.user_rating);
+      setError(null);
+    } catch (err) {
+      console.error('Error refreshing course details:', err);
+      if (showLoader) {
+        setError('Failed to load course details');
+      }
+    } finally {
+      if (showLoader) setLoading(false);
+    }
+  }, [courseId]);
 
   // Generate helper functions for certificate
   const generateCertificateId = () => {
@@ -86,18 +114,76 @@ const CourseVideoPage = () => {
     return `CERT-${timestamp}-${random}`;
   };
 
+  const formatCertificateName = (profile) => {
+    if (!profile) return '';
+
+    const fullNameFromParts = [profile.first_name, profile.last_name]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+
+    const fullName = (
+      profile.full_name
+      || fullNameFromParts
+      || profile.username
+      || profile.name
+      || ''
+    ).toString().trim();
+
+    return fullName;
+  };
+
   const getUserName = () => {
     try {
+      if (certificateUserName && certificateUserName !== 'Student') {
+        return certificateUserName;
+      }
+
+      const activeUserId = getActiveUserId();
+      if (activeUserId) {
+        const cachedProfile = getCachedProfile(activeUserId);
+        const cachedName = formatCertificateName(cachedProfile);
+        if (cachedName) return cachedName;
+      }
+
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         const user = JSON.parse(storedUser);
-        return user.username || user.name || 'Student';
+        const localName = formatCertificateName(user);
+        if (localName) return localName;
       }
     } catch (e) {
       console.error('Error getting user name:', e);
     }
     return 'Student';
   };
+
+  useEffect(() => {
+    const hydrateCertificateName = async () => {
+      try {
+        const activeUserId = getActiveUserId();
+        if (activeUserId) {
+          const cachedProfile = getCachedProfile(activeUserId);
+          const cachedName = formatCertificateName(cachedProfile);
+          if (cachedName) {
+            setCertificateUserName(cachedName);
+            return;
+          }
+        }
+
+        const response = await api.get('/api/auth/profile/');
+        const resolvedName = formatCertificateName(response.data);
+        if (resolvedName) {
+          setCertificateUserName(resolvedName);
+        }
+      } catch (err) {
+        // Silent fallback to other local sources / placeholder
+        console.debug('Certificate name hydration fallback:', err?.message || err);
+      }
+    };
+
+    hydrateCertificateName();
+  }, []);
 
   const viewCertificate = () => {
     // Use backend-provided flag `certificate_unlocked` instead of local 100% checks
@@ -118,20 +204,61 @@ const CourseVideoPage = () => {
     setShowCertificateModal(true);
   };
 
-  const handleCertificateDownload = async () => {
+  const handleCertificateDownload = async (certificateElement) => {
     try {
-      setToast({ visible: true, message: 'Preparing certificate...', type: 'info' });
-      // Attempt to download certificate from backend endpoint
-      const resp = await api.get(`/api/video/courses/${courseId}/certificate/download/`, { responseType: 'blob' });
-      const blob = new Blob([resp.data], { type: resp.headers['content-type'] || 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${(courseData?.title || 'course')}-certificate.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      if (!certificateElement) {
+        setToast({ visible: true, message: 'Certificate preview not ready. Try again.', type: 'error' });
+        setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 2500);
+        return;
+      }
+
+      setToast({ visible: true, message: 'Preparing certificate PDF...', type: 'info' });
+
+      // Render at high quality while keeping memory safe for mobile devices.
+      const desktopViewportWidth = 1600;
+      const desktopViewportHeight = 1132;
+      const baseScale = (window.devicePixelRatio || 1) * 1.6;
+      let captureScale = Math.min(3, Math.max(2, baseScale));
+
+      const targetPixels = desktopViewportWidth * desktopViewportHeight * captureScale * captureScale;
+      const maxPixels = 16_000_000; // mobile-safe upper bound
+      if (targetPixels > maxPixels) {
+        captureScale = Math.max(1.5, Math.sqrt(maxPixels / (desktopViewportWidth * desktopViewportHeight)));
+      }
+
+      const canvas = await html2canvas(certificateElement, {
+        scale: captureScale,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: desktopViewportWidth,
+        windowHeight: desktopViewportHeight,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+      });
+
+      const imageData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imageAspect = canvas.width / canvas.height;
+      const pageAspect = pageWidth / pageHeight;
+      let renderWidth = pageWidth;
+      let renderHeight = pageWidth / imageAspect;
+
+      if (imageAspect < pageAspect) {
+        renderHeight = pageHeight;
+        renderWidth = pageHeight * imageAspect;
+      }
+
+      const offsetX = (pageWidth - renderWidth) / 2;
+      const offsetY = (pageHeight - renderHeight) / 2;
+      pdf.addImage(imageData, 'PNG', offsetX, offsetY, renderWidth, renderHeight, undefined, 'FAST');
+      const fileName = `${(courseData?.title || 'course').replace(/\s+/g, '-')}-certificate.pdf`;
+      pdf.save(fileName);
+
       setToast({ visible: true, message: 'Certificate download started', type: 'info' });
       setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3000);
     } catch (err) {
@@ -143,29 +270,14 @@ const CourseVideoPage = () => {
 
   // Fetch course data from API
   useEffect(() => {
-    const fetchCourseData = async () => {
-      if (!courseId) {
-        setError('No course ID provided');
-        setLoading(false);
-        return;
-      }
+    if (!courseId) {
+      setError('No course ID provided');
+      setLoading(false);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        const response = await api.get(`/api/video/courses/${courseId}/`);
-        setCourseData(response.data);
-        setUserRating(response.data.user_rating);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching course details:', err);
-        setError('Failed to load course details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourseData();
-  }, [courseId]);
+    refreshCourseData(true);
+  }, [courseId, refreshCourseData]);
 
   // Fetch user notes from API
   useEffect(() => {
@@ -266,6 +378,18 @@ const CourseVideoPage = () => {
           if (watchPercentage === 90) {
             console.log('🎯 Video 90% watched - ready for completion!');
           }
+
+          const activeLesson = courseData?.lessons?.[currentLessonIndex];
+          if (
+            watchPercentage >= 90 &&
+            activeLesson?.id &&
+            !completedLessons.has(activeLesson.id) &&
+            autoCompletingLessonId !== activeLesson.id
+          ) {
+            setAutoCompletingLessonId(activeLesson.id);
+            markLessonComplete(activeLesson.id)
+              .finally(() => setAutoCompletingLessonId(null));
+          }
         }
       } catch (err) {
         console.error('Error getting YouTube player time:', err);
@@ -273,7 +397,7 @@ const CourseVideoPage = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [youtubePlayer, playerReady, isVideoPlaying]);
+  }, [youtubePlayer, playerReady, isVideoPlaying, courseData, currentLessonIndex, completedLessons, autoCompletingLessonId]);
   
   // Send video progress update to backend
   const updateVideoProgressOnBackend = async (watchPercentage, videoDuration) => {
@@ -313,6 +437,8 @@ const CourseVideoPage = () => {
     setVideoWatchedTime(0);
     setIsVideoPlaying(false);
     setPlayerReady(false);
+    directVideoAutoplayAttemptedRef.current = false;
+    directVideoTrackingRef.current = { lastTrackedSecond: -1, lastTrackedPercentage: 0 };
     
     // Destroy previous YouTube player instance
     if (youtubePlayer) {
@@ -364,6 +490,8 @@ const CourseVideoPage = () => {
               playerVars: {
                 autoplay: 1,
                 mute: 0,
+                  controls: 1,
+                  fs: 1,
                 enablejsapi: 1,
                 modestbranding: 1,
                 rel: 0
@@ -519,6 +647,15 @@ const CourseVideoPage = () => {
       
       // Add lesson to completed set for visual indicator
       setCompletedLessons(prev => new Set([...prev, targetLesson.id]));
+      setCourseData(prev => {
+        if (!prev?.lessons) return prev;
+        return {
+          ...prev,
+          lessons: prev.lessons.map(lesson =>
+            lesson.id === targetLesson.id ? { ...lesson, completed: true } : lesson
+          )
+        };
+      });
       
       // Show XP notification if XP was awarded
       if (xpAwarded > 0) {
@@ -541,6 +678,9 @@ const CourseVideoPage = () => {
           setIsVideoPlaying(false);
         }, 2000); // Wait 2 seconds before moving to next
       }
+
+      // Refresh latest progress/completion from backend so it survives refresh and syncs all cards
+      refreshCourseData(false);
       
     } catch (err) {
       console.error('❌ Error marking lesson complete:', err);
@@ -594,6 +734,54 @@ const CourseVideoPage = () => {
     }
     
     return 120; // Default 2 minutes if parsing fails
+  };
+
+  const trackDirectVideoProgress = (videoElement) => {
+    if (!videoElement) return;
+
+    const currentTime = Math.floor(videoElement.currentTime || 0);
+    const metadataDuration = Number.isFinite(videoElement.duration) ? videoElement.duration : 0;
+    const fallbackDuration = parseDurationToSeconds(currentLesson?.duration);
+    const duration = Math.floor(metadataDuration > 0 ? metadataDuration : fallbackDuration);
+
+    if (currentTime <= 0 || duration <= 0) return;
+
+    setVideoWatchedTime(currentTime);
+    const watchPercentage = Math.min(Math.round((currentTime / duration) * 100), 100);
+
+    const { lastTrackedSecond, lastTrackedPercentage } = directVideoTrackingRef.current;
+    const isFiveSecondCheckpoint = currentTime % 5 === 0 && currentTime !== lastTrackedSecond;
+    const crossedCompletionThreshold = watchPercentage >= 90 && lastTrackedPercentage < 90;
+
+    if (isFiveSecondCheckpoint || crossedCompletionThreshold) {
+      directVideoTrackingRef.current = {
+        lastTrackedSecond: currentTime,
+        lastTrackedPercentage: watchPercentage
+      };
+      updateVideoProgressOnBackend(watchPercentage, duration);
+    }
+
+    if (
+      watchPercentage >= 90 &&
+      currentLesson?.id &&
+      !completedLessons.has(currentLesson.id) &&
+      autoCompletingLessonId !== currentLesson.id
+    ) {
+      setAutoCompletingLessonId(currentLesson.id);
+      markLessonComplete(currentLesson.id)
+        .finally(() => setAutoCompletingLessonId(null));
+    }
+  };
+
+  const handleDirectVideoEnded = (videoElement) => {
+    if (!videoElement) return;
+
+    const metadataDuration = Number.isFinite(videoElement.duration) ? videoElement.duration : 0;
+    const fallbackDuration = parseDurationToSeconds(currentLesson?.duration);
+    const duration = Math.floor(metadataDuration > 0 ? metadataDuration : fallbackDuration);
+
+    updateVideoProgressOnBackend(100, duration);
+    markLessonComplete();
   };
 
   // Handle discussion submission
@@ -732,7 +920,7 @@ const CourseVideoPage = () => {
   const instructorBio = courseData?.instructor_bio || 'Ben Hong is a Staff Developer Experience (DX) Engineer...';
   const instructorAvatar = courseData?.instructor_avatar_url || defaultProfileAvatar;
   const totalLessons = lessons.length;
-  const completedLessonsCount = lessons.filter(l => l.completed).length;
+  const completedLessonsCount = Math.max(completedLessons.size, lessons.filter(l => l.completed).length);
   
   // Get current lesson's video URL
   const currentLesson = lessons[currentLessonIndex] || lessons[0];
@@ -758,6 +946,20 @@ const CourseVideoPage = () => {
   }, [currentLessonIndex, currentLesson, currentVideoUrl, videoEmbedUrl]);
 
   useEffect(() => {
+    if (!courseData?.certificate_unlocked) return;
+    if (hasShownCertificate) return;
+
+    setCertificateData({
+      userName: getUserName(),
+      courseTitle: courseData?.title || 'Course',
+      completionDate: new Date().toISOString(),
+      certificateId: generateCertificateId()
+    });
+    setShowCertificateModal(true);
+    setHasShownCertificate(true);
+  }, [courseData?.certificate_unlocked, courseData?.title, hasShownCertificate]);
+
+  useEffect(() => {
     if (!isVideoPlaying) return;
     if (isYouTubeVideo(currentVideoUrl) || isVimeoVideo(currentVideoUrl)) return;
     if (!videoEmbedUrl) return;
@@ -765,21 +967,36 @@ const CourseVideoPage = () => {
     const videoElement = directVideoRef.current;
     if (!videoElement) return;
 
-    videoElement.muted = true;
-    videoElement.load();
+    // Run autoplay helper only once per lesson/source to avoid overriding user controls
+    if (directVideoAutoplayAttemptedRef.current) return;
+    directVideoAutoplayAttemptedRef.current = true;
 
-    const playPromise = videoElement.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch((err) => {
-        console.error('❌ Direct video autoplay blocked/failed:', {
-          src: videoEmbedUrl,
-          message: err?.message,
-          name: err?.name
-        });
-        setToast({ visible: true, message: 'Tap play on the video controls to start playback.', type: 'info' });
-        setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3000);
-      });
-    }
+    // If user already started playback manually, don't interfere
+    if (!videoElement.paused || videoElement.currentTime > 0) return;
+
+    const attemptPlay = async () => {
+      try {
+        videoElement.muted = false;
+        await videoElement.play();
+      } catch (firstError) {
+        try {
+          videoElement.muted = true;
+          await videoElement.play();
+          setToast({ visible: true, message: 'Video started muted. Use controls to unmute.', type: 'info' });
+          setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 2500);
+        } catch (secondError) {
+          console.error('❌ Direct video autoplay blocked/failed:', {
+            src: videoEmbedUrl,
+            firstAttempt: { message: firstError?.message, name: firstError?.name },
+            secondAttempt: { message: secondError?.message, name: secondError?.name }
+          });
+          setToast({ visible: true, message: 'Tap play on the video controls to start playback.', type: 'info' });
+          setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3000);
+        }
+      }
+    };
+
+    attemptPlay();
   }, [isVideoPlaying, currentVideoUrl, videoEmbedUrl]);
 
   if (loading) {
@@ -827,13 +1044,20 @@ const CourseVideoPage = () => {
               type="button"
               className={`certificate-btn ${(courseData?.certificate_unlocked === true) ? 'unlocked' : 'locked'}`}
               onClick={viewCertificate}
-              aria-label="View certificate"
+              aria-label={(courseData?.certificate_unlocked === true) ? 'Download certificate' : 'Certificate locked'}
             >
-              {/* Lock / Download Icon */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M12 17a2 2 0 100-4 2 2 0 000 4z" fill="currentColor" />
-                <path d="M17 8h-1V7a4 4 0 10-8 0v1H7a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1zm-8-1a3 3 0 116 0v1H9V7z" fill="currentColor" />
-              </svg>
+              {(courseData?.certificate_unlocked === true) ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M12 17a2 2 0 100-4 2 2 0 000 4z" fill="currentColor" />
+                  <path d="M17 8h-1V7a4 4 0 10-8 0v1H7a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1zm-8-1a3 3 0 116 0v1H9V7z" fill="currentColor" />
+                </svg>
+              )}
               <span className="certificate-text">Certificate</span>
             </button>
           </div>
@@ -893,7 +1117,6 @@ const CourseVideoPage = () => {
                     }}
                     controls
                     autoPlay
-                    muted
                     playsInline
                     preload="metadata"
                     onLoadedMetadata={(event) => {
@@ -906,6 +1129,12 @@ const CourseVideoPage = () => {
                       console.log('▶️ Video can play:', {
                         src: event.currentTarget.currentSrc || videoEmbedUrl
                       });
+                    }}
+                    onTimeUpdate={(event) => {
+                      trackDirectVideoProgress(event.currentTarget);
+                    }}
+                    onEnded={(event) => {
+                      handleDirectVideoEnded(event.currentTarget);
                     }}
                     onError={(event) => {
                       const mediaError = event.currentTarget.error;

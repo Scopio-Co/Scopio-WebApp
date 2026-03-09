@@ -12,6 +12,7 @@ const CertificateModal = ({
   onDownload,
 }) => {
   if (!isOpen) return null;
+  const certificateVisualRef = useRef(null);
 
   const formatDate = (dateString) => {
     if (!dateString) return new Date().toLocaleDateString('en-GB');
@@ -22,7 +23,7 @@ const CertificateModal = ({
   const nameParts = (userName || 'Student Name').toString().trim().split(/\s+/);
 
   const handleDownload = () => {
-    if (onDownload) { onDownload(); }
+    if (onDownload) { onDownload(certificateVisualRef.current); }
   };
 
   return (
@@ -33,7 +34,7 @@ const CertificateModal = ({
         <button className="cert-close" onClick={onClose} aria-label="Close">✕</button>
 
         {/* Certificate visual */}
-        <div className="cert-visual">
+        <div className="cert-visual" ref={certificateVisualRef}>
           <img src={certificateBg} alt="Certificate background" className="cert-bg" />
 
           {/* Left-half text overlay — matching the screenshot layout */}

@@ -35,14 +35,19 @@ def _load_simple_env_file(path):
     except FileNotFoundError:
         pass
 
-# Load environment variables from Backend/.env (local development only).
-# Avoid relying on current working directory; this prevents stale values from other .env files.
-_backend_env_path = BASE_DIR / '.env'
+# Load environment variables from common local-dev paths.
+# Order matters: Backend/.env first, then Backend/main/.env to allow app-specific overrides.
+_env_paths = [
+    BASE_DIR / '.env',
+    SETTINGS_DIR / '.env',
+]
 try:
     from dotenv import load_dotenv
-    load_dotenv(_backend_env_path)
+    for _env_path in _env_paths:
+        load_dotenv(_env_path)
 except ImportError:
-    _load_simple_env_file(_backend_env_path)
+    for _env_path in _env_paths:
+        _load_simple_env_file(_env_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
