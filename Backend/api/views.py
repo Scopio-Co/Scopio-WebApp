@@ -17,6 +17,7 @@ from django.contrib.auth import logout as django_logout
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from django.core.files.base import ContentFile
 from PIL import Image, UnidentifiedImageError
+from PIL import features as pil_features
 from pathlib import Path
 import io
 import logging
@@ -429,6 +430,19 @@ def auth_profile(request):
             if image_file is None:
                 profile.profile_image = None
             else:
+                if not pil_features.check('webp'):
+                    logger.error('WebP encoder is unavailable in current runtime. Install libwebp and rebuild Pillow.')
+                    return Response(
+                        {
+                            "errors": {
+                                "profile_image": [
+                                    "Server image encoder does not support WebP in this environment."
+                                ]
+                            }
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
                 try:
                     # Convert any uploaded image format (png/jpg/jpeg/gif/etc.) to real WebP before storage.
                     image_file.seek(0)

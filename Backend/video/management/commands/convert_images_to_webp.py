@@ -2,8 +2,10 @@ import io
 import os
 
 from PIL import Image, UnidentifiedImageError
+from PIL import features as pil_features
 from django.apps import apps
 from django.core.files.base import ContentFile
+from django.core.management.base import CommandError
 from django.core.management.base import BaseCommand
 from django.db import models
 
@@ -38,6 +40,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not pil_features.check("webp"):
+            raise CommandError(
+                "WebP encoder is not available in this environment (Pillow/libwebp missing). "
+                "Install libwebp on the host and rebuild Pillow before running conversion."
+            )
+
         quality = max(0, min(100, options["quality"]))
         delete_original = options["delete_original"]
         dry_run = options["dry_run"]
