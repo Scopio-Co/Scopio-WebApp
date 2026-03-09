@@ -187,7 +187,16 @@
 @media (max-width: 1024px) {
   .table-header-skeleton,
   .leaderboard-row-skeleton {
-    grid-template-columns: 60px 1fr 120px 120px;
+    grid-template-columns: 60px 1fr 100px;
+  }
+
+  /* Match rank-cell padding-left: 24px */
+  .leaderboard-row-skeleton > .skeleton-rank {
+    margin-left: 8px;
+  }
+
+  .skeleton-streak {
+    display: none;
   }
 
   .skeleton-search-bar {
@@ -195,6 +204,7 @@
   }
 }
 
+/* ≤ 768px: padding + font-size reductions, still 3-column table */
 @media (max-width: 768px) {
   .leaderboard-page-skeleton {
     padding: 1rem;
@@ -210,21 +220,55 @@
     width: 100%;
   }
 
-  .table-header-skeleton {
+  .table-header-skeleton,
+  .leaderboard-row-skeleton {
+    grid-template-columns: 55px 1fr 110px;
+    padding: 1rem 0.75rem;
+  }
+
+  .skeleton-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .skeleton-rank {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ≤ 480px: avatar hidden, tighter padding, table fills full width */
+@media (max-width: 480px) {
+  .leaderboard-table-skeleton {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .table-header-skeleton,
+  .leaderboard-row-skeleton {
+    grid-template-columns: 44px 1fr 90px;
+    gap: 0.4rem;
+    padding: 0.5rem 0.25rem;
+  }
+
+  /* Match rank-cell padding-left: 12px */
+  .leaderboard-row-skeleton > .skeleton-rank {
+    margin-left: 4px;
+  }
+
+  /* Avatar hidden to match .learner-avatar { display: none } */
+  .skeleton-avatar {
     display: none;
   }
 
-  .leaderboard-row-skeleton {
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
+  .skeleton-user-name {
+    width: 100px;
   }
 
-  .skeleton-user-info {
-    grid-column: 1 / -1;
+  .skeleton-username {
+    width: 80px;
   }
 
-  .skeleton-score,
-  .skeleton-streak {
-    justify-self: start;
+  .skeleton-score {
+    width: 60px;
   }
 }

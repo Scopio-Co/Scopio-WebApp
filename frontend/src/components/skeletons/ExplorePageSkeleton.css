@@ -178,3 +178,65 @@
   }
 }
 
+/* ≤425px: mirrors the real ExplorePage — one full-width card visible, arrows overlaid */
+@media (max-width: 425px) {
+  .explore-sections-skeleton {
+    padding: 0 0 30px 0;
+    gap: 20px;
+  }
+
+  /* Match .section-container { padding: 0 20px } */
+  .section-container-skeleton {
+    position: relative;
+    padding: 0 20px;
+    gap: 0;
+  }
+
+  /* Hide the static arrow placeholders — real arrows are absolute-positioned */
+  .section-container-skeleton > .skeleton-arrow-btn {
+    display: none;
+  }
+
+  /* Arrows overlay the container, matching .arrow-btn absolute positioning */
+  .section-container-skeleton::before,
+  .section-container-skeleton::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(136, 136, 136, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    z-index: 2;
+  }
+
+  .section-container-skeleton::before { left: 8px; }
+  .section-container-skeleton::after  { right: 8px; }
+
+  /* Scroll container fills remaining space */
+  .courses-scroll-container-skeleton {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* Row is full-width, hide all but first card */
+  .courses-row-skeleton {
+    width: 100%;
+    gap: 0;
+  }
+
+  /* Each card takes 100% width; hide all after the first */
+  .course-card-skeleton-explore {
+    min-width: 100%;
+    max-width: 100%;
+    width: 100%;
+    height: 300px;
+  }
+
+  .course-card-skeleton-explore + .course-card-skeleton-explore {
+    display: none;
+  }
+}
+

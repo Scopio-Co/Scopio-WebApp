@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import api from '../api';
 import './SettingsPage.css';
 import defaultProfileAvatar from '../assets/img/profilePic (2).png';
+import Footer from '../components/Footer';
 import {
   getActiveUserId,
   getCachedProfile,
@@ -345,6 +346,7 @@ const SettingsPage = () => {
           </form>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
