@@ -217,9 +217,9 @@ try:
             },
         }
     }
-    print(f"✓ Using PostgreSQL/Neon: {parsed.hostname}")
+    print(f"[OK] Using PostgreSQL/Neon: {parsed.hostname}")
 except Exception as e:
-    raise RuntimeError(f"❌ Failed to parse DATABASE_URL: {e}")
+    raise RuntimeError(f"[ERROR] Failed to parse DATABASE_URL: {e}")
 
 
 # Password validation
@@ -397,6 +397,7 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_REDIRECT_URL = '/glogin/google/finalize/'  # Complete OAuth by minting JWT and redirecting to frontend
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 ACCOUNT_SIGNUP_REDIRECT_URL = '/glogin/google/finalize/'
+ACCOUNT_LOGIN_REDIRECT_URL = '/glogin/google/finalize/'
 
 # allauth configuration to avoid intermediate forms and auto-create users
 # Using new allauth v0.65+ settings

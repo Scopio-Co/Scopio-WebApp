@@ -3,9 +3,33 @@ from django.conf import settings
 from django.contrib.auth import logout as django_logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.parse import urlencode
+from urllib.parse import urlparse
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_allowed_origin(value):
+    return (value or '').strip().rstrip('/')
+
+
+def _extract_allowed_origin(candidate, allowed_origins):
+    normalized = _normalize_allowed_origin(candidate)
+    if not normalized:
+        return ''
+    return normalized if normalized in allowed_origins else ''
+
+
+def _origin_from_header_url(header_value):
+    if not header_value:
+        return ''
+    try:
+        parsed = urlparse(header_value)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}"
+    except Exception:
+        return ''
+    return ''
 
 
 def _auth_cookie_options():
@@ -21,88 +45,171 @@ def _auth_cookie_options():
 
 
 def _resolve_frontend_url(request):
-    session_frontend = (request.session.get('oauth_frontend_origin') or '').rstrip('/')
-    allowed_origins = set(getattr(settings, 'FRONTEND_ALLOWED_ORIGINS', []))
-    if session_frontend and session_frontend in allowed_origins:
+    allowed_origins = {
+        _normalize_allowed_origin(origin)
+        for origin in getattr(settings, 'FRONTEND_ALLOWED_ORIGINS', [])
+        if _normalize_allowed_origin(origin)
+    }
+
+    session_frontend = _extract_allowed_origin(request.session.get('oauth_frontend_origin'), allowed_origins)
+    if session_frontend:
         return session_frontend
+
+    query_frontend = _extract_allowed_origin(request.GET.get('frontend_origin'), allowed_origins)
+    if query_frontend:
+        return query_frontend
+
+    origin_header = _extract_allowed_origin(request.headers.get('Origin'), allowed_origins)
+    if origin_header:
+        return origin_header
+
+    referer_origin = _extract_allowed_origin(_origin_from_header_url(request.headers.get('Referer')), allowed_origins)
+    if referer_origin:
+        return referer_origin
+
     return settings.FRONTEND_URL
 
 def google_start(request):
-    frontend_origin = (request.GET.get('frontend_origin') or '').strip().rstrip('/')
-    allowed_origins = set(getattr(settings, 'FRONTEND_ALLOWED_ORIGINS', []))
-    if frontend_origin and frontend_origin in allowed_origins:
-        request.session['oauth_frontend_origin'] = frontend_origin
-
-    next_url = '/glogin/google/finalize/'
-    return redirect(f'/accounts/google/login/?process=login&next={next_url}')
-
-def google_finalize(request):
+    """
+    Start the Google OAuth flow by persisting the frontend origin and then
+    redirecting to allauth's Google OAuth endpoint.
+    """
     try:
-        logger.info(f"google_finalize called. User authenticated: {request.user.is_authenticated}")
-        logger.info(f"Session key: {request.session.session_key}")
+        allowed_origins = {
+            _normalize_allowed_origin(origin)
+            for origin in getattr(settings, 'FRONTEND_ALLOWED_ORIGINS', [])
+            if _normalize_allowed_origin(origin)
+        }
         
-        if not request.user.is_authenticated:
-            frontend = _resolve_frontend_url(request)
-            logger.error("User not authenticated in google_finalize")
-            return redirect(f"{frontend}/?error=google_auth_failed")
-
-        # Save session explicitly before generating tokens
+        # Get frontend origin from multiple fallback sources
+        frontend_origin = _extract_allowed_origin(request.GET.get('frontend_origin'), allowed_origins)
+        if not frontend_origin:
+            frontend_origin = _extract_allowed_origin(request.headers.get('Origin'), allowed_origins)
+        if not frontend_origin:
+            frontend_origin = _extract_allowed_origin(_origin_from_header_url(request.headers.get('Referer')), allowed_origins)
+        
+        # Store in session for later retrieval in google_finalize
+        if frontend_origin:
+            request.session['oauth_frontend_origin'] = frontend_origin
+            logger.debug(f"[OAuth] Frontend origin persisted in session: {frontend_origin}")
+        else:
+            logger.warning(f"[OAuth] Could not determine frontend origin. Will use FRONTEND_URL default.")
+        
+        # Save session before redirecting
         request.session.save()
         
-        logger.info(f"Generating tokens for user: {request.user.email}")
-        refresh = RefreshToken.for_user(request.user)
-        access = str(refresh.access_token)
-        refresh_str = str(refresh)
-
-        frontend = settings.FRONTEND_URL
-        # Use query params instead of hash for better reliability
-        redirect_url = f"{frontend}/?access={access}&refresh={refresh_str}"
-        logger.info(f"Redirecting to: {redirect_url}")
+        # Redirect to allauth's Google OAuth endpoint with custom next URL
+        next_url = '/glogin/google/finalize/'
+        oauth_url = f'/accounts/google/login/?process=login&next={next_url}'
+        logger.info(f"[OAuth] Starting Google OAuth redirect to: {oauth_url}")
         
+        return redirect(oauth_url)
+        
+    except Exception as e:
+        logger.exception(f"❌ [OAuth] Error in google_start: {str(e)}")
+        # Fallback to frontend error page
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://scopio-webapp.pages.dev')
+        error_msg = str(e).replace(' ', '%20')[:100]
+        return redirect(f"{frontend_url}/?error=oauth_start_failed&message={error_msg}")
+
+def google_finalize(request):
+    """
+    Complete the Google OAuth flow by minting JWT tokens and redirecting to the frontend.
+    
+    This endpoint is called after Google OAuth is complete and the user is authenticated.
+    The response includes JWT tokens (access + refresh) passed as query parameters.
+    """
+    try:
+        logger.info(f"[OAuth] google_finalize: user_auth={request.user.is_authenticated}, session_key={request.session.session_key}")
+        
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            frontend = _resolve_frontend_url(request)
+            error_msg = "User not authenticated after Google OAuth callback"
+            logger.error(f"❌ [OAuth] {error_msg}")
+            return redirect(f"{frontend}/?error=auth_failed&message={error_msg.replace(' ', '%20')}")
+        
+        # Get user details
+        user_email = getattr(request.user, 'email', 'unknown')
+        user_id = getattr(request.user, 'id', 'unknown')
+        logger.info(f"[OAuth] ✓ User authenticated: {user_email} (ID: {user_id})")
+        
+        # Ensure session is saved before token generation
+        request.session.save()
+        logger.debug(f"[OAuth] Session saved before token generation")
+        
+        # Generate JWT tokens
+        try:
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(request.user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+            logger.info(f"[OAuth] ✓ JWT tokens generated for user {user_email}")
+        except Exception as e:
+            logger.error(f"❌ [OAuth] Failed to generate JWT tokens: {str(e)}")
+            frontend = _resolve_frontend_url(request)
+            error_msg = f"Token generation failed: {str(e)}"
+            return redirect(f"{frontend}/?error=token_gen_failed&message={error_msg.replace(' ', '%20')}")
+        
+        # Resolve frontend URL with fallback chain
+        frontend = _resolve_frontend_url(request)
+        logger.info(f"[OAuth] Resolved frontend URL: {frontend}")
+        
+        # Build redirect URL with tokens as query parameters
+        redirect_url = f"{frontend}/?{urlencode({'access': access_token, 'refresh': refresh_token})}"
+        logger.debug(f"[OAuth] Redirect URL generated (tokens hidden for security)")
+        
+        # Create redirect response with httponly cookies for extra security
         response = redirect(redirect_url)
         cookie_options = _auth_cookie_options()
-
-        # Keep OAuth and password login cookie names aligned.
+        
+        # Set JWT tokens as httponly cookies (backup to query params)
         response.set_cookie(
             'access',
-            access,
+            access_token,
             max_age=1800,  # 30 minutes
             httponly=True,
             **cookie_options,
         )
         response.set_cookie(
             'refresh',
-            refresh_str,
+            refresh_token,
             max_age=86400,  # 1 day
             httponly=True,
             **cookie_options,
         )
-
-        # Compatibility aliases for older clients.
-        response.set_cookie('accessToken', access, max_age=1800, httponly=True, **cookie_options)
-        response.set_cookie('refreshToken', refresh_str, max_age=86400, httponly=True, **cookie_options)
-
-        # Clear legacy non-HttpOnly OAuth cookie names if present.
-        response.delete_cookie(
-            'jwt_access',
-            path=cookie_options['path'],
-            domain=cookie_options['domain'],
-            samesite=cookie_options['samesite'],
-            secure=cookie_options['secure'],
-        )
-        response.delete_cookie(
-            'jwt_refresh',
-            path=cookie_options['path'],
-            domain=cookie_options['domain'],
-            samesite=cookie_options['samesite'],
-            secure=cookie_options['secure'],
-        )
+        
+        # Compatibility aliases for clients that check different names
+        response.set_cookie('accessToken', access_token, max_age=1800, httponly=True, **cookie_options)
+        response.set_cookie('refreshToken', refresh_token, max_age=86400, httponly=True, **cookie_options)
+        
+        # Clean up deprecated cookies
+        for cookie_name in ['jwt_access', 'jwt_refresh']:
+            response.delete_cookie(
+                cookie_name,
+                path=cookie_options['path'],
+                domain=cookie_options['domain'],
+                samesite=cookie_options['samesite'],
+                secure=cookie_options['secure'],
+            )
+        
+        logger.info(f"[OAuth] ✓ Redirecting user {user_email} to frontend: {frontend}")
         return response
+        
     except Exception as e:
-        logger.exception(f"Error in google_finalize: {str(e)}")
-        frontend = _resolve_frontend_url(request)
-        error_message = str(e).replace('#', '%23').replace('&', '%26')
-        return redirect(f"{frontend}/?error=auth_error&message={error_message}")
+        logger.exception(f"❌ [OAuth] Unexpected error in google_finalize: {str(e)}")
+        try:
+            frontend = _resolve_frontend_url(request)
+            error_msg = str(e).replace('#', '%23').replace('&', '%26')[:100]  # Truncate long errors
+            return redirect(f"{frontend}/?error=oauth_error&message={error_msg}")
+        except Exception as e2:
+            logger.error(f"❌ [OAuth] Even error handling failed: {str(e2)}")
+            # Last resort: return JSON error
+            from django.http import JsonResponse
+            return JsonResponse(
+                {'error': 'oauth_error', 'message': 'OAuth flow failed'},
+                status=400
+            )
 
 def google_logout(request):
     django_logout(request)

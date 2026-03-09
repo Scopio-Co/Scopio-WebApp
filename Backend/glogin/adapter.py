@@ -12,51 +12,122 @@ logger = logging.getLogger(__name__)
 class SocialAdapter(DefaultSocialAccountAdapter):
     def get_app(self, request, provider, client_id=None):
         """
-        Override to avoid MultipleObjectsReturned errors.
-        Explicitly query for the Google app by provider and site.
+        Override to gracefully handle missing SocialApp configurations.
+        
+        1. First tries to get from database (preferred for production)
+        2. Falls back to settings-based config if database lookup fails
+        3. This allows flexibility in how credentials are managed
         """
         try:
             from django.contrib.sites.models import Site
             site = Site.objects.get_current()
             
-            # Log the request details
-            logger.info(f"get_app called: provider={provider}, request.build_absolute_uri()={request.build_absolute_uri()}")
-            logger.info(f"Site domain: {site.domain}, Site ID: {site.id}")
+            logger.debug(f"[OAuth] get_app: provider={provider}, site_domain={site.domain}")
             
-            # Use a more explicit query to avoid multiple matches
+            # Try to get from database first
             app = SocialApp.objects.filter(
                 provider=provider,
                 sites=site
             ).distinct().first()
             
-            if not app:
-                logger.error(f"No SocialApp found for provider '{provider}' on site '{site.domain}'")
-                raise SocialApp.DoesNotExist(f"SocialApp not configured for {provider}")
+            if app:
+                logger.info(f"✓ [OAuth] Found SocialApp in DB for {provider}: {app.name}")
+                return app
             
-            logger.info(f"✓ Got SocialApp for {provider}: {app.name}")
-            return app
+            logger.warning(f"⚠️ [OAuth] SocialApp not found in DB for {provider} on site {site.domain}")
+            
         except Exception as e:
-            logger.exception(f"Error in get_app: {str(e)}")
-            raise
+            logger.warning(f"⚠️ [OAuth] Database lookup for SocialApp failed: {str(e)}")
+        
+        # Fallback: Create a temporary SocialApp from settings-based config
+        logger.info(f"[OAuth] Attempting fallback to settings-based config for {provider}")
+        try:
+            app = self._get_app_from_settings(provider)
+            if app:
+                logger.info(f"✓ [OAuth] Using settings-based config for {provider}")
+                return app
+        except Exception as e:
+            logger.error(f"❌ [OAuth] Settings-based config failed: {str(e)}")
+        
+        # If we get here, something is badly misconfigured
+        error_msg = (
+            f"Could not load OAuth configuration for '{provider}'. "
+            f"Ensure either: (1) SocialApp is configured in Django admin, or "
+            f"(2) SOCIALACCOUNT_PROVIDERS['{provider}']['APP'] is set in settings.py"
+        )
+        logger.error(f"❌ [OAuth] {error_msg}")
+        raise SocialApp.DoesNotExist(error_msg)
+    
+    def _get_app_from_settings(self, provider):
+        """
+        Create a temporary SocialApp from SOCIALACCOUNT_PROVIDERS settings.
+        This allows credentials to be managed via environment variables
+        without requiring database setup.
+        """
+        try:
+            provider_config = settings.SOCIALACCOUNT_PROVIDERS.get(provider, {})
+            app_config = provider_config.get('APP', {})
+            
+            if not app_config.get('client_id'):
+                logger.warning(f"[OAuth] No client_id in settings for {provider}")
+                return None
+            
+            # Create a minimal app-like object on the fly
+            # This isn't saved to DB, just used for this request
+            class SettingsApp:
+                def __init__(self, provider, config):
+                    self.provider = provider
+                    self.name = config.get('name', f'{provider.title()} OAuth')
+                    self.client_id = config.get('client_id', '')
+                    self.secret = config.get('secret', '')
+                    self.key = config.get('key', '')
+            
+            app = SettingsApp(provider, app_config)
+            logger.debug(f"[OAuth] Created temporary app from settings for {provider}")
+            return app
+        
+        except Exception as e:
+            logger.error(f"[OAuth] Failed to create app from settings: {str(e)}")
+            return None
     
     def get_callback_url(self, request, app):
         """
-        Explicitly set the callback URL to match Google's configuration.
-        Override the default to avoid construction errors.
+        Generate the OAuth callback URL dynamically from the incoming request.
+        
+        This ensures both localhost development and production work correctly without
+        requiring manual Site configuration updates.
+        
+        Important: This URL must match what's configured in your OAuth provider
+        (Google Cloud Console). For flexible setup, configure it there as a wildcard
+        or add both http://localhost:8000 and https://yourserver.com versions.
         """
-        from django.contrib.sites.models import Site
-        site = Site.objects.get_current()
-        scheme = getattr(settings, 'ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'http')
-        callback_url = f"{scheme}://{site.domain}/accounts/{app.provider}/login/callback/"
-        logger.info(f"✓ Callback URL: {callback_url}")
-        return callback_url
-
+        try:
+            # Use the incoming request's scheme and host for maximum flexibility
+            scheme = 'https' if request.is_secure() else request.scheme
+            host = request.get_host()
+            
+            # Get provider from app (handle both DB app and settings-based app)
+            provider = getattr(app, 'provider', 'google')
+            
+            callback_url = f"{scheme}://{host}/accounts/{provider}/login/callback/"
+            logger.debug(f"[OAuth] Callback URL for {host}: {callback_url}")
+            
+            return callback_url
+        except Exception as e:
+            logger.error(f"❌ [OAuth] Error generating callback URL: {str(e)}")
+            # Fallback to a safe default
+            return "http://localhost:8000/accounts/google/login/callback/"
+    
     def is_auto_signup_allowed(self, request, sociallogin):
-        # Always allow auto-signup when coming from Google.
-        # We rely on ACCOUNT settings (no username, email required) and
-        # will avoid rendering the intermediate 3rdparty signup form.
-        logger.info(f"✓ Auto-signup allowed for {sociallogin.account.provider}: {sociallogin.account.extra_data.get('email')}")
-        return True
+        """Allow auto-signup for social OAuth logins to streamline the flow."""
+        try:
+            provider = sociallogin.account.provider
+            email = sociallogin.account.extra_data.get('email', 'unknown')
+            logger.info(f"✓ [OAuth] Auto-signup allowed for {provider}: {email}")
+            return True
+        except Exception as e:
+            logger.warning(f"⚠️ [OAuth] Error in auto-signup check: {str(e)}")
+            return True  # Fail open to allow signup
 
     def pre_social_login(self, request, sociallogin):
         """Auto-link social login to an existing user by email to prevent
