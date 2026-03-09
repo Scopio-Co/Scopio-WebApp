@@ -213,7 +213,7 @@ def check_oauth_urls():
     
     urls = [
         ("Localhost", "http://localhost:8000/accounts/google/login/callback/"),
-        ("Production", "https://20.17.98.254.nip.io/accounts/google/login/callback/"),
+        ("Production", "https://scopio.in/accounts/google/login/callback/"),
     ]
     
     for name, url in urls:
@@ -320,7 +320,7 @@ def generate_summary():
         
         print("\n4. Verify in Google Cloud Console that callback URLs are configured:")
         print("   - http://localhost:8000/accounts/google/login/callback/")
-        print("   - https://20.17.98.254.nip.io/accounts/google/login/callback/")
+        print("   - https://scopio.in/accounts/google/login/callback/")
     else:
         print_ok("All OAuth configuration checks passed!")
         print("\nNEXT STEPS:")

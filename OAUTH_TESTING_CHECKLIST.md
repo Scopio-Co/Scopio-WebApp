@@ -21,7 +21,7 @@
   - OAuth 2.0 Client ID > "Authorized redirect URIs"
   - Contains:
     - `http://localhost:8000/accounts/google/login/callback/`
-    - `https://20.17.98.254.nip.io/accounts/google/login/callback/`
+    - `https://scopio.in/accounts/google/login/callback/`
   - **If NOT present:** Add them now and save
 
 - [ ] **3. Run diagnostic**

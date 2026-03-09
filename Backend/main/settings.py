@@ -367,7 +367,7 @@ CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours
 
 CSRF_TRUSTED_ORIGINS = [
     'https://scopio-webapp.pages.dev',
-    'https://20.17.98.254.nip.io',
+    'https://scopio.in',
 ]
 
 # Cookie settings for cross-domain authentication

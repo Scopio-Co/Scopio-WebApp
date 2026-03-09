@@ -161,7 +161,7 @@ class Command(BaseCommand):
             self.stdout.write("\n[7] OAuth URLs Configuration:")
             self.stdout.write("  Expected callback URLs:")
             self.stdout.write(f"    • Localhost: http://localhost:8000/accounts/google/login/callback/")
-            self.stdout.write(f"    • Production: https://20.17.98.254.nip.io/accounts/google/login/callback/")
+            self.stdout.write(f"    • Production: https://scopio.in/accounts/google/login/callback/")
             self.stdout.write("\n  ⚠️  Ensure these URLs are configured in Google Cloud Console!")
             
             self.stdout.write("\n" + "="*70)

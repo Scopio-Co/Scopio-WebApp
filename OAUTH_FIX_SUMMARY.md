@@ -120,7 +120,7 @@ npm run dev
 ```
 Authorized redirect URIs:
 - http://localhost:8000/accounts/google/login/callback/
-- https://20.17.98.254.nip.io/accounts/google/login/callback/
+- https://scopio.in/accounts/google/login/callback/
 ```
 
 If these don't match exactly, Google auth will fail.
@@ -223,7 +223,7 @@ DATABASE_URL=<neon-postgresql-url>
 
 ### Cloud Deployment (Vercel + Azure VM)
 1. Frontend: https://scopio-webapp.pages.dev ✓
-2. Backend: https://20.17.98.254.nip.io ✓
+2. Backend: https://scopio.in ✓
 3. Google Console OAuth: Both callback URLs configured ✓
 
 ## Next Steps

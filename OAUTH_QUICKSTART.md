@@ -18,7 +18,7 @@ Before testing, ensure your Google OAuth app has these callback URLs configured:
 3. Click your OAuth 2.0 Client ID
 4. Add to "Authorized redirect URIs":
    - `http://localhost:8000/accounts/google/login/callback/`
-   - `https://20.17.98.254.nip.io/accounts/google/login/callback/`
+   - `https://scopio.in/accounts/google/login/callback/`
 5. Save
 
 ## Quick Setup (5 minutes)

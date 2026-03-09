@@ -30,7 +30,7 @@ sudo systemctl restart gunicorn
 sudo systemctl reload nginx
 
 echo "[8/8] Health checks"
-curl -fsS https://20.17.98.254.nip.io/api/ >/dev/null
-curl -fsS https://20.17.98.254.nip.io/api/auth/status/ >/dev/null || true
+curl -fsS https://scopio.in/api/ >/dev/null
+curl -fsS https://scopio.in/api/auth/status/ >/dev/null || true
 
 echo "Deployment completed successfully"

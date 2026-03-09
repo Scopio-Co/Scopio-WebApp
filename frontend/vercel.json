@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://20.17.98.254.nip.io/api/$1"
+      "destination": "https://scopio.in/api/$1"
     },
     {
       "source": "/glogin/(.*)",
-      "destination": "https://20.17.98.254.nip.io/glogin/$1"
+      "destination": "https://scopio.in/glogin/$1"
     },
     {
       "source": "/(.*)",
