@@ -54,12 +54,9 @@ DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 # Allow all hosts for development; set explicit hosts in production via env
 _env_hosts = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
 ALLOWED_HOSTS = _env_hosts if _env_hosts else [
-    '20.17.98.254.nip.io',  # Azure VM with nip.io (for OAuth)
-    '20.17.98.254',  # Azure VM IP
+    '20.17.98.254.nip.io',
     'localhost',
     '127.0.0.1',
-    'scopio-webapp.onrender.com',
-    'scopio-web-app.vercel.app',
 ] 
 # Django REST Framework + JWT
 _default_renderers = ["rest_framework.renderers.JSONRenderer"]
@@ -310,17 +307,12 @@ else:
     }
 
 # CORS/CSRF origins for both environments
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-web-app.vercel.app').rstrip('/')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-webapp.pages.dev').rstrip('/')
 USE_HTTPS = os.getenv('USE_HTTPS', ('False' if DEBUG else 'True')).lower() in ('true', '1', 'yes')
 
-_prod_frontend_origins = [
-    'https://scopio-web-app.vercel.app',
-]
-_dev_frontend_origins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
+_default_frontend_origins = [
     'http://localhost:5173',
-    'http://127.0.0.1:5173',
+    'https://scopio-webapp.pages.dev',
 ]
 
 _env_frontend_origins = [
@@ -329,27 +321,13 @@ _env_frontend_origins = [
     if o.strip()
 ]
 
-FRONTEND_ALLOWED_ORIGINS = _env_frontend_origins if _env_frontend_origins else (
-    _prod_frontend_origins + _dev_frontend_origins
-)
+FRONTEND_ALLOWED_ORIGINS = _env_frontend_origins if _env_frontend_origins else _default_frontend_origins
 if FRONTEND_URL and FRONTEND_URL not in FRONTEND_ALLOWED_ORIGINS:
     FRONTEND_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
 CORS_ALLOW_ALL_ORIGINS = False
 
-# Allow specific origins for localhost development
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
-
-# Use regex patterns for Vercel deployments (handles preview URLs)
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://scopio-web-app.*\.vercel\.app$",  # Production and preview deployments
-    r"^https://.*\.vercel\.app$",  # Any Vercel deployment (if you rename the project)
-]
+CORS_ALLOWED_ORIGINS = FRONTEND_ALLOWED_ORIGINS
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -377,25 +355,10 @@ CORS_EXPOSE_HEADERS = [
 ]
 CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours
 
-_backend_trusted_origins = [
+CSRF_TRUSTED_ORIGINS = [
+    'https://scopio-webapp.pages.dev',
     'https://20.17.98.254.nip.io',
-    'https://20.17.98.254',
 ]
-if DEBUG:
-    _backend_trusted_origins.extend([
-        'http://localhost:8000',
-        'http://127.0.0.1:8000',
-    ])
-
-# CSRF_TRUSTED_ORIGINS doesn't support regex, so we must use wildcards
-# Django 4.0+ supports https://*.domain.com syntax
-CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(
-    CORS_ALLOWED_ORIGINS +  # Localhost origins
-    _backend_trusted_origins +  # Backend origins
-    [
-        'https://*.vercel.app',  # Wildcard for all Vercel deployments
-    ]
-))
 
 # Cookie settings for cross-domain authentication
 if DEBUG:

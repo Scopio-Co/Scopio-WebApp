@@ -100,7 +100,7 @@ const Login = ({ onLoginSuccess }) => {
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
       // Redirect to backend Google OAuth endpoint
-      const backendURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const backendURL = getBackendBaseUrl();
       window.location.href = `${backendURL}/glogin/google/start/`;
     } else {
       console.log(`${provider} login not yet implemented`);

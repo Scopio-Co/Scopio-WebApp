@@ -4,7 +4,7 @@ import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 import { clearAuthCache } from './authCache';
 
-const PROD_BACKEND_URL = 'https://20.17.98.254.nip.io';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function stripTrailingSlash(url) {
   return (url || '').replace(/\/+$/, '');
@@ -41,29 +41,23 @@ function normalizeBackendUrl(url) {
 }
 
 export function getBackendBaseUrl() {
-  const envUrl = normalizeBackendUrl(import.meta.env.VITE_API_URL || '');
+  const envUrl = normalizeBackendUrl(API_URL || '');
   if (envUrl) {
     return envUrl;
   }
 
-  const host = window?.location?.hostname || '';
-
-  if (isLocalhostHost(host)) {
-    return `${window.location.protocol}//localhost:8000`;
-  }
-
-  return normalizeBackendUrl(PROD_BACKEND_URL);
+  // Safe fallback when env values are missing.
+  return normalizeBackendUrl('http://localhost:8000');
 }
 
 function getBackendBaseUrlCandidates() {
-  const envUrl = normalizeBackendUrl(import.meta.env.VITE_API_URL || '');
+  const envUrl = normalizeBackendUrl(API_URL || '');
   const primary = getBackendBaseUrl();
-  const fallback = normalizeBackendUrl(PROD_BACKEND_URL);
   const host = window?.location?.hostname || '';
 
   const candidates = isVercelHost(host)
-    ? ['', primary, envUrl, fallback]
-    : [primary, envUrl, fallback, ''];
+    ? ['', primary, envUrl]
+    : [primary, envUrl, ''];
 
   return Array.from(new Set(candidates.filter((value) => value !== null && value !== undefined)));
 }
