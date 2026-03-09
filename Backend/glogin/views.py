@@ -190,7 +190,6 @@ def google_finalize(request):
                 path=cookie_options['path'],
                 domain=cookie_options['domain'],
                 samesite=cookie_options['samesite'],
-                secure=cookie_options['secure'],
             )
         
         logger.info(f"[OAuth] ✓ Redirecting user {user_email} to frontend: {frontend}")
