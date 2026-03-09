@@ -4,16 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import Calendar from './calendar.jsx';
 import { WelcomeSkeleton } from './skeletons';
 import profilePic from '../assets/img/profilePic.webp';
-import badge1 from '../assets/img/Award 4.png';
-import badge2 from '../assets/img/Award 5.png';
-import badge3 from '../assets/img/Award 6.png';
-import medal from '../assets/img/Medal Purple.png';
-import clockIcon from '../assets/img/scopio/learning-dolmo.png';
-import targetIcon from '../assets/img/scopio/c-d.png';
-import flameIcon from '../assets/img/scopio/s-d.png';
-import achievementIcon from '../assets/img/scopio/j-d.png';
 import trophyIcon from '../assets/img/scopio/champion-dolmo.webp';
 import api from '../api';
+
+const clockIcon = '/icons/clock.webp';
+const flameIcon = '/icons/flame.webp';
+const targetIcon = '/icons/target.webp';
+const achievementIcon = '/icons/achievement.webp';
 
 const WelcomeDashboard = ({ welcomeData = null }) => {
   const navigate = useNavigate();

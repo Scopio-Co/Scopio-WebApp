@@ -71,7 +71,7 @@ const CourseCard = ({
               <h3 className="info-card-title">{title}</h3>
               <p className="info-card-duration">{duration}</p>
               <div className="info-card-rating">
-                <RatingComponent rating={rating} />
+                <RatingComponent courseId={id} rating={rating} />
               </div>
               <p className="info-card-description">{description}</p>
             </div>

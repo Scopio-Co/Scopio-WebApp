@@ -18,6 +18,11 @@ const ExplorePage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [arrowState, setArrowState] = useState({
+    section1: { left: false, right: false },
+    section2: { left: false, right: false },
+    section3: { left: false, right: false },
+  });
 
   // Fetch courses from backend
   useEffect(() => {
@@ -64,13 +69,34 @@ const ExplorePage = () => {
     navigate(`/course/${courseId}`);
   };
 
-  const handleScroll = (ref, direction) => {
+  const getArrowVisibility = (element) => {
+    if (!element) return { left: false, right: false };
+    const maxScrollLeft = element.scrollWidth - element.clientWidth;
+    if (maxScrollLeft <= 1) return { left: false, right: false };
+
+    return {
+      left: element.scrollLeft > 1,
+      right: element.scrollLeft < maxScrollLeft - 1,
+    };
+  };
+
+  const updateArrowState = (sectionKey, ref) => {
+    if (!ref.current) return;
+    const next = getArrowVisibility(ref.current);
+    setArrowState((prev) => ({
+      ...prev,
+      [sectionKey]: next,
+    }));
+  };
+
+  const handleScroll = (ref, direction, sectionKey) => {
     if (ref.current) {
       // Scroll by the visible container width so on small screens
       // each click advances exactly one card (which takes full width).
       const containerWidth = ref.current.clientWidth || ref.current.offsetWidth || 360;
       const scrollAmount = containerWidth;
       ref.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+      setTimeout(() => updateArrowState(sectionKey, ref), 280);
     }
   };
 
@@ -83,6 +109,14 @@ const ExplorePage = () => {
   const filteredCourses = searchTerm.trim()
     ? courses.filter((c) => c.title.toLowerCase().includes(searchTerm.toLowerCase()))
     : courses;
+
+  const scopioOriginalCourses = courses.filter((course) =>
+    String(course.description || '').toUpperCase().includes('SCOPIO(O)')
+  );
+
+  const freeCodeCampCourses = courses.filter((course) =>
+    String(course.description || '').toUpperCase().includes('FCC')
+  );
 
   const suggestionList = searchTerm.trim()
     ? courses
@@ -135,6 +169,22 @@ const ExplorePage = () => {
       window.removeEventListener('scroll', updateSuggestionPos, true);
     };
   }, [suggestionsVisible]);
+
+  useEffect(() => {
+    const refreshAllArrows = () => {
+      updateArrowState('section1', scrollRef1);
+      updateArrowState('section2', scrollRef2);
+      updateArrowState('section3', scrollRef3);
+    };
+
+    const rafId = requestAnimationFrame(refreshAllArrows);
+    window.addEventListener('resize', refreshAllArrows);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', refreshAllArrows);
+    };
+  }, [loading, searchTerm, filteredCourses.length, scopioOriginalCourses.length, freeCodeCampCourses.length]);
 
   return (
     <div className="explore-page">
@@ -216,12 +266,14 @@ const ExplorePage = () => {
               <div className="section-container">
                 {filteredCourses.length > 0 ? (
                   <>
-                    <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef1, 'left')}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                    <div className="courses-scroll-container" ref={scrollRef1}>
+                    {arrowState.section1.left ? (
+                      <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef1, 'left', 'section1')}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    ) : null}
+                    <div className="courses-scroll-container" ref={scrollRef1} onScroll={() => updateArrowState('section1', scrollRef1)}>
                       <div className="courses-row">
                         {filteredCourses.map((course, index) => (
                           <div className="course-card-cont" key={`search-${index}`}>
@@ -230,11 +282,13 @@ const ExplorePage = () => {
                         ))}
                       </div>
                     </div>
-                    <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef1, 'right')}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
+                    {arrowState.section1.right ? (
+                      <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef1, 'right', 'section1')}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    ) : null}
                   </>
                 ) : (
                   <div className="no-results">No result found</div>
@@ -247,12 +301,14 @@ const ExplorePage = () => {
               <div className="explore-section">
                 <h2 className="section-title">Latest</h2>
                 <div className="section-container">
-                  <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef1, 'left')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <div className="courses-scroll-container" ref={scrollRef1}>
+                  {arrowState.section1.left ? (
+                    <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef1, 'left', 'section1')}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  ) : null}
+                  <div className="courses-scroll-container" ref={scrollRef1} onScroll={() => updateArrowState('section1', scrollRef1)}>
                     <div className="courses-row">
                       {courses.map((course, index) => (
                         <div className="course-card-cont" key={`latest-${index}`}>
@@ -261,11 +317,13 @@ const ExplorePage = () => {
                       ))}
                     </div>
                   </div>
-                  <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef1, 'right')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
+                  {arrowState.section1.right ? (
+                    <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef1, 'right', 'section1')}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
@@ -273,25 +331,35 @@ const ExplorePage = () => {
               <div className="explore-section">
                 <h2 className="section-title">Scopio Originals</h2>
                 <div className="section-container">
-                  <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef2, 'left')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <div className="courses-scroll-container" ref={scrollRef2}>
-                    <div className="courses-row">
-                      {courses.map((course, index) => (
-                        <div className="course-card-cont" key={`section2-${index}`}>
-                          <CourseCard {...course} onCourseClick={onCourseClick} />
+                  {scopioOriginalCourses.length > 0 ? (
+                    <>
+                      {arrowState.section2.left ? (
+                      <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef2, 'left', 'section2')}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                      ) : null}
+                      <div className="courses-scroll-container" ref={scrollRef2} onScroll={() => updateArrowState('section2', scrollRef2)}>
+                        <div className="courses-row">
+                          {scopioOriginalCourses.map((course, index) => (
+                            <div className="course-card-cont" key={`section2-${index}`}>
+                              <CourseCard {...course} onCourseClick={onCourseClick} />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef2, 'right')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
+                      </div>
+                      {arrowState.section2.right ? (
+                      <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef2, 'right', 'section2')}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                      ) : null}
+                    </>
+                  ) : (
+                    <div className="no-results">No Scopio Originals found</div>
+                  )}
                 </div>
               </div>
 
@@ -299,25 +367,35 @@ const ExplorePage = () => {
               <div className="explore-section">
                 <h2 className="section-title">Freecodecamp</h2>
                 <div className="section-container">
-                  <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef3, 'left')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <div className="courses-scroll-container" ref={scrollRef3}>
-                    <div className="courses-row">
-                      {courses.map((course, index) => (
-                        <div className="course-card-cont" key={`section3-${index}`}>
-                          <CourseCard {...course} onCourseClick={onCourseClick} />
+                  {freeCodeCampCourses.length > 0 ? (
+                    <>
+                      {arrowState.section3.left ? (
+                      <button className="arrow-btn arrow-left" onClick={() => handleScroll(scrollRef3, 'left', 'section3')}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                      ) : null}
+                      <div className="courses-scroll-container" ref={scrollRef3} onScroll={() => updateArrowState('section3', scrollRef3)}>
+                        <div className="courses-row">
+                          {freeCodeCampCourses.map((course, index) => (
+                            <div className="course-card-cont" key={`section3-${index}`}>
+                              <CourseCard {...course} onCourseClick={onCourseClick} />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef3, 'right')}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
+                      </div>
+                      {arrowState.section3.right ? (
+                      <button className="arrow-btn arrow-right" onClick={() => handleScroll(scrollRef3, 'right', 'section3')}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                      ) : null}
+                    </>
+                  ) : (
+                    <div className="no-results">No Freecodecamp courses found</div>
+                  )}
                 </div>
               </div>
 

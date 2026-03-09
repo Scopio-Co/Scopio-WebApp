@@ -4,8 +4,6 @@
   margin: 0 auto;
   min-height: 100vh;
 }
-
-
 /* Bento Grid Layout */
 .bento-grid {
   display: grid;
@@ -262,5 +260,10 @@
 
   .bento-item:hover {
     transform: translateY(-4px);
+  }
+}
+@media (min-width:1025px) {
+  .bento-item-1 h3, .bento-item-6 h3 {
+    font-size: 1.2vw !important;
   }
 }

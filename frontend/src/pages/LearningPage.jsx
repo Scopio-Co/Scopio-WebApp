@@ -29,7 +29,6 @@ const LearningPage = ({ onLogout, isLoading }) => {
       console.log('🔍 Fetching enrolled courses from API...');
       const response = await api.get('/api/video/enrollments/');
       console.log('✓ Received enrollments:', response.data);
-
       if (response.data && response.data.length > 0) {
         const enrolledCourses = response.data.map((enrollment) => ({
           id: enrollment.course,
@@ -46,9 +45,36 @@ const LearningPage = ({ onLogout, isLoading }) => {
           is_published: true
         }));
 
-        setCourses(enrolledCourses);
-        setError(null);
-        console.log(`✓ Loaded ${enrolledCourses.length} enrolled course(s)`);
+        // Fetch per-course details to get accurate rating data when available
+        try {
+          const ratingResponses = await Promise.allSettled(
+            enrolledCourses.map((course) => api.get(`/api/video/courses/${course.id}/`))
+          );
+
+          const coursesWithLiveRatings = enrolledCourses.map((course, index) => {
+            const detailResult = ratingResponses[index];
+            const detail = detailResult?.status === 'fulfilled' ? (detailResult.value?.data || {}) : {};
+            const totalRatings = Number(detail.total_ratings ?? 0);
+            const averageRating = Number(detail.average_rating ?? 0);
+            const fallbackRating = Number(course.rating ?? 0);
+            const hasDetail = detailResult?.status === 'fulfilled';
+
+            return {
+              ...course,
+              // Keep true zero ratings as zero; never fallback because 0 is falsy.
+              rating: hasDetail ? (totalRatings > 0 ? averageRating : 0) : fallbackRating,
+            };
+          });
+
+          setCourses(coursesWithLiveRatings);
+          setError(null);
+          console.log(`✓ Loaded ${coursesWithLiveRatings.length} enrolled course(s) with live ratings`);
+        } catch (innerErr) {
+          // If per-course detail fetch fails, fall back to the basic enrollments
+          console.warn('⚠️ Could not fetch per-course details, using enrollment data', innerErr);
+          setCourses(enrolledCourses);
+          setError(null);
+        }
       } else {
         console.warn('⚠️ No enrolled courses found');
         setCourses([]);
@@ -73,7 +99,6 @@ const LearningPage = ({ onLogout, isLoading }) => {
   useEffect(() => {
     fetchEnrolledCourses(true);
   }, [fetchEnrolledCourses]);
-
   // Refresh on tab/window focus so updated tracking reflects immediately
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -252,7 +277,10 @@ const LearningPage = ({ onLogout, isLoading }) => {
                             <span className="author-title">{course.instructor_title || ''}</span>
                           </div>
                         </div>
-                        <RatingComponent rating={parseFloat(course.rating) || 0} />
+                        <RatingComponent
+                          courseId={course.id}
+                          rating={parseFloat(course.rating) || 0}
+                        />
                       </div>
                     </div>
                   </div>

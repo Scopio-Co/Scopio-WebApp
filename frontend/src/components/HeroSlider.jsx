@@ -1,47 +1,97 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import HeroCard from './HeroCard';
 import './HeroSlider.css';
-import heroImage from '../assets/img/Hero Card img.png';
+import api from '../api';
+import courseCardImage from '../assets/img/course_card.webp';
+import { HeroSliderSkeleton } from './skeletons';
 
 const HeroSlider = () => {
   const scrollRef = useRef(null);
+  const [topCourses, setTopCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTopReviewedCourses = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get('/api/video/courses/');
+        const courseList = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data?.results)
+            ? response.data.results
+            : [];
+
+        if (!courseList.length) {
+          setTopCourses([]);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch each course detail to get accurate per-course review stats
+        // (average_rating + total_ratings), then rank top 3.
+        const detailResponses = await Promise.allSettled(
+          courseList.map((course) => api.get(`/api/video/courses/${course.id}/`))
+        );
+
+        const detailedCourses = detailResponses
+          .map((result, index) => {
+            const fallbackCourse = courseList[index] || {};
+            const detail = result.status === 'fulfilled' ? (result.value?.data || {}) : {};
+
+            return {
+              id: detail.id || fallbackCourse.id,
+              title: detail.title || fallbackCourse.title,
+              description: detail.description || fallbackCourse.description,
+              thumbnail_url: detail.thumbnail_url || fallbackCourse.thumbnail_url,
+              average_rating: Number(detail.average_rating || detail.rating || fallbackCourse.rating || 0),
+              total_ratings: Number(detail.total_ratings || 0),
+            };
+          })
+          .filter((course) => !!course.id);
+
+        const ranked = detailedCourses
+          .sort((a, b) => {
+            const aReviews = Number(a?.total_ratings || 0);
+            const bReviews = Number(b?.total_ratings || 0);
+            if (bReviews !== aReviews) return bReviews - aReviews;
+
+            const aAvg = Number(a?.average_rating || 0);
+            const bAvg = Number(b?.average_rating || 0);
+            return bAvg - aAvg;
+          })
+          .slice(0, 3)
+          .map((course) => ({
+            courseId: course.id,
+            title: course.title || 'Untitled course',
+            description: course.description || 'No description available.',
+            rating: Number(course.average_rating || 0),
+            image: course.thumbnail_url || courseCardImage,
+          }));
+
+        setTopCourses(ranked);
+      } catch (error) {
+        console.error('Failed to fetch top reviewed courses:', error);
+        setTopCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopReviewedCourses();
+  }, []);
 
   const scroll = (direction) => {
     const { current } = scrollRef;
+    if (!current) return;
+
     if (direction === 'left') {
-      current.scrollBy({ left: -600, behavior: 'smooth' });
+      current.scrollBy({ left: -300, behavior: 'smooth' });
     } else {
-      current.scrollBy({ left: 600, behavior: 'smooth' });
+      current.scrollBy({ left: 300, behavior: 'smooth' });
     }
   };
 
-  const cardsData = [
-    {
-      title: "Kick Like Benz",
-      description:
-        "The 34-year-old Carlsen made the revelation on X as he shared the screenshots of his conversation with ChatGPT. He captioned the post: \"I sometimes get bored while travelling.\" In the first screenshot, ChatGPT can be seen conceding defeat as it surrendered to Carlsen with the message: \"All my pawns are gone. You haven't lost a single piece. You fulfilled your win condition perfectly... As agreed, I resign.\"",
-      rating: 4.6,
-      maxRating: 5,
-      image: heroImage,
-    },
-    {
-      title: "Advanced React Development",
-      description:
-        "Master the latest React features and build scalable applications with hooks, context, and modern patterns. Learn from industry experts and work on real-world projects that will enhance your portfolio and prepare you for senior developer roles.",
-      rating: 3,
-      maxRating: 5,
-      image: heroImage,
-    },
-    {
-      title: "Python Data Science Mastery",
-      description:
-        "Dive deep into data analysis, visualization, and machine learning with Python. Learn pandas, numpy, matplotlib, and scikit-learn to become a data science expert. Work on real datasets and build predictive models.",
-      rating: 4.3,
-      maxRating: 5,
-      image: heroImage,
-    },
-  ];
-
+  
   return (
     <div className="hero-slider-container">
       <h2 className="slider-heading">Trending</h2>
@@ -52,11 +102,19 @@ const HeroSlider = () => {
         </button>
 
         <div className="slider-content" ref={scrollRef}>
-          {cardsData.map((card, index) => (
-            <div className="slider-item" key={index}>
-              <HeroCard {...card} />
+          {loading ? (
+            <HeroSliderSkeleton count={3} />
+          ) : topCourses.length > 0 ? (
+            topCourses.map((course) => (
+              <div className="slider-item" key={course.courseId}>
+                <HeroCard {...course} />
+              </div>
+            ))
+          ) : (
+            <div className="slider-item">
+              <HeroCard />
             </div>
-          ))}
+          )}
         </div>
 
         <button className="nav-arrow right" onClick={() => scroll('right')}>

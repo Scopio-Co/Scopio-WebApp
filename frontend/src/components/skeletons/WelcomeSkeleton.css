@@ -15,6 +15,7 @@
   height: clamp(1rem, 3vw, 2.5rem);
   background: rgba(200, 200, 220, 0.5);
   border-radius: 8px;
+  margin-bottom: 8px;
 }
 
 .skeleton-stat-label {

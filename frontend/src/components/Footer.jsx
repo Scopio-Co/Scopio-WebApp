@@ -139,11 +139,30 @@ const Footer = () => {
           <div className="footer-section">
             <h3 className="footer-heading">Support</h3>
             <ul className="footer-links">
-              <li><a href="#help">Help Center</a></li>
-              <li><a href="#community">Community</a></li>
-              <li><a href="#features">Feature requests</a></li>
-              <li><a href="#bugs">Bug Reports</a></li>
-              <li><a href="#settings">Settings</a></li>
+              <li>
+                <a
+                  href="#"
+                  onClick={() => window.open('https://chat.whatsapp.com/CT8BRmbJq8fC2AFjWzT6k0', '_blank', 'noopener,noreferrer')}
+                >
+                  Community
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLScMq91cO8EDWQIM3PO5Q2WGrd_cp0VBAtx5NyGdLIg3_PBRFA/viewform?usp=header', '_blank', 'noopener,noreferrer')}
+                >
+                  Feature requests
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSetNB2Ob4kK3ZeCo1Y2QKY4H9RwqkLG0f-ZeZfGySo8JasvjA/viewform', '_blank', 'noopener,noreferrer')}
+                >
+                  Bug Reports
+                </a>
+              </li>
             </ul>
           </div>
           </div>
@@ -214,7 +233,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div className="copyright">
-            <span>SCOPIO {new Date().getFullYear()} (Version 1.0)</span>
+            <span>© SCOPIO {new Date().getFullYear()} - All Rights Reserved.</span>
           </div>
           <div className="footer-legal">
             <a href="#privacy">Privacy Policy</a>

@@ -1,7 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom'
-import reactLogo from './assets/img/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import Navbar from './components/Navbar'
 import Signup from './components/Signup'
@@ -83,6 +81,118 @@ function ScrollToTop() {
   }, [location.pathname]);
 
   return null;
+}
+
+// Pull-to-refresh on mobile: swipe down when at top to reload the page
+function PullToRefresh() {
+  const [display, setDisplay] = useState({ distance: 0, refreshing: false });
+  const touchStartY = useRef(0);
+  const currentPull = useRef(0);
+  const THRESHOLD = 70;
+
+  useEffect(() => {
+    const isMobile = () => window.matchMedia('(max-width: 425px)').matches;
+
+    const getScrollTop = () => {
+      const mainEl = document.querySelector('.main-content');
+      return mainEl ? mainEl.scrollTop : window.scrollY;
+    };
+
+    const handleTouchStart = (e) => {
+      if (!isMobile()) {
+        touchStartY.current = 0;
+        return;
+      }
+
+      if (getScrollTop() === 0) {
+        touchStartY.current = e.touches[0].clientY;
+      } else {
+        touchStartY.current = 0;
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isMobile() || !touchStartY.current) return;
+      const distance = e.touches[0].clientY - touchStartY.current;
+      if (distance > 0 && getScrollTop() === 0) {
+        currentPull.current = Math.min(distance * 0.5, THRESHOLD + 24);
+        setDisplay((d) => ({ ...d, distance: currentPull.current }));
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!isMobile()) {
+        touchStartY.current = 0;
+        currentPull.current = 0;
+        setDisplay({ distance: 0, refreshing: false });
+        return;
+      }
+
+      if (currentPull.current >= THRESHOLD) {
+        setDisplay({ distance: currentPull.current, refreshing: true });
+        setTimeout(() => window.location.reload(), 400);
+      } else {
+        currentPull.current = 0;
+        setDisplay({ distance: 0, refreshing: false });
+      }
+      touchStartY.current = 0;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
+  if (display.distance === 0 && !display.refreshing) return null;
+
+  const progress = Math.min(display.distance / THRESHOLD, 1);
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 99999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: `${display.distance}px`,
+        background: 'var(--bg-primary, #fff)',
+        borderBottom: '1px solid var(--border-primary, rgba(0,0,0,0.1))',
+      }}
+    >
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        style={{
+          transform: display.refreshing ? 'none' : `rotate(${progress * 270}deg)`,
+          animation: display.refreshing ? 'ptr-spin 0.6s linear infinite' : 'none',
+          opacity: progress,
+          color: 'var(--text-tertiary, #888)',
+        }}
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray="40 20"
+        />
+      </svg>
+      <style>{`@keyframes ptr-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 }
 
 // Main App component with authentication wrapper
@@ -527,6 +637,7 @@ function AppContent() {
   return (
     <div className="app-layout">
       <ScrollToTop />
+      <PullToRefresh />
       <div className="navbar-section">
         <Navbar 
           onLogout={handleLogout} 

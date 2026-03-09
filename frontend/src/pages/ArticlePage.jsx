@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ArticlePage.css';
 import { ArticlePageSkeleton } from '../components/skeletons';
-import article1 from '../assets/img/articles/article 1.1.png';
-import article2 from '../assets/img/articles/article 2.1.png';
-import article3 from '../assets/img/articles/article 3.1.png';
-import article4 from '../assets/img/articles/article 4.1.png';
-import article5 from '../assets/img/articles/article 5.1.png';
-import article6 from '../assets/img/articles/article 6.1.png';
+import article1 from '../assets/img/articles/article 1.1.webp';
+import article2 from '../assets/img/articles/article 2.1.webp';
+import article3 from '../assets/img/articles/article 3.1.webp';
+import article4 from '../assets/img/articles/article 4.1.webp';
+import article5 from '../assets/img/articles/article 5.1.webp';
+import article6 from '../assets/img/articles/article 6.1.webp';
 import article12 from '../assets/img/articles/article 1.2.webp';
+import Footer from '../components/Footer'
 const ArticlePage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,7 @@ const ArticlePage = () => {
       
       content: `
         
-        <h2>Sensors and Actuators – The Eyes and Hands of IoT</h2>
+        <h2 className="article-title">Sensors and Actuators – The Eyes and Hands of IoT</h2>
         <p>At the heart of every Internet of Things (IoT) system lies a simple idea: machines must sense the world and act on it. This is exactly where sensors and actuators come into play. Sensors allow devices to observe their environment, while actuators enable them to respond or take action. Without these two components, IoT would simply be a network of silent devices with nothing meaningful to do.</p>
 
         <p>Whether it’s a smart home adjusting room temperature, a wearable tracking heart rate, or a smart farm monitoring soil moisture, sensors and actuators form the foundation of real-world IoT applications. This article explores what sensors and actuators are, how they work, their types, and why they are critical in modern IoT systems.</p>
@@ -1162,7 +1163,7 @@ Commonly used in MQTT systems and highly scalable for large IoT deployments.</p>
       image: article6,
       
       content: `
-       <h2>Applications, Dashboards, and User Interfaces – Where IoT Meets Humans</h2>
+       <h2 className="article-title">Applications, Dashboards, and User Interfaces – Where IoT Meets Humans</h2>
 
 <h3>Introduction</h3>
 
@@ -1478,6 +1479,7 @@ Commonly used in MQTT systems and highly scalable for large IoT deployments.</p>
           </div>
         )}
       </div>
+        <Footer />
     </div>
   );
 };

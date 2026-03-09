@@ -576,7 +576,7 @@ const CourseVideoPage = () => {
       console.log('✓ Enrolled in course:', response.data);
       setIsEnrolled(true);
       setShowEnrollModal(false);
-      startCurrentLessonPlayback(); // Auto-play after enrollment
+      navigate('/learning');
     } catch (err) {
       console.error('❌ Error enrolling in course:', err);
       console.error('Error details:', {

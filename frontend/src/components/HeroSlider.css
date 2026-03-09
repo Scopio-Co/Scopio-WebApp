@@ -21,6 +21,10 @@
 
 .slider-content {
   display: flex;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
@@ -38,6 +42,11 @@ background: var(--bg-tertiary);
   flex: 0 0 340px;
   display: flex;
   scroll-snap-align: start;
+}
+
+/* Keep a visible end-gap so right side matches left side spacing */
+.slider-content .slider-item:last-child {
+  margin-right: 60px;
 }
 
 .nav-arrow {
@@ -82,6 +91,10 @@ background: var(--bg-tertiary);
     padding: 20px;
   }
 
+  .slider-content .slider-item:last-child {
+    margin-right: 20px;
+  }
+
   .nav-arrow {
     width: 40px;
     height: 40px;
@@ -100,5 +113,9 @@ background: var(--bg-tertiary);
 @media (max-width: 480px) {
   .slider-item {
     flex: 0 0 240px;
+  }
+
+  .slider-content .slider-item:last-child {
+    margin-right: 16px;
   }
 }

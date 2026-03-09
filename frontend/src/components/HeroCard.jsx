@@ -5,6 +5,7 @@ import RatingComponent from './RatingComponent';
 import heroImage from '../assets/img/Hero Card img.png';
 
 const HeroCard = ({
+  courseId,
   title = "Kick Like Benz",
   description = "The 34-year-old Carlsen made the revelation on X as he shared the screenshots of his conversation with ChatGPT. He captioned the post: \"I sometimes get bored while travelling.\" In the first screenshot, ChatGPT can be seen conceding defeat as it surrendered to Carlsen with the message: \"All my pawns are gone. You haven't lost a single piece. You fulfilled your win condition perfectly... As agreed, I resign.\"",
   rating = 4.6,
@@ -12,9 +13,16 @@ const HeroCard = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleCardClick = (e) => {
-    // navigate without adding a new history entry and scroll to top
+  const navigateToCourse = () => {
+    if (courseId) {
+      navigate(`/course/${courseId}`);
+      return;
+    }
     navigate('/explore', { replace: true });
+  };
+
+  const handleCardClick = (e) => {
+    navigateToCourse();
     const mainEl = document.querySelector('.main-content');
     if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
   };
@@ -51,12 +59,12 @@ const HeroCard = ({
         <p className="hero-description">{description}</p>
 
         <div className="hero-actions">
-          <RatingComponent rating={rating} />
+          <RatingComponent courseId={courseId} rating={rating} />
           <button
             className="explore-btn"
             onClick={(ev) => {
               ev.stopPropagation();
-              navigate('/explore', { replace: true });
+              navigateToCourse();
               const mainEl = document.querySelector('.main-content');
               if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
             }}
