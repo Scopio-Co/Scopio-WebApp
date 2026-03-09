@@ -1,18 +1,19 @@
-// (axios) interceptors - intercept requests, auto-add auth headers
-
-import axios from "axios";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
+import axios from 'axios';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import { clearAuthCache } from './authCache';
 
-const API_URL = (
-  import.meta.env.VITE_API_URL ||
-  globalThis?.process?.env?.REACT_APP_API_URL ||
-  ''
-);
-const CANONICAL_PRODUCTION_API_URL = 'https://scopio.in';
+const VITE_API_URL = import.meta.env.VITE_API_URL || '';
+const REACT_API_URL = globalThis?.process?.env?.REACT_APP_API_URL || '';
+const API_URL = VITE_API_URL || REACT_API_URL;
+
+const DEV_BACKEND_URL = 'http://localhost:8000';
+const PROD_BACKEND_URL = 'https://scopio.in';
+
+const GOOGLE_CALLBACK_DEV = 'http://localhost:8000/accounts/google/login/callback/';
+const GOOGLE_CALLBACK_PROD = 'https://scopio.in/glogin/google/finalize/';
 
 function stripTrailingSlash(url) {
-  return (url || '').replace(/\/+$/, '');
+  return String(url || '').replace(/\/+$/, '');
 }
 
 function isLocalhostHost(hostname) {
@@ -29,7 +30,7 @@ function normalizeBackendUrl(url) {
     return '';
   }
 
-  // Prevent mixed content: upgrade non-local HTTP API URLs when app is served over HTTPS.
+  // If app is on HTTPS, never keep non-local backend URLs as HTTP.
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     try {
       const parsed = new URL(normalized);
@@ -37,8 +38,8 @@ function normalizeBackendUrl(url) {
         parsed.protocol = 'https:';
         return stripTrailingSlash(parsed.toString());
       }
-    } catch (_e) {
-      // Ignore parse errors and return the original value.
+    } catch (_error) {
+      // Keep original value if URL parsing fails.
     }
   }
 
@@ -46,31 +47,41 @@ function normalizeBackendUrl(url) {
 }
 
 export function getBackendBaseUrl() {
-  const envUrl = normalizeBackendUrl(API_URL || '');
+  const envUrl = normalizeBackendUrl(API_URL);
   if (envUrl) {
     return envUrl;
   }
 
   const host = window?.location?.hostname || '';
   if (isLocalhostHost(host)) {
-    return 'http://localhost:8000';
+    return DEV_BACKEND_URL;
   }
 
-  // Non-localhost fallback should always use canonical production backend.
-  return CANONICAL_PRODUCTION_API_URL;
+  return PROD_BACKEND_URL;
 }
 
 function getBackendBaseUrlCandidates() {
-  const envUrl = normalizeBackendUrl(API_URL || '');
-  const primary = getBackendBaseUrl();
-  const canonical = normalizeBackendUrl(CANONICAL_PRODUCTION_API_URL);
   const host = window?.location?.hostname || '';
+  const envUrl = normalizeBackendUrl(API_URL);
+  const primary = getBackendBaseUrl();
+  const canonicalProd = normalizeBackendUrl(PROD_BACKEND_URL);
 
   const candidates = isVercelHost(host)
-    ? ['', primary, envUrl, canonical]
-    : [primary, envUrl, canonical, ''];
+    ? ['', primary, envUrl, canonicalProd]
+    : [primary, envUrl, canonicalProd, ''];
 
   return Array.from(new Set(candidates.filter((value) => value !== null && value !== undefined)));
+}
+
+export function getGoogleOAuthRedirectUri() {
+  const host = window?.location?.hostname || '';
+  return isLocalhostHost(host) ? GOOGLE_CALLBACK_DEV : GOOGLE_CALLBACK_PROD;
+}
+
+export function getGoogleLoginStartUrl(frontendOrigin = window?.location?.origin || '') {
+  const base = getBackendBaseUrl();
+  const origin = encodeURIComponent(frontendOrigin);
+  return `${base}/glogin/google/start/?frontend_origin=${origin}`;
 }
 
 function isNetworkLevelError(error) {
@@ -82,12 +93,156 @@ function isRetryableFallbackStatus(error) {
   return [404, 405, 502, 503, 504].includes(status);
 }
 
+function isUnsafeMethod(method) {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || '').toUpperCase());
+}
+
+function getCsrfTokenFromCookie() {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const name = 'csrftoken=';
+  const cookies = document.cookie ? document.cookie.split(';') : [];
+  for (const rawCookie of cookies) {
+    const cookie = rawCookie.trim();
+    if (cookie.startsWith(name)) {
+      return decodeURIComponent(cookie.substring(name.length));
+    }
+  }
+  return null;
+}
+
+function isPublicUnauthenticatedGet(url, method) {
+  if (String(method || '').toUpperCase() !== 'GET') {
+    return false;
+  }
+
+  return (
+    String(url || '').startsWith('/api/video/videos/') ||
+    String(url || '').startsWith('/api/video/courses/')
+  );
+}
+
+const api = axios.create({
+  baseURL: getBackendBaseUrl(),
+  withCredentials: true,
+  timeout: 20000,
+});
+
+api.interceptors.request.use(
+  (config) => {
+    const requestConfig = { ...config };
+    requestConfig.headers = requestConfig.headers || {};
+
+    if (!requestConfig.skipAuth) {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      if (token) {
+        requestConfig.headers.Authorization = `Bearer ${token}`;
+        console.log('🔐 [API] Access token attached:', requestConfig.url);
+      }
+    }
+
+    if (isUnsafeMethod(requestConfig.method)) {
+      const csrfToken = getCsrfTokenFromCookie();
+      if (csrfToken) {
+        requestConfig.headers['X-CSRFToken'] = csrfToken;
+      }
+    }
+
+    return requestConfig;
+  },
+  (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error?.response?.status;
+    const originalRequest = error?.config;
+
+    if (!originalRequest || status !== 401 || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    const method = String(originalRequest.method || '').toUpperCase();
+    const url = String(originalRequest.url || '');
+    const isAuthEndpoint = url.startsWith('/api/auth/');
+
+    // Public GET endpoints can be retried once without Authorization header.
+    if (isPublicUnauthenticatedGet(url, method)) {
+      const retryWithoutAuth = {
+        ...originalRequest,
+        _retry: true,
+        skipAuth: true,
+        headers: {
+          ...(originalRequest.headers || {}),
+        },
+      };
+      delete retryWithoutAuth.headers.Authorization;
+
+      console.warn('⚠️ [API] Retrying public GET without auth:', url);
+      return api.request(retryWithoutAuth);
+    }
+
+    // Never refresh token for auth endpoints to avoid loops.
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
+    const refresh = localStorage.getItem(REFRESH_TOKEN);
+    if (!refresh) {
+      console.error('❌ [API] No refresh token. Emitting auth:unauthorized');
+      clearAuthCache();
+      window.dispatchEvent(new Event('auth:unauthorized'));
+      return Promise.reject(error);
+    }
+
+    try {
+      const refreshResponse = await api.post(
+        '/api/auth/refresh/',
+        { refresh },
+        { skipAuth: true, _retry: true }
+      );
+
+      const newAccess = refreshResponse?.data?.access;
+      const newRefresh = refreshResponse?.data?.refresh;
+
+      if (!newAccess) {
+        throw new Error('Refresh response does not include access token');
+      }
+
+      localStorage.setItem(ACCESS_TOKEN, newAccess);
+      if (newRefresh) {
+        localStorage.setItem(REFRESH_TOKEN, newRefresh);
+      }
+
+      const retryRequest = {
+        ...originalRequest,
+        _retry: true,
+        headers: {
+          ...(originalRequest.headers || {}),
+          Authorization: `Bearer ${newAccess}`,
+        },
+      };
+
+      console.log('🔁 [API] Token refreshed. Retrying request:', url);
+      return api.request(retryRequest);
+    } catch (refreshError) {
+      console.error('❌ [API] Refresh failed. Emitting auth:unauthorized');
+      clearAuthCache();
+      window.dispatchEvent(new Event('auth:unauthorized'));
+      return Promise.reject(refreshError);
+    }
+  }
+);
+
 async function requestWithBackendFallback(config, options = {}) {
-  const baseUrlCandidates = getBackendBaseUrlCandidates();
+  const candidates = getBackendBaseUrlCandidates();
   const validateResponse = options.validateResponse;
   let lastError = null;
 
-  for (const candidate of baseUrlCandidates) {
+  for (const candidate of candidates) {
     try {
       const response = await api.request({
         ...config,
@@ -100,12 +255,10 @@ async function requestWithBackendFallback(config, options = {}) {
       }
 
       return response;
-    } catch (error) {
-      lastError = error;
-
-      // Retry when endpoint is unreachable or the candidate path is not valid on this host.
-      if (!isNetworkLevelError(error) && !isRetryableFallbackStatus(error)) {
-        throw error;
+    } catch (requestError) {
+      lastError = requestError;
+      if (!isNetworkLevelError(requestError) && !isRetryableFallbackStatus(requestError)) {
+        throw requestError;
       }
     }
   }
@@ -113,230 +266,60 @@ async function requestWithBackendFallback(config, options = {}) {
   throw lastError;
 }
 
-// Helper function to get CSRF token from cookies
-function getCsrfToken() {
-  const name = 'csrftoken';
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
-
-const api = axios.create({
-  baseURL: getBackendBaseUrl(),
-  withCredentials: true, // Enable sending cookies with requests
-});
-
-// Request interceptor: attach JWT and CSRF token
-api.interceptors.request.use(
-  (config) => {
-    // If caller sets config.skipAuth, do not attach Authorization header
-    if (config && config.skipAuth) {
-      return config;
-    }
-    
-    // Attach JWT token from localStorage only
-    const token = localStorage.getItem(ACCESS_TOKEN);
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔐 [API] Attached auth token to request:', config.url);
-    } else {
-      console.warn('⚠️ [API] No auth token found for request:', config.url);
-    }
-    
-    // Attach CSRF token for unsafe methods
-    const unsafeMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
-    if (unsafeMethods.includes(config.method?.toUpperCase())) {
-      const csrfToken = getCsrfToken();
-      if (csrfToken) {
-        config.headers = config.headers || {};
-        config.headers['X-CSRFToken'] = csrfToken;
-      }
-    }
-    
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor: on 401, retry public GETs without auth once
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const { config, response } = error || {};
-    const status = response?.status;
-    const method = (config?.method || '').toUpperCase();
-    const url = config?.url || '';
-
-    const notYetRetried = !config?._retry;
-    const isAuthEndpoint = url.startsWith('/api/auth/');
-    const isPublicVideoEndpoint =
-      method === 'GET' &&
-      (
-        url.startsWith('/api/video/videos/') ||
-        url.startsWith('/api/video/courses/')
-      );
-
-    if (status === 401 && notYetRetried) {
-      // For public endpoints, retry once without auth header
-      if (isPublicVideoEndpoint) {
-        const newConfig = { ...config, _retry: true, skipAuth: true };
-        if (newConfig.headers) {
-          delete newConfig.headers.Authorization;
-        }
-        try {
-          return await api.request(newConfig);
-        } catch (retryErr) {
-          return Promise.reject(retryErr);
-        }
-      }
-
-      // For protected endpoints, try refresh flow once (but never for auth endpoints)
-      if (!isAuthEndpoint) {
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-
-        if (refreshToken) {
-          try {
-            const refreshResponse = await api.post(
-              '/api/auth/refresh/',
-              { refresh: refreshToken },
-              { skipAuth: true }
-            );
-
-            const newAccessToken = refreshResponse?.data?.access;
-            const newRefreshToken = refreshResponse?.data?.refresh;
-
-            if (newAccessToken) {
-              localStorage.setItem(ACCESS_TOKEN, newAccessToken);
-            }
-            if (newRefreshToken) {
-              localStorage.setItem(REFRESH_TOKEN, newRefreshToken);
-            }
-
-            const retryConfig = {
-              ...config,
-              _retry: true,
-              headers: {
-                ...(config.headers || {}),
-                Authorization: `Bearer ${newAccessToken || localStorage.getItem(ACCESS_TOKEN) || ''}`
-              }
-            };
-
-            return await api.request(retryConfig);
-          } catch (refreshError) {
-            // Refresh token is invalid - clear all tokens and emit global unauthorized event
-            console.error('❌ [API] Token refresh failed - clearing tokens and redirecting to login');
-            clearAuthCache();
-            
-            // Emit a global event that App.jsx can listen to for logout/redirect
-            window.dispatchEvent(new Event('auth:unauthorized'));
-            
-            return Promise.reject(refreshError);
-          }
-        } else {
-          // No refresh token - emit unauthorized event
-          console.warn('⚠️ [API] No refresh token available - logging out');
-          clearAuthCache();
-          window.dispatchEvent(new Event('auth:unauthorized'));
-        }
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-export default api;
-
-// Fetch CSRF token from backend
 export async function fetchCsrfToken() {
   try {
-    await requestWithBackendFallback(
+    const response = await requestWithBackendFallback(
       {
         method: 'GET',
         url: '/api/auth/csrf/',
         skipAuth: true,
       },
       {
-        validateResponse: (response) => {
-          const detail = response?.data?.detail;
-          return typeof detail === 'string' && detail.toLowerCase().includes('csrf');
-        },
+        validateResponse: (res) => res.status >= 200 && res.status < 300,
       }
     );
-  } catch (error) {
-    console.error('Failed to fetch CSRF token:', error);
-  }
-}
 
-// API helpers
-export async function fetchVideos() {
-  // Normal call; if a stale/invalid token causes 401, client will retry unauthenticated once
-  const { data } = await api.get('/api/video/videos/');
-  return data;
-}
-
-// Login API call
-export async function login(username, password) {
-  console.log('🔐 [API] Calling login endpoint...');
-  const { data } = await requestWithBackendFallback(
-    {
-      method: 'POST',
-      url: '/api/auth/login/',
-      data: {
-        username,
-        password,
-      },
-      skipAuth: true,
-    },
-    {
-      validateResponse: (response) => {
-        return !!response?.data?.access && !!response?.data?.refresh;
-      },
+    const isProdLike = !isLocalhostHost(window?.location?.hostname || '');
+    if (isProdLike) {
+      console.log('🛡️ [CSRF] Production mode expects SameSite=None; Secure cookies from backend.');
     }
-  );
-  
-  console.log('✓ [API] Login response received:', { 
-    hasAccess: !!data.access, 
-    hasRefresh: !!data.refresh,
-    accessLength: data.access?.length || 0,
-    refreshLength: data.refresh?.length || 0
-  });
+    console.log('✅ [CSRF] CSRF cookie fetched from:', response?.config?.baseURL || 'same-origin');
+    return response?.data;
+  } catch (error) {
+    console.error('❌ [CSRF] Failed to fetch CSRF token:', error);
+    throw error;
+  }
+}
 
-  // Prevent previous-user cache leakage before storing the new session tokens.
-  clearAuthCache();
-  
-  // Store tokens in localStorage (primary storage)
-  if (data.access) {
-    localStorage.setItem(ACCESS_TOKEN, data.access);
-    console.log('✓ [API] Access token stored in localStorage');
-  }
-  if (data.refresh) {
-    localStorage.setItem(REFRESH_TOKEN, data.refresh);
-    console.log('✓ [API] Refresh token stored in localStorage');
-  }
-  
-  // Verify tokens were actually stored
-  const verifyAccess = localStorage.getItem(ACCESS_TOKEN);
-  const verifyRefresh = localStorage.getItem(REFRESH_TOKEN);
-  console.log('✓ [API] Tokens verified in storage:', { 
-    accessStored: !!verifyAccess, 
-    refreshStored: !!verifyRefresh 
-  });
-  
-  if (!verifyAccess || !verifyRefresh) {
-    console.error('❌ [API] Failed to store tokens!');
-    throw new Error('Failed to store authentication tokens');
-  }
-  
+export async function fetchVideos() {
+  const { data } = await api.get('/api/video/videos/');
+  console.log('✅ [API] Videos fetched:', Array.isArray(data) ? data.length : 'ok');
   return data;
 }
 
+export async function login(username, password) {
+  try {
+    const { data } = await requestWithBackendFallback(
+      {
+        method: 'POST',
+        url: '/api/auth/login/',
+        data: { username, password },
+        skipAuth: true,
+      },
+      {
+        validateResponse: (res) => !!res?.data?.access && !!res?.data?.refresh,
+      }
+    );
+
+    clearAuthCache();
+    localStorage.setItem(ACCESS_TOKEN, data.access);
+    localStorage.setItem(REFRESH_TOKEN, data.refresh);
+    console.log('✅ [AUTH] Login success. Tokens stored.');
+    return data;
+  } catch (error) {
+    console.error('❌ [AUTH] Login failed:', error);
+    throw error;
+  }
+}
+
+export default api;

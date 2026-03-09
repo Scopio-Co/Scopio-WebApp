@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Auth.css';
 import googleIcon from '../assets/img/Google.svg';
-import { login, fetchCsrfToken, getBackendBaseUrl } from '../api';
+import { login, fetchCsrfToken, getGoogleLoginStartUrl } from '../api';
 
 const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -99,10 +99,7 @@ const Login = ({ onLoginSuccess }) => {
 
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
-      // Redirect to backend Google OAuth endpoint
-      const backendURL = getBackendBaseUrl();
-      const frontendOrigin = encodeURIComponent(window.location.origin);
-      window.location.href = `${backendURL}/glogin/google/start/?frontend_origin=${frontendOrigin}`;
+      window.location.href = getGoogleLoginStartUrl(window.location.origin);
     } else {
       console.log(`${provider} login not yet implemented`);
     }

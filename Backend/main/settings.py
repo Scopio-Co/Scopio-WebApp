@@ -56,10 +56,8 @@ DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 # Allow all hosts for development; set explicit hosts in production via env
 _env_hosts = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
 ALLOWED_HOSTS = _env_hosts if _env_hosts else [
-    '20.17.98.254.nip.io',
     'scopio.in',
     'www.scopio.in',
-    '20.17.98.254',
     'localhost',
     '127.0.0.1',
 ]
@@ -338,7 +336,7 @@ for _origin in ['https://scopio.in', 'https://scopio-webapp.pages.dev']:
 CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = FRONTEND_ALLOWED_ORIGINS
-
+CSRF_COOKIE_NAME = "csrftoken"
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -368,6 +366,7 @@ CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24 hours
 CSRF_TRUSTED_ORIGINS = [
     'https://scopio-webapp.pages.dev',
     'https://scopio.in',
+    "http://localhost:8000",
 ]
 
 # Cookie settings for cross-domain authentication

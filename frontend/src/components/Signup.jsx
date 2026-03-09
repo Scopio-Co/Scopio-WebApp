@@ -4,7 +4,7 @@ import Login from './Login';
 import linkedinIcon from '../assets/img/Linkedin.svg';
 import googleIcon from '../assets/img/Google.svg';
 import githubIcon from '../assets/img/Github.svg';
-import api, { fetchCsrfToken, login, getBackendBaseUrl } from '../api';
+import api, { fetchCsrfToken, login, getGoogleLoginStartUrl } from '../api';
 
 const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
   const [formData, setFormData] = useState({
@@ -167,10 +167,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
 
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
-      // Redirect to backend Google OAuth endpoint
-      const backendURL = getBackendBaseUrl();
-      const frontendOrigin = encodeURIComponent(window.location.origin);
-      window.location.href = `${backendURL}/glogin/google/start/?frontend_origin=${frontendOrigin}`;
+      window.location.href = getGoogleLoginStartUrl(window.location.origin);
     } else {
       console.log(`${provider} login not yet implemented`);
     }
