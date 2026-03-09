@@ -4,13 +4,23 @@ from django.urls import path, include
 from django.views.generic.base import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from api.views import CreateUserView 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView    #allow us to obtain access and refresh JWT tokens  
 
+
+def backend_root(_request):
+    return JsonResponse({
+        'service': 'scopio-backend',
+        'status': 'ok',
+        'admin': '/admin/',
+        'api': '/api/',
+    })
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Helpful redirects for common paths
-    path('', RedirectView.as_view(url=settings.FRONTEND_URL, permanent=False)),
+    # Keep backend root reachable on port 8000 instead of redirecting to frontend.
+    path('', backend_root),
     # allauth may fallback to this default after login; force token-finalize flow.
     path('accounts/profile/', RedirectView.as_view(url='/glogin/google/finalize/', permanent=False)),
     path('user/register', RedirectView.as_view(url='/api/user/register/', permanent=True)),

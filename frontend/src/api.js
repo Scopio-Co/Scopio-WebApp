@@ -46,8 +46,8 @@ export function getBackendBaseUrl() {
     return envUrl;
   }
 
-  // Safe fallback when env values are missing.
-  return normalizeBackendUrl('http://localhost:8000');
+  // Fallback to same-origin/proxy routes when env is not set.
+  return '';
 }
 
 function getBackendBaseUrlCandidates() {

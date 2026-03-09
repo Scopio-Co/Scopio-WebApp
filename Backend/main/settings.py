@@ -15,6 +15,10 @@ from datetime import timedelta
 import os
 import json
 
+# Resolve key project paths early so env loading is independent of current working directory.
+SETTINGS_DIR = Path(__file__).resolve().parent
+BASE_DIR = SETTINGS_DIR.parent
+
 def _load_simple_env_file(path):
     """Fallback loader for KEY=VALUE .env files when python-dotenv is unavailable."""
     try:
@@ -31,16 +35,14 @@ def _load_simple_env_file(path):
     except FileNotFoundError:
         pass
 
-# Load environment variables from .env file (local development only)
+# Load environment variables from Backend/.env (local development only).
+# Avoid relying on current working directory; this prevents stale values from other .env files.
+_backend_env_path = BASE_DIR / '.env'
 try:
     from dotenv import load_dotenv
-    load_dotenv()
-    load_dotenv(Path(__file__).resolve().parent / '.env')
+    load_dotenv(_backend_env_path)
 except ImportError:
-    _load_simple_env_file(Path(__file__).resolve().parent / '.env')
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+    _load_simple_env_file(_backend_env_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
