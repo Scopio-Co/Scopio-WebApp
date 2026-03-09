@@ -57,6 +57,9 @@ DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 _env_hosts = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
 ALLOWED_HOSTS = _env_hosts if _env_hosts else [
     '20.17.98.254.nip.io',
+    "scopio.in", 
+    "www.scopio.in", 
+    "20.17.98.254"
     'localhost',
     '127.0.0.1',
 ] 
