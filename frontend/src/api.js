@@ -4,7 +4,11 @@ import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 import { clearAuthCache } from './authCache';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = (
+  import.meta.env.VITE_API_URL ||
+  globalThis?.process?.env?.REACT_APP_API_URL ||
+  ''
+);
 const CANONICAL_PRODUCTION_API_URL = 'https://scopio.in';
 
 function stripTrailingSlash(url) {
