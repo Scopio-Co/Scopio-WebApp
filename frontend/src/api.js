@@ -5,6 +5,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 import { clearAuthCache } from './authCache';
 
 const API_URL = import.meta.env.VITE_API_URL;
+const CANONICAL_PRODUCTION_API_URL = 'https://scopio.in';
 
 function stripTrailingSlash(url) {
   return (url || '').replace(/\/+$/, '');
@@ -46,18 +47,24 @@ export function getBackendBaseUrl() {
     return envUrl;
   }
 
-  // Fallback to same-origin/proxy routes when env is not set.
-  return '';
+  const host = window?.location?.hostname || '';
+  if (isLocalhostHost(host)) {
+    return 'http://localhost:8000';
+  }
+
+  // Non-localhost fallback should always use canonical production backend.
+  return CANONICAL_PRODUCTION_API_URL;
 }
 
 function getBackendBaseUrlCandidates() {
   const envUrl = normalizeBackendUrl(API_URL || '');
   const primary = getBackendBaseUrl();
+  const canonical = normalizeBackendUrl(CANONICAL_PRODUCTION_API_URL);
   const host = window?.location?.hostname || '';
 
   const candidates = isVercelHost(host)
-    ? ['', primary, envUrl]
-    : [primary, envUrl, ''];
+    ? ['', primary, envUrl, canonical]
+    : [primary, envUrl, canonical, ''];
 
   return Array.from(new Set(candidates.filter((value) => value !== null && value !== undefined)));
 }
