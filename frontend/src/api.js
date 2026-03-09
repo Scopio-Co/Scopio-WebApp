@@ -24,6 +24,34 @@ function isVercelHost(hostname) {
   return typeof hostname === 'string' && hostname.endsWith('.vercel.app');
 }
 
+function isLoopbackHost(hostname) {
+  return isLocalhostHost(hostname) || hostname === '::1' || hostname === '[::1]';
+}
+
+function getEnvBackendUrlForCurrentHost() {
+  const envUrl = normalizeBackendUrl(API_URL);
+  if (!envUrl) {
+    return '';
+  }
+
+  const currentHost = window?.location?.hostname || '';
+  if (isLocalhostHost(currentHost)) {
+    return envUrl;
+  }
+
+  try {
+    const parsed = new URL(envUrl);
+    if (isLoopbackHost(parsed.hostname)) {
+      console.warn('⚠️ [API] Ignoring localhost API URL on non-localhost frontend host:', envUrl);
+      return '';
+    }
+  } catch (_error) {
+    // Keep env URL if parsing fails.
+  }
+
+  return envUrl;
+}
+
 function normalizeBackendUrl(url) {
   const normalized = stripTrailingSlash(url);
   if (!normalized) {
@@ -47,7 +75,7 @@ function normalizeBackendUrl(url) {
 }
 
 export function getBackendBaseUrl() {
-  const envUrl = normalizeBackendUrl(API_URL);
+  const envUrl = getEnvBackendUrlForCurrentHost();
   if (envUrl) {
     return envUrl;
   }
@@ -62,7 +90,7 @@ export function getBackendBaseUrl() {
 
 function getBackendBaseUrlCandidates() {
   const host = window?.location?.hostname || '';
-  const envUrl = normalizeBackendUrl(API_URL);
+  const envUrl = getEnvBackendUrlForCurrentHost();
   const primary = getBackendBaseUrl();
   const canonicalProd = normalizeBackendUrl(PROD_BACKEND_URL);
 
@@ -287,7 +315,7 @@ export async function fetchCsrfToken() {
     return response?.data;
   } catch (error) {
     console.error('❌ [CSRF] Failed to fetch CSRF token:', error);
-    throw error;
+    return null;
   }
 }
 
