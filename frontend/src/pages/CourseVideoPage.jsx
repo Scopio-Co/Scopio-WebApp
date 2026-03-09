@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -18,27 +18,29 @@ import CertificateModal from '../components/CertificateModal';
 // Helper function to extract video embed URL
 const getVideoEmbedUrl = (url) => {
   if (!url) return null;
+  const normalizedUrl = url.trim();
   
   // YouTube URLs
   const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
-  const youtubeMatch = url.match(youtubeRegex);
+  const youtubeMatch = normalizedUrl.match(youtubeRegex);
   if (youtubeMatch && youtubeMatch[1]) {
     return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&mute=1`;
   }
   
   // Vimeo URLs
   const vimeoRegex = /vimeo\.com\/(\d+)/;
-  const vimeoMatch = url.match(vimeoRegex);
+  const vimeoMatch = normalizedUrl.match(vimeoRegex);
   if (vimeoMatch && vimeoMatch[1]) {
     return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
   }
-  
-  // If already an embed URL or direct video file
-  if (url.includes('embed') || url.endsWith('.mp4') || url.endsWith('.webm')) {
-    return url;
-  }
-  
-  return null;
+
+  // For Azure blob/direct-hosted videos and other providers, use URL directly in HTML5 <video>
+  return normalizedUrl;
+};
+
+const isVimeoVideo = (url) => {
+  if (!url) return false;
+  return /vimeo\.com/.test(url);
 };
 
 const CourseVideoPage = () => {
@@ -75,6 +77,7 @@ const CourseVideoPage = () => {
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [certificateData, setCertificateData] = useState(null);
   const [hasShownCertificate, setHasShownCertificate] = useState(false);
+  const directVideoRef = useRef(null);
 
   // Generate helper functions for certificate
   const generateCertificateId = () => {
@@ -736,6 +739,49 @@ const CourseVideoPage = () => {
   const currentVideoUrl = currentLesson?.video_url;
   const videoEmbedUrl = getVideoEmbedUrl(currentVideoUrl);
 
+  useEffect(() => {
+    if (!currentLesson) return;
+    const provider = isYouTubeVideo(currentVideoUrl)
+      ? 'youtube'
+      : isVimeoVideo(currentVideoUrl)
+        ? 'vimeo'
+        : 'direct';
+
+    const sourceInfo = {
+      lessonId: currentLesson.id,
+      lessonTitle: currentLesson.title,
+      provider,
+      rawUrl: currentVideoUrl || null,
+      resolvedUrl: videoEmbedUrl || null
+    };
+    console.log(`🎬 Current lesson video source: ${JSON.stringify(sourceInfo)}`);
+  }, [currentLessonIndex, currentLesson, currentVideoUrl, videoEmbedUrl]);
+
+  useEffect(() => {
+    if (!isVideoPlaying) return;
+    if (isYouTubeVideo(currentVideoUrl) || isVimeoVideo(currentVideoUrl)) return;
+    if (!videoEmbedUrl) return;
+
+    const videoElement = directVideoRef.current;
+    if (!videoElement) return;
+
+    videoElement.muted = true;
+    videoElement.load();
+
+    const playPromise = videoElement.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch((err) => {
+        console.error('❌ Direct video autoplay blocked/failed:', {
+          src: videoEmbedUrl,
+          message: err?.message,
+          name: err?.name
+        });
+        setToast({ visible: true, message: 'Tap play on the video controls to start playback.', type: 'info' });
+        setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3000);
+      });
+    }
+  }, [isVideoPlaying, currentVideoUrl, videoEmbedUrl]);
+
   if (loading) {
     return <CourseVideoSkeleton />;
   }
@@ -817,21 +863,72 @@ const CourseVideoPage = () => {
               
               {/* Non-YouTube Video Player (Vimeo, direct videos, etc.) */}
               {!isYouTubeVideo(currentVideoUrl) && isVideoPlaying && videoEmbedUrl && (
-                <iframe
-                  src={videoEmbedUrl}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                    zIndex: 10
-                  }}
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
-                  title="Video Player"
-                />
+                isVimeoVideo(currentVideoUrl) ? (
+                  <iframe
+                    src={videoEmbedUrl}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      border: 'none',
+                      zIndex: 10
+                    }}
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    title="Video Player"
+                  />
+                ) : (
+                  <video
+                    key={videoEmbedUrl}
+                    ref={directVideoRef}
+                    src={videoEmbedUrl}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      zIndex: 10
+                    }}
+                    controls
+                    autoPlay
+                    muted
+                    playsInline
+                    preload="metadata"
+                    onLoadedMetadata={(event) => {
+                      console.log('✅ Video metadata loaded:', {
+                        src: event.currentTarget.currentSrc || videoEmbedUrl,
+                        duration: event.currentTarget.duration
+                      });
+                    }}
+                    onCanPlay={(event) => {
+                      console.log('▶️ Video can play:', {
+                        src: event.currentTarget.currentSrc || videoEmbedUrl
+                      });
+                    }}
+                    onError={(event) => {
+                      const mediaError = event.currentTarget.error;
+                      const errorCode = mediaError?.code;
+                      const errorMap = {
+                        1: 'MEDIA_ERR_ABORTED',
+                        2: 'MEDIA_ERR_NETWORK',
+                        3: 'MEDIA_ERR_DECODE',
+                        4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+                      };
+                      const errorName = errorMap[errorCode] || 'UNKNOWN_MEDIA_ERROR';
+                      const failingSrc = event.currentTarget.currentSrc || videoEmbedUrl;
+                      console.error('❌ Video playback error:', {
+                        src: failingSrc,
+                        code: errorCode,
+                        type: errorName,
+                        mediaError
+                      });
+                      setToast({ visible: true, message: `Video failed (${errorName}). Check console/network.`, type: 'error' });
+                      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 3500);
+                    }}
+                  />
+                )
               )}
               
               {/* Thumbnail and Play Button - Show when not playing */}
