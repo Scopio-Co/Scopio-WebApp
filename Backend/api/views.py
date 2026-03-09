@@ -15,6 +15,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth import logout as django_logout
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from django.core.files.base import ContentFile
+from PIL import Image, UnidentifiedImageError
+from pathlib import Path
+import io
 import logging
 from .models import UserProfile
 
@@ -425,7 +429,45 @@ def auth_profile(request):
             if image_file is None:
                 profile.profile_image = None
             else:
-                profile.profile_image = image_file
+                try:
+                    # Convert any uploaded image format (png/jpg/jpeg/gif/etc.) to real WebP before storage.
+                    image_file.seek(0)
+                    with Image.open(image_file) as img:
+                        # Downscale large uploads for fast avatar rendering in navbar/settings.
+                        # This prevents visible scanline-like loading from oversized source files.
+                        max_avatar_size = (512, 512)
+                        resampling = getattr(Image, 'Resampling', Image).LANCZOS
+                        img.thumbnail(max_avatar_size, resampling)
+
+                        if img.mode in ('RGBA', 'LA'):
+                            img = img.convert('RGBA')
+                        elif img.mode == 'P':
+                            # Preserve transparency for palette images when possible.
+                            if 'transparency' in img.info:
+                                img = img.convert('RGBA')
+                            else:
+                                img = img.convert('RGB')
+                        elif img.mode != 'RGB':
+                            img = img.convert('RGB')
+
+                        output = io.BytesIO()
+                        img.save(
+                            output,
+                            format='WEBP',
+                            quality=78,
+                            optimize=True,
+                            method=6,
+                        )
+                        output.seek(0)
+
+                    base_name = Path(getattr(image_file, 'name', 'profile')).stem or 'profile'
+                    webp_name = f"{base_name}.webp"
+                    profile.profile_image.save(webp_name, ContentFile(output.read()), save=False)
+                except (UnidentifiedImageError, OSError, ValueError):
+                    return Response(
+                        {"errors": {"profile_image": ["Invalid image file. Please upload a valid image."]}},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
         profile.save()
     except ValidationError as exc:

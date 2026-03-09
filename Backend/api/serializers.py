@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from allauth.socialaccount.models import SocialAccount
+from PIL import Image, UnidentifiedImageError
 from .models import UserProfile
 from .avatar_utils import get_profile_image_url
 
@@ -75,10 +76,18 @@ class ProfileSettingsSerializer(serializers.Serializer):
         if value.size > max_size:
             raise serializers.ValidationError("Profile image must be 5MB or smaller.")
 
-        allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
         content_type = getattr(value, 'content_type', '')
-        if content_type and content_type not in allowed_types:
-            raise serializers.ValidationError("Only JPG, PNG, WEBP, or GIF images are allowed.")
+        if content_type and not content_type.lower().startswith('image/'):
+            raise serializers.ValidationError("Only image uploads are allowed.")
+
+        # Verify the uploaded payload is actually an image.
+        try:
+            value.seek(0)
+            with Image.open(value) as img:
+                img.verify()
+            value.seek(0)
+        except (UnidentifiedImageError, OSError, ValueError):
+            raise serializers.ValidationError("Invalid image file. Please upload a valid image.")
 
         return value
 
