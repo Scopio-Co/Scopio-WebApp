@@ -59,7 +59,7 @@ ALLOWED_HOSTS = _env_hosts if _env_hosts else [
     '20.17.98.254.nip.io',
     "scopio.in", 
     "www.scopio.in", 
-    "20.17.98.254"
+    "20.17.98.254",
     'localhost',
     '127.0.0.1',
 ] 
