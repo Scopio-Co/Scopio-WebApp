@@ -2,44 +2,10 @@ import axios from 'axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import { clearAuthCache } from './authCache';
 
-const DEV_BACKEND_URL = 'http://localhost:8000';
-const PROD_BACKEND_URL = 'https://scopio.in';
-
-const ENV_BACKEND_URL = (import.meta.env.VITE_API_URL || '').trim();
-
-function stripTrailingSlash(url) {
-  return String(url || '').replace(/\/+$/, '');
-}
-
-function isLocalFrontend() {
-  const host = window?.location?.hostname || '';
-  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
-}
-
-function getBackendBaseUrl() {
-  // Dev: always use local Django over HTTP.
-  if (isLocalFrontend()) {
-    return DEV_BACKEND_URL;
-  }
-
-  // Prod/staging: keep explicit env URL when it exists and is HTTPS.
-  if (ENV_BACKEND_URL) {
-    const normalized = stripTrailingSlash(ENV_BACKEND_URL);
-    try {
-      const parsed = new URL(normalized);
-      if (parsed.protocol === 'https:') {
-        return normalized;
-      }
-    } catch {
-      // Ignore malformed env URLs and fall back to canonical production URL.
-    }
-  }
-
-  // Canonical production backend.
-  return PROD_BACKEND_URL;
-}
-
-export const API_BASE_URL = getBackendBaseUrl();
+// Use relative path for API calls - works in both dev and production
+// Dev: Vite proxy redirects /api to http://localhost:8000
+// Prod: Nginx routing handles /api to backend
+export const API_BASE_URL = '/api';
 
 function isUnsafeMethod(method) {
   return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || '').toUpperCase());
@@ -216,7 +182,8 @@ export async function login(username, password) {
 
 export function getGoogleLoginStartUrl(frontendOrigin = window?.location?.origin || '') {
   const encodedOrigin = encodeURIComponent(frontendOrigin);
-  return `${API_BASE_URL}/glogin/google/start/?frontend_origin=${encodedOrigin}`;
+  // glogin is not under /api path - it's at root level
+  return `/glogin/google/start/?frontend_origin=${encodedOrigin}`;
 }
 
 export default api;
