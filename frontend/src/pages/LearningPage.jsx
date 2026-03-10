@@ -21,7 +21,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
   const navigate = useNavigate();
 
   // Pagination constants
-  const COURSES_PER_PAGE = 8;
+  const COURSES_PER_PAGE = 6;
 
   const fetchEnrolledCourses = useCallback(async (showLoader = true) => {
     try {
@@ -156,16 +156,6 @@ const LearningPage = ({ onLogout, isLoading }) => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-
-  // Scroll to top of the learning page container whenever the page changes
-  useEffect(() => {
-    const el = document.querySelector('.learning-page');
-    if (el) {
-      el.scrollIntoView({ behavior: 'auto', block: 'start' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    }
-  }, [currentPage]);
 
   // Reset to page 1 when courses change
   useEffect(() => {

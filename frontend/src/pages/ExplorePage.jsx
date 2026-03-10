@@ -38,7 +38,8 @@ const ExplorePage = () => {
             image: course.thumbnail_url || courseCardImage,
             title: course.title,
             duration: course.total_duration || `${course.total_lessons || 0} lessons`,
-            rating: parseFloat(course.rating) || 0,
+            // Prefer average_rating when available from list endpoint.
+            rating: Number(course.average_rating ?? course.rating ?? 0),
             description: course.description || '',
             progress: course.progress_percentage || 0,
             authorName: course.instructor_name || 'Instructor',
@@ -47,6 +48,33 @@ const ExplorePage = () => {
           
           setCourses(transformedCourses);
           setError(null);
+
+          // Enrich ratings from each course detail endpoint in parallel.
+          // This matches LearningPage behavior and fixes stale/zero ratings in Explore info cards.
+          try {
+            const detailResponses = await Promise.allSettled(
+              transformedCourses.map((course) => api.get(`/api/video/courses/${course.id}/`))
+            );
+
+            const coursesWithLiveRatings = transformedCourses.map((course, index) => {
+              const detailResult = detailResponses[index];
+              if (detailResult?.status !== 'fulfilled') return course;
+
+              const detail = detailResult.value?.data || {};
+              const totalRatings = Number(detail.total_ratings ?? 0);
+              const averageRating = Number(detail.average_rating ?? detail.rating ?? 0);
+
+              return {
+                ...course,
+                rating: totalRatings > 0 ? averageRating : 0,
+              };
+            });
+
+            setCourses(coursesWithLiveRatings);
+          } catch (ratingErr) {
+            // Keep initial list ratings if enrichment fails.
+            console.warn('Could not enrich explore ratings from course details:', ratingErr);
+          }
         } else {
           // No courses in DB
           setCourses([]);
