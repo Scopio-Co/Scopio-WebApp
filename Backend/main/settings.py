@@ -436,6 +436,11 @@ LOGIN_ERROR_URL = '/glogin/error/'  # Redirect authentication errors to custom h
 # Using 'http' here would incorrectly mark every request as secure and force HTTPS callback URLs.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if (not DEBUG and USE_HTTPS) else None
 
+# Behind Nginx/Gunicorn, use forwarded host/port to build absolute URLs correctly.
+# This prevents redirects to internal bind addresses like 127.0.0.1:8000.
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
