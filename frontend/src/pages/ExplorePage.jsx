@@ -29,7 +29,7 @@ const ExplorePage = () => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/api/video/courses/');
+        const response = await api.get('/video/courses/');
         
         // Transform API data to CourseCard format
         if (response.data && response.data.length > 0) {
@@ -53,7 +53,7 @@ const ExplorePage = () => {
           // This matches LearningPage behavior and fixes stale/zero ratings in Explore info cards.
           try {
             const detailResponses = await Promise.allSettled(
-              transformedCourses.map((course) => api.get(`/api/video/courses/${course.id}/`))
+              transformedCourses.map((course) => api.get(`/video/courses/${course.id}/`))
             );
 
             const coursesWithLiveRatings = transformedCourses.map((course, index) => {

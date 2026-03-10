@@ -74,7 +74,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToWelcome }) => {
       setIsLoading(true);
       try {
         // Call the registration API
-        const response = await api.post('/api/user/register/', {
+        const response = await api.post('/user/register/', {
           username: formData.username,
           email: formData.email,
           first_name: formData.firstName,

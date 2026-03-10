@@ -14,7 +14,7 @@ const HeroSlider = () => {
     const fetchTopReviewedCourses = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/api/video/courses/');
+        const response = await api.get('/video/courses/');
         const courseList = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response.data?.results)
@@ -30,7 +30,7 @@ const HeroSlider = () => {
         // Fetch each course detail to get accurate per-course review stats
         // (average_rating + total_ratings), then rank top 3.
         const detailResponses = await Promise.allSettled(
-          courseList.map((course) => api.get(`/api/video/courses/${course.id}/`))
+          courseList.map((course) => api.get(`/video/courses/${course.id}/`))
         );
 
         const detailedCourses = detailResponses

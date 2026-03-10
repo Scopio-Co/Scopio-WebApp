@@ -2,47 +2,52 @@ import axios from 'axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import { clearAuthCache } from './authCache';
 
-const DEV_BACKEND_URL = 'http://localhost:8000';
-const PROD_BACKEND_URL = 'https://scopio.in';
-
-const ENV_BACKEND_URL = (import.meta.env.VITE_API_URL || '').trim();
-
-function stripTrailingSlash(url) {
-  return String(url || '').replace(/\/+$/, '');
-}
-
-function isLocalFrontend() {
-  const host = window?.location?.hostname || '';
-  return host === 'localhost' || host === '127.0.0.1' || host === '::1';
-}
-
-function getBackendBaseUrl() {
-  // Dev: always use local Django over HTTP.
-  if (isLocalFrontend()) {
-    return DEV_BACKEND_URL;
-  }
-
-  // Prod/staging: keep explicit env URL when it exists and is HTTPS.
-  if (ENV_BACKEND_URL) {
-    const normalized = stripTrailingSlash(ENV_BACKEND_URL);
-    try {
-      const parsed = new URL(normalized);
-      if (parsed.protocol === 'https:') {
-        return normalized;
-      }
-    } catch {
-      // Ignore malformed env URLs and fall back to canonical production URL.
-    }
-  }
-
-  // Canonical production backend.
-  return PROD_BACKEND_URL;
-}
-
-export const API_BASE_URL = getBackendBaseUrl();
+// Use relative path for API calls - works in both dev and production
+// Dev: Vite proxy redirects /api to http://localhost:8000
+// Prod: Nginx routing handles /api to backend
+export const API_BASE_URL = '/api';
 
 function isUnsafeMethod(method) {
   return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || '').toUpperCase());
+}
+
+function normalizeApiPath(url) {
+  if (typeof url !== 'string') {
+    return url;
+  }
+
+  if (url.startsWith('/api/')) {
+    return url.slice(4);
+  }
+
+  return url;
+}
+
+function normalizeApiError(error) {
+  const status = error?.response?.status ?? null;
+  const data = error?.response?.data ?? null;
+  const method = String(error?.config?.method || '').toUpperCase() || 'GET';
+  const url = normalizeApiPath(String(error?.config?.url || ''));
+
+  const fallbackMessage =
+    status >= 500
+      ? 'Server error. Please try again in a moment.'
+      : status === 403
+        ? 'Request blocked. Please refresh and try again.'
+        : status === 401
+          ? 'Authentication required. Please sign in again.'
+          : 'Request failed. Please try again.';
+
+  return {
+    status,
+    data,
+    method,
+    url,
+    message: data?.detail || data?.error || error?.message || fallbackMessage,
+    isServerError: status >= 500,
+    isNetworkError: !error?.response,
+    isAuthError: status === 401,
+  };
 }
 
 function getCsrfTokenFromCookie() {
@@ -87,6 +92,7 @@ let refreshPromise = null;
 api.interceptors.request.use(
   (config) => {
     const requestConfig = { ...config };
+    requestConfig.url = normalizeApiPath(requestConfig.url);
     requestConfig.withCredentials = true;
     requestConfig.headers = requestConfig.headers || {};
 
@@ -118,7 +124,7 @@ async function performRefreshToken() {
   }
 
   const response = await api.post(
-    '/api/auth/refresh/',
+    '/auth/refresh/',
     { refresh: refreshToken },
     { skipAuth: true, _retry: true }
   );
@@ -138,14 +144,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error?.config;
     const status = error?.response?.status;
-    const requestUrl = String(originalRequest?.url || '');
+    const requestUrl = normalizeApiPath(String(originalRequest?.url || ''));
+
+    error.apiError = normalizeApiError(error);
 
     if (!originalRequest || status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
     // Do not refresh for login/refresh endpoints.
-    if (requestUrl.startsWith('/api/auth/login/') || requestUrl.startsWith('/api/auth/refresh/')) {
+    if (requestUrl.startsWith('/auth/login/') || requestUrl.startsWith('/auth/refresh/') || requestUrl.startsWith('/token/refresh/')) {
       return Promise.reject(error);
     }
 
@@ -170,7 +178,10 @@ api.interceptors.response.use(
     } catch (refreshError) {
       refreshPromise = null;
       clearAuthCache();
-      window.dispatchEvent(new Event('auth:unauthorized'));
+      refreshError.apiError = normalizeApiError(refreshError);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth:unauthorized'));
+      }
       return Promise.reject(refreshError);
     }
   }
@@ -179,7 +190,7 @@ api.interceptors.response.use(
 // Robust CSRF bootstrap for both local development and production.
 export async function fetchCsrfToken() {
   try {
-    const response = await api.get('/api/auth/csrf/', { skipAuth: true });
+    const response = await api.get('/auth/csrf/', { skipAuth: true });
     const cookieToken = getCsrfTokenFromCookie();
     return {
       ok: true,
@@ -190,7 +201,7 @@ export async function fetchCsrfToken() {
     return {
       ok: false,
       csrfToken: null,
-      error,
+      error: error?.apiError || normalizeApiError(error),
     };
   }
 }
@@ -199,7 +210,7 @@ export async function login(username, password) {
   await fetchCsrfToken();
 
   const response = await api.post(
-    '/api/auth/login/',
+    '/auth/login/',
     { username, password },
     { skipAuth: true }
   );
@@ -216,7 +227,8 @@ export async function login(username, password) {
 
 export function getGoogleLoginStartUrl(frontendOrigin = window?.location?.origin || '') {
   const encodedOrigin = encodeURIComponent(frontendOrigin);
-  return `${API_BASE_URL}/glogin/google/start/?frontend_origin=${encodedOrigin}`;
+  // glogin is not under /api path - it's at root level
+  return `/glogin/google/start/?frontend_origin=${encodedOrigin}`;
 }
 
 export default api;

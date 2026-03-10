@@ -27,7 +27,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
     try {
       if (showLoader) setLoading(true);
       console.log('🔍 Fetching enrolled courses from API...');
-      const response = await api.get('/api/video/enrollments/');
+      const response = await api.get('/video/enrollments/');
       console.log('✓ Received enrollments:', response.data);
       if (response.data && response.data.length > 0) {
         const enrolledCourses = response.data.map((enrollment) => ({
@@ -48,7 +48,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
         // Fetch per-course details to get accurate rating data when available
         try {
           const ratingResponses = await Promise.allSettled(
-            enrolledCourses.map((course) => api.get(`/api/video/courses/${course.id}/`))
+            enrolledCourses.map((course) => api.get(`/video/courses/${course.id}/`))
           );
 
           const coursesWithLiveRatings = enrolledCourses.map((course, index) => {
@@ -122,7 +122,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
   useEffect(() => {
     const fetchUserStats = async () => {
       try {
-        const response = await api.get('/api/video/courses/user_stats/');
+        const response = await api.get('/video/courses/user_stats/');
         console.log('✓ User stats:', response.data);
         setUserXP(response.data.total_xp || 0);
         setCompletedLessons(response.data.total_lessons_completed || 0);

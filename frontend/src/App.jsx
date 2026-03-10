@@ -275,7 +275,7 @@ function AppContent() {
   } = {}) => {
     if (invalidateServerCookies) {
       try {
-        await api.post('/api/auth/logout/', {}, { skipAuth: true });
+        await api.post('/auth/logout/', {}, { skipAuth: true });
       } catch (error) {
         console.warn('⚠️ [App] Backend logout cookie invalidation failed:', error?.message || error);
       }
@@ -304,7 +304,7 @@ function AppContent() {
       if (isAuthenticated) {
         try {
           // Try a simple authenticated request to validate tokens
-          const response = await api.get('/api/auth/status/', { 
+          const response = await api.get('/auth/status/', { 
             skipAuth: false,
             _retry: false // Prevent automatic retry on first check
           });
@@ -408,9 +408,9 @@ function AppContent() {
       setWelcomeData((prev) => ({ ...prev, isLoading: true }));
       try {
         const [statsResult, profileResult, leaderboardResult] = await Promise.allSettled([
-          api.get('/api/video/user-stats/'),
-          api.get('/api/auth/profile/'),
-          api.get('/api/video/leaderboard/')
+          api.get('/video/user-stats/'),
+          api.get('/auth/profile/'),
+          api.get('/video/leaderboard/')
         ]);
 
         const statsData = statsResult.status === 'fulfilled' ? (statsResult.value?.data || {}) : {};
@@ -467,7 +467,7 @@ function AppContent() {
         // Mark welcome as seen if it's first visit
         if (isFirstVisit) {
           try {
-            await api.post('/api/video/mark-welcome-seen/');
+            await api.post('/video/mark-welcome-seen/');
             console.log('✓ [App] Welcome marked as seen');
           } catch (error) {
             console.error('❌ Failed to mark welcome as seen:', error);
