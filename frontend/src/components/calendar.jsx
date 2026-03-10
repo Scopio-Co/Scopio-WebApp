@@ -18,7 +18,7 @@ const Calendar = ({ onStreakUpdate }) => {
   const fetchActivityData = async (month, year) => {
     try {
       setLoading(true);
-      const response = await api.get('/api/video/daily-activity/', {
+      const response = await api.get('/video/daily-activity/', {
         params: { month: month + 1, year }
       });
       

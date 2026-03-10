@@ -30,7 +30,7 @@ const HeroSlider = () => {
         // Fetch each course detail to get accurate per-course review stats
         // (average_rating + total_ratings), then rank top 3.
         const detailResponses = await Promise.allSettled(
-          courseList.map((course) => api.get(`/api/video/courses/${course.id}/`))
+          courseList.map((course) => api.get(`/video/courses/${course.id}/`))
         );
 
         const detailedCourses = detailResponses

@@ -145,7 +145,7 @@ api.interceptors.response.use(
 // Robust CSRF bootstrap for both local development and production.
 export async function fetchCsrfToken() {
   try {
-    const response = await api.get('/api/auth/csrf/', { skipAuth: true });
+    const response = await api.get('/auth/csrf/', { skipAuth: true });
     const cookieToken = getCsrfTokenFromCookie();
     return {
       ok: true,
@@ -165,7 +165,7 @@ export async function login(username, password) {
   await fetchCsrfToken();
 
   const response = await api.post(
-    '/api/auth/login/',
+    '/auth/login/',
     { username, password },
     { skipAuth: true }
   );

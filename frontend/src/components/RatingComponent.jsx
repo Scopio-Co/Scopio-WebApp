@@ -44,7 +44,7 @@ const RatingComponent = ({
       try {
         let requestPromise = inflightRatingRequests.get(courseId);
         if (!requestPromise) {
-          requestPromise = api.get(`/api/video/courses/${courseId}/`);
+          requestPromise = api.get(`/video/courses/${courseId}/`);
           inflightRatingRequests.set(courseId, requestPromise);
         }
 

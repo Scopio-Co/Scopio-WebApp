@@ -27,7 +27,7 @@ const DiscussionLikeButton = ({ commentId, initialLikeCount = 0, initiallyLiked 
     lastRequestIdRef.current = requestId;
 
     try {
-      const response = await api.post(`/api/video/discussions/${commentId}/set_like/`, {
+      const response = await api.post(`/video/discussions/${commentId}/set_like/`, {
         liked: nextLiked,
       });
 

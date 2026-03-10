@@ -48,7 +48,7 @@ const LeaderboardPage = () => {
     const fetchLeaderboard = async () => {
       setIsPageLoading((prev) => prev && leaderboardData.length === 0);
       try {
-        const response = await api.get('/api/video/leaderboard/');
+        const response = await api.get('/video/leaderboard/');
         const rows = Array.isArray(response.data?.results) ? response.data.results : [];
 
         const mappedRows = rows.map((entry, index) => {

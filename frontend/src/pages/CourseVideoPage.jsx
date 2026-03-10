@@ -93,7 +93,7 @@ const CourseVideoPage = () => {
 
     try {
       if (showLoader) setLoading(true);
-      const response = await api.get(`/api/video/courses/${courseId}/`);
+      const response = await api.get(`/video/courses/${courseId}/`);
       setCourseData(response.data);
       setUserRating(response.data.user_rating);
       setError(null);
@@ -171,7 +171,7 @@ const CourseVideoPage = () => {
           }
         }
 
-        const response = await api.get('/api/auth/profile/');
+        const response = await api.get('/auth/profile/');
         const resolvedName = formatCertificateName(response.data);
         if (resolvedName) {
           setCertificateUserName(resolvedName);
@@ -286,7 +286,7 @@ const CourseVideoPage = () => {
     const fetchUserNotes = async () => {
       try {
         setNotesLoading(true);
-        const response = await api.get(`/api/video/notes/?course=${courseId}`);
+        const response = await api.get(`/video/notes/?course=${courseId}`);
         if (response.data && response.data.length > 0) {
           setUserNotes(response.data[0].notes_text || '');
           setNotesId(response.data[0].id);
@@ -417,7 +417,7 @@ const CourseVideoPage = () => {
     console.log(`📤 Updating progress: Lesson ${currentLesson.id} (${currentLesson.title}) - ${watchPercentage}%`);
     
     try {
-      const response = await api.post(`/api/video/lessons/${currentLesson.id}/update_watch_percentage/`, {
+      const response = await api.post(`/video/lessons/${currentLesson.id}/update_watch_percentage/`, {
         watch_percentage: watchPercentage,
         video_duration: videoDuration
       });
@@ -568,7 +568,7 @@ const CourseVideoPage = () => {
     
     try {
       setEnrolling(true);
-      const response = await api.post('/api/video/enrollments/', {
+      const response = await api.post('/video/enrollments/', {
         course: parseInt(courseId),
         watch_time: 1
       });
@@ -633,7 +633,7 @@ const CourseVideoPage = () => {
     
     try {
       // Make API call with full URL validation
-      const markCompleteUrl = `/api/video/lessons/${targetLesson.id}/mark_complete/`;
+      const markCompleteUrl = `/video/lessons/${targetLesson.id}/mark_complete/`;
       console.log(`📡 POST ${markCompleteUrl}`);
       
       const response = await api.post(markCompleteUrl);
@@ -791,7 +791,7 @@ const CourseVideoPage = () => {
 
     try {
       setSubmittingDiscussion(true);
-      const response = await api.post('/api/video/discussions/', {
+      const response = await api.post('/video/discussions/', {
         course: courseData.id,
         comment: newDiscussion
       });
@@ -814,7 +814,7 @@ const CourseVideoPage = () => {
   // Handle rating submission
   const handleRatingSubmit = async (rating) => {
     try {
-      await api.post('/api/video/ratings/', {
+      await api.post('/video/ratings/', {
         course: courseData.id,
         rating: rating
       });
@@ -822,7 +822,7 @@ const CourseVideoPage = () => {
       setUserRating(rating);
 
       // Refresh course data to get updated average rating
-      const response = await api.get(`/api/video/courses/${courseData.id}/`);
+      const response = await api.get(`/video/courses/${courseData.id}/`);
       setCourseData(response.data);
     } catch (err) {
       console.error('Error submitting rating:', err);
@@ -838,13 +838,13 @@ const CourseVideoPage = () => {
       
       if (notesId) {
         // Update existing notes
-        await api.put(`/api/video/notes/${notesId}/`, {
+        await api.put(`/video/notes/${notesId}/`, {
           notes_text: userNotes,
           course: courseData.id
         });
       } else {
         // Create new notes
-        const response = await api.post('/api/video/notes/', {
+        const response = await api.post('/video/notes/', {
           course: courseData.id,
           notes_text: userNotes
         });

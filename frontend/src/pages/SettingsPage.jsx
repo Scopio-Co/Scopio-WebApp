@@ -74,7 +74,7 @@ const SettingsPage = () => {
       }
 
       try {
-        const response = await api.get('/api/auth/profile/');
+        const response = await api.get('/auth/profile/');
         const user = response?.data || {};
 
         if (resolvedUserId) {
@@ -167,9 +167,9 @@ const SettingsPage = () => {
         multipartPayload.append('college', formData.college.trim());
         multipartPayload.append('bio', formData.bio.trim());
         multipartPayload.append('profile_image', formData.photoFile);
-        response = await api.patch('/api/auth/profile/', multipartPayload);
+        response = await api.patch('/auth/profile/', multipartPayload);
       } else {
-        response = await api.patch('/api/auth/profile/', {
+        response = await api.patch('/auth/profile/', {
           full_name: formData.fullName.trim(),
           username: formData.username.trim(),
           college: formData.college.trim(),
