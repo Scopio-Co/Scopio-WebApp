@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Serve and build the app under /home/
+  base: '/home/',
   server: {
     host: 'localhost',
     port: 5173,

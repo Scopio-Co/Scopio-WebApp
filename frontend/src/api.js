@@ -2,10 +2,12 @@ import axios from 'axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import { clearAuthCache } from './authCache';
 
-// Use relative path for API calls - works in both dev and production
-// Dev: Vite proxy redirects /api to http://localhost:8000
-// Prod: Nginx routing handles /api to backend
-export const API_BASE_URL = '/api';
+// Use canonical production API base URL.
+// This avoids accidental /api/api/ rewriting issues across hosts.
+export const API_BASE_URL = 'https://scopio.in/api/';
+
+// Keep axios global defaults aligned for any direct axios usage.
+axios.defaults.baseURL = API_BASE_URL;
 
 function isUnsafeMethod(method) {
   return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || '').toUpperCase());
