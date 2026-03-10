@@ -484,6 +484,44 @@ function AppContent() {
 
   // Handle OAuth callbacks
   useEffect(() => {
+    const handleOAuthSuccess = async (incomingAccessToken, incomingRefreshToken) => {
+      clearAuthCache();
+
+      // Store callback tokens first so axios auth interceptor can use them.
+      localStorage.setItem(ACCESS_TOKEN, incomingAccessToken);
+      localStorage.setItem(REFRESH_TOKEN, incomingRefreshToken);
+
+      try {
+        // Validate OAuth tokens against backend before finalizing client auth state.
+        const statusResponse = await api.get('/auth/status/', {
+          skipAuth: false,
+          _retry: false,
+          withCredentials: true,
+        });
+
+        const backendUserId = statusResponse?.data?.user?.id;
+        const tokenUserId = getUserIdFromAccessToken();
+        applyResolvedUserId(backendUserId || tokenUserId);
+        resetWelcomeState(true);
+        setAuthError(null);
+        setIsAuthenticated(true);
+
+        console.log('✓ OAuth callback validated; auth state finalized');
+
+        // Clean callback params from URL after successful validation.
+        window.history.replaceState({}, document.title, '/home');
+        navigate('/home', { replace: true });
+      } catch (oauthValidationError) {
+        console.error('❌ OAuth callback token validation failed:', oauthValidationError);
+        await performClientLogout({
+          redirect: false,
+          authMessage: 'Google sign-in completed, but session validation failed. Please try again.',
+          invalidateServerCookies: true,
+        });
+        window.history.replaceState({}, document.title, '/');
+      }
+    };
+
     // Check for OAuth callback in URL (query params)
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
@@ -493,24 +531,7 @@ function AppContent() {
     
     // Handle OAuth success - tokens in query params
     if (accessToken && refreshToken) {
-      clearAuthCache();
-
-      // Store tokens in localStorage only (more reliable)
-      localStorage.setItem(ACCESS_TOKEN, accessToken);
-      localStorage.setItem(REFRESH_TOKEN, refreshToken);
-
-      const oauthUserId = getUserIdFromAccessToken();
-      applyResolvedUserId(oauthUserId);
-      resetWelcomeState(true);
-      
-      console.log('✓ OAuth tokens stored successfully in localStorage');
-      
-      // Update authentication state
-      setIsAuthenticated(true);
-      
-      // Navigate to home page and clean URL
-      window.history.replaceState({}, document.title, '/home');
-      navigate('/home', { replace: true });
+      handleOAuthSuccess(accessToken, refreshToken);
       return;
     }
     
@@ -535,27 +556,10 @@ function AppContent() {
       const hashRefreshToken = hashParams.get('refresh');
       
       if (hashAccessToken && hashRefreshToken) {
-        clearAuthCache();
-
-        // Store tokens in localStorage
-        localStorage.setItem(ACCESS_TOKEN, hashAccessToken);
-        localStorage.setItem(REFRESH_TOKEN, hashRefreshToken);
-
-        const oauthUserId = getUserIdFromAccessToken();
-        applyResolvedUserId(oauthUserId);
-        resetWelcomeState(true);
-        
-        // Update authentication state
-        setIsAuthenticated(true);
-        
-        console.log('✓ OAuth tokens stored successfully (from hash in localStorage)');
-        
-        // Navigate to home page and clean URL
-        window.history.replaceState({}, document.title, '/home');
-        navigate('/home', { replace: true });
+        handleOAuthSuccess(hashAccessToken, hashRefreshToken);
       }
     }
-  }, [navigate, applyResolvedUserId, resetWelcomeState]);
+  }, [navigate, applyResolvedUserId, resetWelcomeState, performClientLogout]);
 
   // Callback for successful login/signup
   const handleLoginSuccess = () => {

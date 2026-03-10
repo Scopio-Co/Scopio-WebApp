@@ -16,8 +16,26 @@ function normalizeApiPath(url) {
     return url;
   }
 
-  if (url.startsWith('/api/')) {
-    return url.slice(4);
+  // If an absolute URL is provided, keep only its path/query/hash so axios
+  // can safely combine it with baseURL without accidental host/path duplication.
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      const parsed = new URL(url);
+      url = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch (e) {
+      // Fall through and use the original string when URL parsing fails.
+    }
+  }
+
+  // Normalize missing leading slash: "api/auth/status/" -> "/api/auth/status/"
+  if (!url.startsWith('/') && !url.startsWith('?') && !url.startsWith('#')) {
+    url = `/${url}`;
+  }
+
+  // Defensive de-duplication: strip repeated /api prefixes so endpoints always
+  // stay relative to API_BASE_URL and never become /api/api/...
+  while (url.startsWith('/api/')) {
+    url = url.slice(4);
   }
 
   return url;
@@ -126,7 +144,12 @@ async function performRefreshToken() {
   const response = await api.post(
     '/auth/refresh/',
     { refresh: refreshToken },
-    { skipAuth: true, _retry: true }
+    {
+      skipAuth: true,
+      _retry: true,
+      // Keep cookie-backed session context during refresh flows.
+      withCredentials: true,
+    }
   );
 
   const newAccess = response?.data?.access;
@@ -190,7 +213,11 @@ api.interceptors.response.use(
 // Robust CSRF bootstrap for both local development and production.
 export async function fetchCsrfToken() {
   try {
-    const response = await api.get('/auth/csrf/', { skipAuth: true });
+    const response = await api.get('/auth/csrf/', {
+      skipAuth: true,
+      // Explicit for auth bootstrap clarity; interceptor also enforces this.
+      withCredentials: true,
+    });
     const cookieToken = getCsrfTokenFromCookie();
     return {
       ok: true,
@@ -212,7 +239,11 @@ export async function login(username, password) {
   const response = await api.post(
     '/auth/login/',
     { username, password },
-    { skipAuth: true }
+    {
+      skipAuth: true,
+      // Explicit for credentialed auth sessions (form + OAuth follow-up calls).
+      withCredentials: true,
+    }
   );
 
   const accessToken = response?.data?.access;
