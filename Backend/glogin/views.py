@@ -184,6 +184,7 @@ def google_finalize(request):
         response.set_cookie('refreshToken', refresh_token, max_age=86400, httponly=True, **cookie_options)
         
         # Clean up deprecated cookies
+        # NOTE: delete_cookie() doesn't accept 'secure' - only path, domain, samesite
         for cookie_name in ['jwt_access', 'jwt_refresh']:
             response.delete_cookie(
                 cookie_name,

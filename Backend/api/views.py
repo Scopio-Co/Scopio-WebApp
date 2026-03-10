@@ -268,19 +268,19 @@ def cookie_logout(request):
         response.delete_cookie("refresh_token")
 
     # Explicitly clear Django auth/session cookies as defense-in-depth.
+    # NOTE: Django's delete_cookie() doesn't accept 'secure' argument - it uses the same
+    # security settings as when the cookie was set. Only pass path, domain, samesite.
     response.delete_cookie(
         settings.SESSION_COOKIE_NAME,
         path='/',
         domain=getattr(settings, 'SESSION_COOKIE_DOMAIN', None),
         samesite=settings.SESSION_COOKIE_SAMESITE,
-        secure=settings.SESSION_COOKIE_SECURE,
     )
     response.delete_cookie(
         settings.CSRF_COOKIE_NAME,
         path='/',
         domain=getattr(settings, 'CSRF_COOKIE_DOMAIN', None),
         samesite=settings.CSRF_COOKIE_SAMESITE,
-        secure=settings.CSRF_COOKIE_SECURE,
     )
     return response
 
