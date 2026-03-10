@@ -327,7 +327,7 @@ const CourseVideoPage = () => {
     
     const checkEnrollment = async () => {
       try {
-        const response = await api.get('/api/video/enrollments/');
+        const response = await api.get('/video/enrollments/');
         const isUserEnrolled = response.data.some(enrollment => enrollment.course === parseInt(courseId));
         setIsEnrolled(isUserEnrolled);
       } catch (err) {

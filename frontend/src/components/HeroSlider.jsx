@@ -14,7 +14,7 @@ const HeroSlider = () => {
     const fetchTopReviewedCourses = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/api/video/courses/');
+        const response = await api.get('/video/courses/');
         const courseList = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response.data?.results)

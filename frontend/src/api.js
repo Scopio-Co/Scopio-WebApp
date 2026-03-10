@@ -11,6 +11,45 @@ function isUnsafeMethod(method) {
   return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || '').toUpperCase());
 }
 
+function normalizeApiPath(url) {
+  if (typeof url !== 'string') {
+    return url;
+  }
+
+  if (url.startsWith('/api/')) {
+    return url.slice(4);
+  }
+
+  return url;
+}
+
+function normalizeApiError(error) {
+  const status = error?.response?.status ?? null;
+  const data = error?.response?.data ?? null;
+  const method = String(error?.config?.method || '').toUpperCase() || 'GET';
+  const url = normalizeApiPath(String(error?.config?.url || ''));
+
+  const fallbackMessage =
+    status >= 500
+      ? 'Server error. Please try again in a moment.'
+      : status === 403
+        ? 'Request blocked. Please refresh and try again.'
+        : status === 401
+          ? 'Authentication required. Please sign in again.'
+          : 'Request failed. Please try again.';
+
+  return {
+    status,
+    data,
+    method,
+    url,
+    message: data?.detail || data?.error || error?.message || fallbackMessage,
+    isServerError: status >= 500,
+    isNetworkError: !error?.response,
+    isAuthError: status === 401,
+  };
+}
+
 function getCsrfTokenFromCookie() {
   if (typeof document === 'undefined') {
     return null;
@@ -53,6 +92,7 @@ let refreshPromise = null;
 api.interceptors.request.use(
   (config) => {
     const requestConfig = { ...config };
+    requestConfig.url = normalizeApiPath(requestConfig.url);
     requestConfig.withCredentials = true;
     requestConfig.headers = requestConfig.headers || {};
 
@@ -84,7 +124,7 @@ async function performRefreshToken() {
   }
 
   const response = await api.post(
-    '/api/auth/refresh/',
+    '/auth/refresh/',
     { refresh: refreshToken },
     { skipAuth: true, _retry: true }
   );
@@ -104,14 +144,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error?.config;
     const status = error?.response?.status;
-    const requestUrl = String(originalRequest?.url || '');
+    const requestUrl = normalizeApiPath(String(originalRequest?.url || ''));
+
+    error.apiError = normalizeApiError(error);
 
     if (!originalRequest || status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
     // Do not refresh for login/refresh endpoints.
-    if (requestUrl.startsWith('/api/auth/login/') || requestUrl.startsWith('/api/auth/refresh/')) {
+    if (requestUrl.startsWith('/auth/login/') || requestUrl.startsWith('/auth/refresh/') || requestUrl.startsWith('/token/refresh/')) {
       return Promise.reject(error);
     }
 
@@ -136,7 +178,10 @@ api.interceptors.response.use(
     } catch (refreshError) {
       refreshPromise = null;
       clearAuthCache();
-      window.dispatchEvent(new Event('auth:unauthorized'));
+      refreshError.apiError = normalizeApiError(refreshError);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth:unauthorized'));
+      }
       return Promise.reject(refreshError);
     }
   }
@@ -156,7 +201,7 @@ export async function fetchCsrfToken() {
     return {
       ok: false,
       csrfToken: null,
-      error,
+      error: error?.apiError || normalizeApiError(error),
     };
   }
 }

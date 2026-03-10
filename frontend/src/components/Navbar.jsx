@@ -43,7 +43,7 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
       if (isAuthenticated) {
         setLoadingProfile(true);
         try {
-          const response = await api.get('/api/auth/status/');
+          const response = await api.get('/auth/status/');
           setUserData(response.data.user);
           console.log('✓ User data fetched:', response.data.user);
         } catch (error) {
