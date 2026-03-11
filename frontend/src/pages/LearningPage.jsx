@@ -236,7 +236,7 @@ const LearningPage = ({ onLogout, isLoading }) => {
                   <div 
                     key={course.id} 
                     className="course-card" 
-                    onClick={() => navigate(`/course/${course.id}`)}
+                    onClick={() => navigate(`/course/${course.id}`, { state: { source: 'learning' } })}
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="course-image-card">

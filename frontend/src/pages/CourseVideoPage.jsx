@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './CourseVideoPage.css';
@@ -49,6 +49,10 @@ const isVimeoVideo = (url) => {
 const CourseVideoPage = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const entrySource = location.state?.source || location.state?.from || null;
+  const isFromExplore = entrySource === 'explore';
+  const isFromLearning = entrySource === 'learning';
   const [activeTab, setActiveTab] = useState('overview');
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [courseData, setCourseData] = useState(null);
@@ -68,6 +72,7 @@ const CourseVideoPage = () => {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
+  const [enrollmentChecked, setEnrollmentChecked] = useState(false);
   const [xpEarned, setXpEarned] = useState(0);
   const [showXpNotification, setShowXpNotification] = useState(false);
   const [videoWatchedTime, setVideoWatchedTime] = useState(0); // Track video playback in seconds
@@ -324,6 +329,11 @@ const CourseVideoPage = () => {
   // Check if user is already enrolled
   useEffect(() => {
     if (!courseId) return;
+    // Learning page only lists enrolled courses, so keep playback unblocked while verification completes.
+    if (isFromLearning) {
+      setIsEnrolled(true);
+    }
+    setEnrollmentChecked(false);
     
     const checkEnrollment = async () => {
       try {
@@ -335,11 +345,13 @@ const CourseVideoPage = () => {
         if (err.response?.status === 401) {
           setIsEnrolled(false);
         }
+      } finally {
+        setEnrollmentChecked(true);
       }
     };
     
     checkEnrollment();
-  }, [courseId]);
+  }, [courseId, isFromLearning]);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -550,8 +562,19 @@ const CourseVideoPage = () => {
 
   // Handle play button - check enrollment
   const handlePlayClick = () => {
+    if (!enrollmentChecked && !isFromLearning) {
+      setToast({ visible: true, message: 'Checking enrollment status...', type: 'info' });
+      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 1800);
+      return;
+    }
+
     if (!isEnrolled) {
-      setShowEnrollModal(true);
+      if (isFromExplore) {
+        setShowEnrollModal(true);
+      } else {
+        setToast({ visible: true, message: 'Enroll from Explore page to unlock this course.', type: 'error' });
+        setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 2800);
+      }
     } else {
       startCurrentLessonPlayback();
     }
@@ -559,6 +582,13 @@ const CourseVideoPage = () => {
 
   // Enroll user in course
   const enrollInCourse = async () => {
+    if (!isFromExplore) {
+      setShowEnrollModal(false);
+      setToast({ visible: true, message: 'Enrollment is available from Explore page only.', type: 'error' });
+      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 2500);
+      return;
+    }
+
     if (!courseId) {
       alert('Invalid course ID');
       return;
@@ -576,7 +606,7 @@ const CourseVideoPage = () => {
       console.log('✓ Enrolled in course:', response.data);
       setIsEnrolled(true);
       setShowEnrollModal(false);
-      navigate('/learning');
+      navigate('/learning', { state: { justEnrolledCourseId: parseInt(courseId, 10) } });
     } catch (err) {
       console.error('❌ Error enrolling in course:', err);
       console.error('Error details:', {
@@ -1578,7 +1608,7 @@ const CourseVideoPage = () => {
       </div>
 
       {/* Enrollment Modal */}
-      {showEnrollModal && (
+      {showEnrollModal && isFromExplore && (
         <div className="enrollment-modal-overlay">
           <div className="enrollment-modal">
             <button

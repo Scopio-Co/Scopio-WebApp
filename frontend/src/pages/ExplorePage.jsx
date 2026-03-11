@@ -94,7 +94,7 @@ const ExplorePage = () => {
 
   const onCourseClick = (courseId) => {
     if (!courseId) return;
-    navigate(`/course/${courseId}`);
+    navigate(`/course/${courseId}`, { state: { source: 'explore' } });
   };
 
   const getArrowVisibility = (element) => {

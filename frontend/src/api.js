@@ -2,9 +2,17 @@ import axios from 'axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 import { clearAuthCache } from './authCache';
 
-// Use canonical production API base URL.
-// This avoids accidental /api/api/ rewriting issues across hosts.
-export const API_BASE_URL = 'https://scopio.in/api/';
+function resolveApiBaseUrl() {
+  const raw = (import.meta.env?.VITE_API_URL || '').trim();
+
+  // Local default: use Vite proxy (/api -> http://localhost:8000) to avoid CORS.
+  if (!raw) return '/api/';
+
+  const normalized = raw.replace(/\/+$/, '');
+  return normalized.endsWith('/api') ? `${normalized}/` : `${normalized}/api/`;
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 // Keep axios global defaults aligned for any direct axios usage.
 axios.defaults.baseURL = API_BASE_URL;
