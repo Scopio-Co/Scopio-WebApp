@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import profileAvatar from '../assets/img/profilePic (2).png';
 import api from '../api';
+import { getActiveUserId, getCachedProfile, getUserIdFromAccessToken } from '../authCache';
 
 const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   // ✅ Initialize dark mode state from localStorage
@@ -16,6 +17,26 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   const [loadingProfile, setLoadingProfile] = useState(() => !!isAuthenticated);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const applyProfilePayload = (profilePayload) => {
+    if (!profilePayload) {
+      return;
+    }
+
+    const fullName = String(profilePayload.full_name || '').trim();
+    const [firstName = '', ...rest] = fullName.split(' ');
+    const lastName = rest.join(' ');
+
+    setUserData((prev) => ({
+      ...(prev || {}),
+      first_name: profilePayload.first_name || firstName,
+      last_name: profilePayload.last_name || lastName,
+      username: profilePayload.username || prev?.username || '',
+      college: profilePayload.college || prev?.college || '',
+      bio: profilePayload.bio || prev?.bio || '',
+      profile_image_url: profilePayload.profile_image_url || prev?.profile_image_url || '',
+    }));
+  };
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -40,43 +61,50 @@ const Navbar = ({ onLogout, mobileOpen, setMobileOpen, isAuthenticated }) => {
   // ✅ Fetch user data when authenticated
   useEffect(() => {
     const fetchUserData = async () => {
-      if (isAuthenticated) {
-        setLoadingProfile(true);
-        try {
-          const response = await api.get('/auth/status/');
-          setUserData(response.data.user);
-          console.log('✓ User data fetched:', response.data.user);
-        } catch (error) {
-          console.error('❌ Failed to fetch user data:', error);
-          setUserData(null);
-        } finally {
-          setLoadingProfile(false);
-        }
-      } else {
+      if (!isAuthenticated) {
         setUserData(null);
+        setLoadingProfile(false);
+        return;
+      }
+
+      const resolvedUserId = getActiveUserId() || getUserIdFromAccessToken();
+      const cachedProfile = resolvedUserId ? getCachedProfile(resolvedUserId) : null;
+
+      // Hydrate from user-scoped cache first to avoid showing guest placeholder after login.
+      if (cachedProfile) {
+        applyProfilePayload(cachedProfile);
+        setLoadingProfile(false);
+      } else {
+        setLoadingProfile(true);
+      }
+
+      try {
+        // Profile endpoint is the source of truth for profile text and image.
+        const profileResponse = await api.get('/auth/profile/');
+        applyProfilePayload(profileResponse?.data || {});
+        console.log('✓ User profile fetched:', profileResponse?.data);
+      } catch (profileError) {
+        console.warn('⚠️ Profile fetch failed, falling back to auth/status:', profileError);
+        try {
+          const statusResponse = await api.get('/auth/status/');
+          const statusUser = statusResponse?.data?.user || {};
+          applyProfilePayload(statusUser);
+          console.log('✓ User status fetched:', statusUser);
+        } catch (statusError) {
+          console.error('❌ Failed to fetch user data from profile and status endpoints:', statusError);
+        }
+      } finally {
         setLoadingProfile(false);
       }
     };
 
     fetchUserData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, location.pathname]);
 
   useEffect(() => {
     const handleProfileUpdated = (event) => {
       const updated = event?.detail || {};
-      const fullName = (updated.full_name || '').trim();
-      const [firstName = '', ...rest] = fullName.split(' ');
-      const lastName = rest.join(' ');
-
-      setUserData((prev) => ({
-        ...(prev || {}),
-        first_name: firstName,
-        last_name: lastName,
-        username: updated.username ?? prev?.username,
-        college: updated.college ?? prev?.college,
-        bio: updated.bio ?? prev?.bio,
-        profile_image_url: updated.profile_image_url ?? prev?.profile_image_url,
-      }));
+      applyProfilePayload(updated);
     };
 
     window.addEventListener('profile-updated', handleProfileUpdated);
