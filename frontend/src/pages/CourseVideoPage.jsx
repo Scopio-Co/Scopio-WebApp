@@ -51,7 +51,6 @@ const CourseVideoPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const entrySource = location.state?.source || location.state?.from || null;
-  const isFromExplore = entrySource === 'explore';
   const isFromLearning = entrySource === 'learning';
   const [activeTab, setActiveTab] = useState('overview');
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
@@ -562,19 +561,8 @@ const CourseVideoPage = () => {
 
   // Handle play button - check enrollment
   const handlePlayClick = () => {
-    if (!enrollmentChecked && !isFromLearning) {
-      setToast({ visible: true, message: 'Checking enrollment status...', type: 'info' });
-      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 1800);
-      return;
-    }
-
     if (!isEnrolled) {
-      if (isFromExplore) {
-        setShowEnrollModal(true);
-      } else {
-        setToast({ visible: true, message: 'Enroll from Explore page to unlock this course.', type: 'error' });
-        setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 2800);
-      }
+      setShowEnrollModal(true);
     } else {
       startCurrentLessonPlayback();
     }
@@ -582,13 +570,6 @@ const CourseVideoPage = () => {
 
   // Enroll user in course
   const enrollInCourse = async () => {
-    if (!isFromExplore) {
-      setShowEnrollModal(false);
-      setToast({ visible: true, message: 'Enrollment is available from Explore page only.', type: 'error' });
-      setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 2500);
-      return;
-    }
-
     if (!courseId) {
       alert('Invalid course ID');
       return;
@@ -1608,7 +1589,7 @@ const CourseVideoPage = () => {
       </div>
 
       {/* Enrollment Modal */}
-      {showEnrollModal && isFromExplore && (
+      {showEnrollModal && (
         <div className="enrollment-modal-overlay">
           <div className="enrollment-modal">
             <button

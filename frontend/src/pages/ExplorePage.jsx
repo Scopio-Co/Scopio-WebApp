@@ -305,7 +305,7 @@ const ExplorePage = () => {
                       <div className="courses-row">
                         {filteredCourses.map((course, index) => (
                           <div className="course-card-cont" key={`search-${index}`}>
-                            <CourseCard {...course} />
+                            <CourseCard {...course} onCourseClick={onCourseClick} />
                           </div>
                         ))}
                       </div>
