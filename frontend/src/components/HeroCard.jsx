@@ -14,14 +14,12 @@ const HeroCard = ({
   const navigate = useNavigate();
 
   const navigateToCourse = () => {
-    if (courseId) {
-      navigate(`/course/${courseId}`);
-      return;
-    }
-    navigate('/explore', { replace: true });
+    if (!courseId) return;
+    navigate(`/course/${courseId}`);
   };
 
   const handleCardClick = (e) => {
+    if (!courseId) return;
     navigateToCourse();
     const mainEl = document.querySelector('.main-content');
     if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
@@ -62,8 +60,10 @@ const HeroCard = ({
           <RatingComponent courseId={courseId} rating={rating} />
           <button
             className="explore-btn"
+            disabled={!courseId}
             onClick={(ev) => {
               ev.stopPropagation();
+              if (!courseId) return;
               navigateToCourse();
               const mainEl = document.querySelector('.main-content');
               if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
