@@ -374,6 +374,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'https://scopio-webapp.pages.dev',
     'https://scopio.in',
+    'https://www.scopio.in',
+    'http://20.17.98.254',
     'http://localhost:8000',
 ]
 

@@ -11,7 +11,7 @@ import locationIcon from '../assets/img/Location.svg';
 import smiifIcon from '../assets/img/smiif.png';
 import smceIcon from '../assets/img/smce.png';
 import agIcon from '../assets/img/ag.png';
-import startupIcon from '../assets/img/startuptn.png';
+import startupIcon from '../assets/img/explore-choice.png';
 import freecodecampIcon from '../assets/img/FreeCodeCamp_logo 1.png';
 
 const Footer = () => {
