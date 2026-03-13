@@ -20,11 +20,11 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
-        working-directory: Frontend
+        working-directory: frontend
         
       - name: Build Project
         run: npm run build
-        working-directory: Frontend
+        working-directory: frontend
         
       - name: Upload build to Azure VM
         uses: appleboy/scp-action@v0.1.7
