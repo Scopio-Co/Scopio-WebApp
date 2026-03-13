@@ -32,7 +32,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "dist/*"
+          source: "frontend/dist/*"
           target: ${{ secrets.VM_TARGET_DIR }}
 
       - name: Reload Nginx
