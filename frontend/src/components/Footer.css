@@ -260,7 +260,7 @@
   height: 80px !important;
 }
 .ec-logo{
-  width: 200px !important;
+  width: 180px !important;
 }
 /* Responsive Design */
 @media (max-width: 1024px) {
@@ -359,7 +359,9 @@
   .footer-content {
     gap: 1.5rem;
   }
-
+ .tech-logos-sequence{
+  gap: 1rem;
+ }
   .tech-logos-track {
     gap: 1rem;
     --tech-duration: 12s;
