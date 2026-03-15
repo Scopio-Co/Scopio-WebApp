@@ -353,11 +353,7 @@ background: #0017ad;
 /* Brand Section */
 .auth-brand-section {
   flex: 1;
-  background: linear-gradient(
-    127deg,
-    rgba(167, 73, 255, 0.66) 35.58%,
-    rgba(12, 43, 242, 0.66) 146.46%
-  );
+  background: red;
   display: flex;
   align-items: center;
   justify-content: center;
