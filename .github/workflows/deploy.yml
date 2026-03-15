@@ -9,7 +9,6 @@ jobs:
 deploy:
 runs-on: ubuntu-latest
 
-```
 steps:
   - name: Checkout Repository
     uses: actions/checkout@v3
@@ -21,9 +20,9 @@ steps:
       username: ${{ secrets.VM_USER }}
       key: ${{ secrets.VM_SSH_KEY }}
       script: |
-        echo "Starting deployment..."
+        echo "Starting deployment"
 
-        cd ~/Scopio-WebApp
+        cd /home/azureuser/Scopio-WebApp
 
         echo "Pull latest code"
         git pull origin master
@@ -40,5 +39,5 @@ steps:
         echo "Reload Nginx"
         sudo systemctl reload nginx
 
-        echo "Deployment completed successfully"
+        echo "Deployment completed"
 ```
