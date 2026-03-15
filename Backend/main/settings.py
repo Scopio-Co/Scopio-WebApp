@@ -66,6 +66,11 @@ ALLOWED_HOSTS = _env_hosts if _env_hosts else [
     'localhost',
     '127.0.0.1',
 ]
+
+# Always include canonical production hosts even when ALLOWED_HOSTS comes from env.
+for _host in ['scopio.in', 'www.scopio.in']:
+    if _host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_host)
 # Django REST Framework + JWT
 _default_renderers = ["rest_framework.renderers.JSONRenderer"]
 if DEBUG:
@@ -417,7 +422,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',  # For social auth
 )
 
-LOGIN_REDIRECT_URL = '/glogin/google/finalize/'  # Complete OAuth by minting JWT and redirecting to frontend
+LOGIN_REDIRECT_URL = '/'  # Keep Django default login redirect at root.
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 ACCOUNT_SIGNUP_REDIRECT_URL = '/glogin/google/finalize/'
 ACCOUNT_LOGIN_REDIRECT_URL = '/glogin/google/finalize/'
@@ -438,9 +443,8 @@ SOCIALACCOUNT_ADAPTER = 'glogin.adapter.SocialAdapter'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 LOGIN_ERROR_URL = '/glogin/error/'  # Redirect authentication errors to custom handler
 
-# Trust X-Forwarded-Proto headers from nginx reverse proxy only when HTTPS is enabled.
-# Using 'http' here would incorrectly mark every request as secure and force HTTPS callback URLs.
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if (not DEBUG and USE_HTTPS) else None
+# Trust X-Forwarded-Proto from nginx so request.is_secure() is correct behind proxy.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Behind Nginx/Gunicorn, use forwarded host/port to build absolute URLs correctly.
 # This prevents redirects to internal bind addresses like 127.0.0.1:8000.

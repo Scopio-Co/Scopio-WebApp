@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.sites.models import Site
 from django.conf import settings
+import os
 
 
 class Command(BaseCommand):
@@ -9,6 +10,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Get or create the default site
         site_id = getattr(settings, 'SITE_ID', 1)
+        site_domain = os.getenv('SITE_DOMAIN', 'scopio.in').strip() or 'scopio.in'
+        site_name = os.getenv('SITE_NAME', 'Scopio').strip() or 'Scopio'
         
         try:
             site = Site.objects.get(id=site_id)
@@ -16,14 +19,14 @@ class Command(BaseCommand):
         except Site.DoesNotExist:
             site = Site.objects.create(
                 id=site_id,
-                domain='localhost:8000',
-                name='Scopio Local'
+                domain=site_domain,
+                name=site_name,
             )
             self.stdout.write(self.style.SUCCESS(f'Created new site: {site.domain}'))
         
-        # Update site to match your development setup
-        site.domain = 'localhost:8000'
-        site.name = 'Scopio'
+        # Update site to configured environment (defaults to production domain)
+        site.domain = site_domain
+        site.name = site_name
         site.save()
         
         self.stdout.write(self.style.SUCCESS(f'Site updated: ID={site.id}, Domain={site.domain}, Name={site.name}'))

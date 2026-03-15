@@ -14,7 +14,7 @@ django.setup()
 from django.contrib.sites.models import Site
 
 # Setup Site for OAuth
-site_domain = os.getenv('SITE_DOMAIN', 'scopio-webapp.onrender.com')
+site_domain = os.getenv('SITE_DOMAIN', 'scopio.in')
 site_name = os.getenv('SITE_NAME', 'Scopio')
 
 print(f"Setting up Django Site: {site_domain} ({site_name})")

@@ -97,6 +97,13 @@ def google_start(request):
         
         # Save session before redirecting
         request.session.save()
+        logger.info(
+            "[OAuth] google_start session persisted: key=%s secure=%s samesite=%s host=%s",
+            request.session.session_key,
+            getattr(settings, 'SESSION_COOKIE_SECURE', None),
+            getattr(settings, 'SESSION_COOKIE_SAMESITE', None),
+            request.get_host(),
+        )
         
         # Use an absolute URL that points directly at the backend so the
         # /accounts/google/login/ request always reaches Django-allauth.
@@ -126,7 +133,15 @@ def google_finalize(request):
     The response includes JWT tokens (access + refresh) passed as query parameters.
     """
     try:
-        logger.info(f"[OAuth] google_finalize: user_auth={request.user.is_authenticated}, session_key={request.session.session_key}")
+        logger.info(
+            "[OAuth] google_finalize reached: user_auth=%s session_key=%s host=%s secure=%s xfp=%s has_session_cookie=%s",
+            request.user.is_authenticated,
+            request.session.session_key,
+            request.get_host(),
+            request.is_secure(),
+            request.META.get('HTTP_X_FORWARDED_PROTO', ''),
+            bool(request.COOKIES.get(getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid'))),
+        )
         
         # Check if user is authenticated
         if not request.user.is_authenticated:
@@ -188,6 +203,13 @@ def google_finalize(request):
         # Compatibility aliases for clients that check different names
         response.set_cookie('accessToken', access_token, max_age=1800, httponly=True, **cookie_options)
         response.set_cookie('refreshToken', refresh_token, max_age=86400, httponly=True, **cookie_options)
+
+        logger.info(
+            "[OAuth] Response cookies set: session_cookie_name=%s jwt_secure=%s jwt_samesite=%s",
+            getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid'),
+            cookie_options.get('secure'),
+            cookie_options.get('samesite'),
+        )
         
         # Clean up deprecated cookies
         # NOTE: delete_cookie() doesn't accept 'secure' - only path, domain, samesite
