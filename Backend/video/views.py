@@ -306,9 +306,12 @@ class LessonViewSet(viewsets.ModelViewSet):
         except requests.RequestException as exc:
             return Response({'error': f'Unable to reach video source: {str(exc)}'}, status=status.HTTP_502_BAD_GATEWAY)
 
+        # Smaller chunks improve time-to-first-frame after long seek jumps.
+        stream_chunk_size = 64 * 1024
+
         def _stream_chunks():
             try:
-                for chunk in upstream.iter_content(chunk_size=1024 * 256):
+                for chunk in upstream.iter_content(chunk_size=stream_chunk_size):
                     if chunk:
                         yield chunk
             finally:
@@ -343,6 +346,8 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         # Always advertise byte-range support so browsers enable the seek bar
         response['Accept-Ranges'] = upstream.headers.get('Accept-Ranges', 'bytes')
+        # Ask nginx not to buffer stream responses; buffering makes seeks feel delayed.
+        response['X-Accel-Buffering'] = 'no'
 
         return response
     
