@@ -399,15 +399,18 @@ if DEBUG:
     SESSION_COOKIE_DOMAIN = None
     SECURE_SSL_REDIRECT = False
 else:
-    # Production requires secure cross-site cookies for Vercel -> Django auth flows.
+    # Production cookie settings
     CSRF_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SECURE = True
+
     SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = True
+
     SECURE_SSL_REDIRECT = USE_HTTPS
-    CSRF_COOKIE_DOMAIN = None
-    # Don't set SESSION_COOKIE_DOMAIN - let browser handle it
-    SESSION_COOKIE_DOMAIN = None
+
+    # Allow cookies to work on scopio.in and subdomains
+    CSRF_COOKIE_DOMAIN = ".scopio.in"
+    SESSION_COOKIE_DOMAIN = ".scopio.in"
 
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 SESSION_COOKIE_HTTPONLY = True  # Security: Don't expose session to JS
