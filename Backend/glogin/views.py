@@ -113,7 +113,9 @@ def google_start(request):
         # the React SPA instead, looping the user back to the login page.
         backend_base = getattr(settings, 'BACKEND_URL', 'https://scopio.in').rstrip('/')
         next_url = '/glogin/google/finalize/'
-        oauth_url = f'{backend_base}/accounts/google/login/?process=login&next={next_url}'
+        if frontend_origin:
+            next_url = f"{next_url}?{urlencode({'frontend_origin': frontend_origin})}"
+        oauth_url = f"{backend_base}/accounts/google/login/?{urlencode({'process': 'login', 'next': next_url})}"
         logger.info(f"[OAuth] Starting Google OAuth redirect to: {oauth_url}")
         
         return redirect(oauth_url)

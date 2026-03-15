@@ -344,7 +344,7 @@ if FRONTEND_URL and FRONTEND_URL not in FRONTEND_ALLOWED_ORIGINS:
     FRONTEND_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
 # Always allow canonical production frontend origins.
-for _origin in ['https://scopio.in', 'https://scopio-webapp.pages.dev']:
+for _origin in ['https://scopio.in', 'https://www.scopio.in', 'https://scopio-webapp.pages.dev']:
     if _origin not in FRONTEND_ALLOWED_ORIGINS:
         FRONTEND_ALLOWED_ORIGINS.append(_origin)
 
@@ -425,7 +425,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',  # For social auth
 )
 
-LOGIN_REDIRECT_URL = '/home'  # Keep Django default login redirect at root.
+LOGIN_REDIRECT_URL = '/glogin/google/finalize/'  # OAuth fallback must mint JWTs before the SPA navigates.
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 ACCOUNT_SIGNUP_REDIRECT_URL = '/glogin/google/finalize/'
 ACCOUNT_LOGIN_REDIRECT_URL = '/glogin/google/finalize/'
