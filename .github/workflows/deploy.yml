@@ -25,7 +25,18 @@ jobs:
       - name: Build Project
         run: npm run build
         working-directory: frontend
-        
+
+      # 🔴 DELETE OLD BUILD
+      - name: Clear old frontend build
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            rm -rf /home/azureuser/Scopio-WebApp/frontend/dist/*
+
+      # 🟢 UPLOAD NEW BUILD
       - name: Upload build to Azure VM
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -33,7 +44,7 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           source: "frontend/dist/*"
-          target: ${{ secrets.VM_TARGET_DIR }}
+          target: "/home/azureuser/Scopio-WebApp/frontend/dist"
 
       - name: Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
