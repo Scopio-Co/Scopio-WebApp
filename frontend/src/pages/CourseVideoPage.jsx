@@ -519,12 +519,7 @@ const CourseVideoPage = () => {
                   setYoutubePlayer(event.target);
                   setPlayerReady(true);
                   setIsVideoPlaying(true);
-                  // Resume from last saved position (localStorage first, then API last_position)
-                  const resumePos = parseInt(localStorage.getItem(`vpos-${currentLesson?.id}`) || '0', 10)
-                    || (currentLesson?.last_position || 0);
-                  if (resumePos > 5) {
-                    event.target.seekTo(resumePos, true);
-                  }
+                  event.target.seekTo(0, true);
                   event.target.playVideo();
                 },
                 onStateChange: (event) => {
@@ -1255,20 +1250,14 @@ const CourseVideoPage = () => {
                     controls
                     autoPlay
                     playsInline
-                    preload="auto"
+                    preload="metadata"
                     onLoadedMetadata={(event) => {
                       const vid = event.currentTarget;
                       console.log('✅ Video metadata loaded:', {
                         src: vid.currentSrc || videoEmbedUrl,
                         duration: vid.duration
                       });
-                      // Resume from last saved position (localStorage first, then API last_position)
-                      const resumePos = parseInt(localStorage.getItem(`vpos-${currentLesson?.id}`) || '0', 10)
-                        || (currentLesson?.last_position || 0);
-                      if (resumePos > 5 && Number.isFinite(vid.duration) && resumePos < vid.duration - 5) {
-                        vid.currentTime = resumePos;
-                        console.log(`▶️ Resuming from ${resumePos}s`);
-                      }
+                      vid.currentTime = 0;
                     }}
                     onCanPlay={(event) => {
                       console.log('▶️ Video can play:', {
@@ -1798,7 +1787,7 @@ const CourseVideoPage = () => {
       />
 
       <Footer />
-      {toast.visible && (
+      {toast.visible && toast.type === 'error' && (
         <div className={`toast ${toast.type || ''} ${toast.visible ? '' : 'hide'}`} role="status" aria-live="polite">
           {toast.type === 'error' && <span className="toast-icon">✕</span>}
           {toast.type !== 'error' && <span className="toast-icon">✓</span>}
