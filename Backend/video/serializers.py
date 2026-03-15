@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from urllib.parse import urlparse
 from .models import Video, Course, Lesson, Discussion, Resource, UserProgress, UserNotes, Rating, Enrollment, UserXP, DailyXP
 from api.avatar_utils import get_user_profile_image_url, get_default_profile_image_url
 
@@ -14,31 +15,71 @@ class VideoSerializer(serializers.ModelSerializer):
 # ========== LESSON SERIALIZERS ==========
 class LessonSerializer(serializers.ModelSerializer):
     """Full lesson details"""
+    stream_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Lesson
         fields = [
             'id', 'course', 'title', 'duration', 'time_xp',
-            'video_url', 'thumbnail_url', 'order',
+            'video_url', 'stream_url', 'thumbnail_url', 'order',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_stream_url(self, obj):
+        request = self.context.get('request')
+        if not request:
+            return None
+
+        parsed = urlparse(obj.video_url or '')
+        hostname = (parsed.hostname or '').lower()
+        if hostname.endswith('.blob.core.windows.net'):
+            return request.build_absolute_uri(f'/api/video/lessons/{obj.id}/stream/')
+        return None
 
 
 class LessonMinimalSerializer(serializers.ModelSerializer):
     """Minimal lesson info for course detail view"""
     completed = serializers.SerializerMethodField()
+    stream_url = serializers.SerializerMethodField()
+    last_position = serializers.SerializerMethodField()
     
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'duration', 'time_xp', 'video_url', 'thumbnail_url', 'order', 'completed']
+        fields = ['id', 'title', 'duration', 'time_xp', 'video_url', 'stream_url', 'thumbnail_url', 'order', 'completed', 'last_position']
     
+    def _get_progress(self, obj):
+        """Fetch user progress once per lesson, cached on the serializer instance."""
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        # Use a per-object cache to avoid two identical queries for completed + last_position
+        cache_attr = f'_cached_progress_{obj.pk}'
+        if not hasattr(self, cache_attr):
+            setattr(self, cache_attr,
+                    UserProgress.objects.filter(user=request.user, lesson=obj).first())
+        return getattr(self, cache_attr)
+
     def get_completed(self, obj):
         """Check if current user completed this lesson"""
+        progress = self._get_progress(obj)
+        return progress.completed if progress else False
+
+    def get_last_position(self, obj):
+        """Return last watched position in seconds so the frontend can resume playback."""
+        progress = self._get_progress(obj)
+        return progress.last_position if progress else 0
+
+    def get_stream_url(self, obj):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            progress = UserProgress.objects.filter(user=request.user, lesson=obj).first()
-            return progress.completed if progress else False
-        return False
+        if not request:
+            return None
+
+        parsed = urlparse(obj.video_url or '')
+        hostname = (parsed.hostname or '').lower()
+        if hostname.endswith('.blob.core.windows.net'):
+            return request.build_absolute_uri(f'/api/video/lessons/{obj.id}/stream/')
+        return None
 
 
 # ========== DISCUSSION SERIALIZERS ==========
