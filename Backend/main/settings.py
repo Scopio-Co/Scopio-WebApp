@@ -316,6 +316,10 @@ else:
 
 # CORS/CSRF origins for both environments
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://scopio-webapp.pages.dev').rstrip('/')
+# Canonical URL of this backend - used by google_start to build an absolute OAuth redirect
+# so the /accounts/google/login/ request goes directly to the backend, bypassing any
+# frontend CDN/proxy that doesn't route /accounts/* paths.
+BACKEND_URL = os.getenv('BACKEND_URL', 'https://scopio.in').rstrip('/')
 USE_HTTPS = os.getenv('USE_HTTPS', ('False' if DEBUG else 'True')).lower() in ('true', '1', 'yes')
 
 _default_frontend_origins = [

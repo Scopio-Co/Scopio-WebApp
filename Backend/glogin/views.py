@@ -98,9 +98,15 @@ def google_start(request):
         # Save session before redirecting
         request.session.save()
         
-        # Redirect to allauth's Google OAuth endpoint with custom next URL
+        # Use an absolute URL that points directly at the backend so the
+        # /accounts/google/login/ request always reaches Django-allauth.
+        # A relative redirect would be resolved against the browser's current
+        # origin (e.g. the Vercel frontend domain) and any CDN/proxy that
+        # does not forward /accounts/* to the backend would silently serve
+        # the React SPA instead, looping the user back to the login page.
+        backend_base = getattr(settings, 'BACKEND_URL', 'https://scopio.in').rstrip('/')
         next_url = '/glogin/google/finalize/'
-        oauth_url = f'/accounts/google/login/?process=login&next={next_url}'
+        oauth_url = f'{backend_base}/accounts/google/login/?process=login&next={next_url}'
         logger.info(f"[OAuth] Starting Google OAuth redirect to: {oauth_url}")
         
         return redirect(oauth_url)
