@@ -422,7 +422,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',  # For social auth
 )
 
-LOGIN_REDIRECT_URL = '/'  # Keep Django default login redirect at root.
+LOGIN_REDIRECT_URL = '/home'  # Keep Django default login redirect at root.
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 ACCOUNT_SIGNUP_REDIRECT_URL = '/glogin/google/finalize/'
 ACCOUNT_LOGIN_REDIRECT_URL = '/glogin/google/finalize/'
