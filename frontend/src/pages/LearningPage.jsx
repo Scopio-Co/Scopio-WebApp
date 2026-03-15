@@ -6,7 +6,7 @@ import Pagination from '../components/Pagination';
 import RatingComponent from '../components/RatingComponent';
 import heroCardImg from '../assets/img/Hero Card img.png';
 import profilePic from '../assets/img/profilePic (2).png';
-import tutorAvatar from '../assets/img/scopio/tutor-dolmo.png';
+import tutorAvatar from '../assets/img/scopio/tutor-dolmo.webp';
 import api from '../api';
 import { LearningPageSkeleton } from '../components/skeletons';
 

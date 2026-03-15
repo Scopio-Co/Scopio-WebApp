@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './CourseCard.css';
 import RatingComponent from './RatingComponent';
 import defaultCourseImage from '../assets/img/course_card.webp';
-import tutorAvatar from '../assets/img/scopio/tutor-dolmo.png';
+import tutorAvatar from '../assets/img/scopio/tutor-dolmo.webp';
 
 const CourseCard = ({ 
   id,

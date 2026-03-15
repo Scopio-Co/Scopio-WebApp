@@ -8,12 +8,12 @@ import xIcon from '../assets/img/x.svg';
 import mailIcon from '../assets/img/Mail.svg';
 import phoneIcon from '../assets/img/Phone.svg';
 import locationIcon from '../assets/img/Location.svg';
-import smiifIcon from '../assets/img/smiif.png';
-import smceIcon from '../assets/img/smce.png';
-import agIcon from '../assets/img/ag.png';
-import startupIcon from '../assets/img/startuptn.png';
-import exploreChoiceIcon from '../assets/img/explore-choice.png';
-import freecodecampIcon from '../assets/img/FreeCodeCamp_logo 1.png';
+import smiifIcon from '../assets/img/smiif.webp';
+import smceIcon from '../assets/img/smce.webp';
+import agIcon from '../assets/img/ag.webp';
+import startupIcon from '../assets/img/startuptn.webp';
+import exploreChoiceIcon from '../assets/img/explore-choice.webp';
+import freecodecampIcon from '../assets/img/FreeCodeCamp_logo 1.webp';
 
 const Footer = () => {
   const handleSocialLogin = (platform) => {
