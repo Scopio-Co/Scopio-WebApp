@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeroCard from './HeroCard';
 import './HeroSlider.css';
 import api from '../api';
@@ -6,6 +7,7 @@ import courseCardImage from '../assets/img/course_card.webp';
 import { HeroSliderSkeleton } from './skeletons';
 
 const HeroSlider = () => {
+  const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [topCourses, setTopCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,10 @@ const HeroSlider = () => {
     }
   };
 
-  
+  const goToExplore = () => {
+    navigate('/explore');
+  };
+
   return (
     <div className="hero-slider-container">
       <h2 className="slider-heading">Trending</h2>
@@ -106,12 +111,25 @@ const HeroSlider = () => {
             <HeroSliderSkeleton count={3} />
           ) : topCourses.length > 0 ? (
             topCourses.map((course) => (
-              <div className="slider-item" key={course.courseId}>
+              <div
+                className="slider-item"
+                key={course.courseId}
+                onClick={goToExplore}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && goToExplore()}
+              >
                 <HeroCard {...course} />
               </div>
             ))
           ) : (
-            <div className="slider-item">
+            <div
+              className="slider-item"
+              onClick={goToExplore}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && goToExplore()}
+            >
               <HeroCard />
             </div>
           )}
