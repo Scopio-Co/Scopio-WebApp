@@ -9,6 +9,14 @@
       "destination": "https://scopio.in/glogin/$1"
     },
     {
+      "source": "/accounts/(.*)",
+      "destination": "https://scopio.in/accounts/$1"
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": "https://scopio.in/admin/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
