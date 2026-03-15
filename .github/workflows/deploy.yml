@@ -8,22 +8,29 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Deploy on VM
+    steps:
+      - name: Deploy to VM via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
+
           script: |
             echo "Starting deployment..."
+
             cd /home/azureuser/Scopio-WebApp
-            git pull origin master
+
+            echo "Pulling latest code..."
+            git pull --rebase origin master
+
+            echo "Building frontend..."
             cd frontend
             npm install
             npm run build
+
+            echo "Reloading nginx..."
             sudo systemctl reload nginx
-            echo "Deployment completed."
+
+            echo "Deployment completed!"
