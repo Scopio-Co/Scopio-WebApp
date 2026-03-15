@@ -11,7 +11,8 @@ import locationIcon from '../assets/img/Location.svg';
 import smiifIcon from '../assets/img/smiif.png';
 import smceIcon from '../assets/img/smce.png';
 import agIcon from '../assets/img/ag.png';
-import startupIcon from '../assets/img/explore-choice.png';
+import startupIcon from '../assets/img/startuptn.png';
+import exploreChoiceIcon from '../assets/img/explore-choice.png';
 import freecodecampIcon from '../assets/img/FreeCodeCamp_logo 1.png';
 
 const Footer = () => {
@@ -27,6 +28,7 @@ const Footer = () => {
     { src: agIcon, alt: 'AgileTribe Icon' , className: 'smce-logo' },
     { src: startupIcon, alt: 'StartupTN Icon' },
     { src: freecodecampIcon, alt: 'Freecodecamp Icon' },
+    { src: exploreChoiceIcon, alt: 'ExploreChoice Icon' , className: 'ec-logo'  },
   ];
 
   const trackRef = useRef(null);

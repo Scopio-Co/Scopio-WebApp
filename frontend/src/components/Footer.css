@@ -259,6 +259,9 @@
   width: 70px !important;
   height: 80px !important;
 }
+.ec-logo{
+  width: 200px !important;
+}
 /* Responsive Design */
 @media (max-width: 1024px) {
   .footer-brand{
@@ -334,7 +337,7 @@
   }
   
   .tech-logo img {
-    width: 110px;
+    width: 150px;
     height: 45px;
   }
   
