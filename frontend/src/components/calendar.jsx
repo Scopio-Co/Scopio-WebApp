@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './calendar.css';
 import StreakBadge from '../assets/img/streak-badge.svg';
 import api from '../api';
@@ -10,30 +10,50 @@ const Calendar = ({ onStreakUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [hoveredDay, setHoveredDay] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const latestRequestRef = useRef(0);
   
   const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
   // Fetch daily activity data from backend
   const fetchActivityData = async (month, year) => {
+    const requestId = latestRequestRef.current + 1;
+    latestRequestRef.current = requestId;
+
     try {
       setLoading(true);
+      setHoveredDay(null);
+
       const response = await api.get('/video/daily-activity/', {
         params: { month: month + 1, year }
       });
+
+      if (latestRequestRef.current !== requestId) {
+        return;
+      }
       
-      setActivityData(response.data.daily_data);
-      setCurrentStreak(response.data.current_streak);
+      setActivityData(response.data.daily_data || {});
+      setCurrentStreak(response.data.current_streak || 0);
       
       // Notify parent component of streak update
       if (onStreakUpdate) {
-        onStreakUpdate(response.data.current_streak);
+        onStreakUpdate(response.data.current_streak || 0);
       }
-      
-      setLoading(false);
     } catch (error) {
+      if (latestRequestRef.current !== requestId) {
+        return;
+      }
+
       console.error('Failed to fetch activity data:', error);
-      setLoading(false);
+      setActivityData({});
+      setCurrentStreak(0);
+      if (onStreakUpdate) {
+        onStreakUpdate(0);
+      }
+    } finally {
+      if (latestRequestRef.current === requestId) {
+        setLoading(false);
+      }
     }
   };
   
@@ -44,18 +64,32 @@ const Calendar = ({ onStreakUpdate }) => {
   
   // Navigate to previous month
   const previousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+    if (loading) {
+      return;
+    }
+
+    setLoading(true);
+    setHoveredDay(null);
+    setCurrentDate((previousDate) => new Date(previousDate.getFullYear(), previousDate.getMonth() - 1, 1));
   };
   
   // Navigate to next month
   const nextMonth = () => {
-    const today = new Date();
-    const nextMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
-    
-    // Don't allow navigation to future months
-    if (nextMonthDate <= today) {
-      setCurrentDate(nextMonthDate);
+    if (loading) {
+      return;
     }
+
+    const today = new Date();
+    const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const nextMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+
+    if (nextMonthDate > currentMonthStart) {
+      return;
+    }
+
+    setLoading(true);
+    setHoveredDay(null);
+    setCurrentDate(nextMonthDate);
   };
   
   // Get days in current month with proper offset
@@ -112,11 +146,38 @@ const Calendar = ({ onStreakUpdate }) => {
     return streakRanges;
   };
   
-  // Check if day is part of a streak
-  const isInStreak = (day) => {
-    if (!day || !activityData[day]) return false;
-    const streakRanges = getStreakRanges();
-    return streakRanges.some(range => day >= range.start && day <= range.end);
+  const getStreakSegmentClass = (day, index, days) => {
+    if (!day || !activityData[day]?.meets_streak) {
+      return '';
+    }
+
+    const currentRow = Math.floor(index / 7);
+    const previousDay = days[index - 1];
+    const nextDay = days[index + 1];
+
+    const hasPreviousStreakDay =
+      previousDay === day - 1 &&
+      Math.floor((index - 1) / 7) === currentRow &&
+      activityData[previousDay]?.meets_streak;
+
+    const hasNextStreakDay =
+      nextDay === day + 1 &&
+      Math.floor((index + 1) / 7) === currentRow &&
+      activityData[nextDay]?.meets_streak;
+
+    if (hasPreviousStreakDay && hasNextStreakDay) {
+      return 'streak-middle';
+    }
+
+    if (hasPreviousStreakDay) {
+      return 'streak-end';
+    }
+
+    if (hasNextStreakDay) {
+      return 'streak-start';
+    }
+
+    return 'streak-single';
   };
   
   // Handle day hover for tooltip
@@ -144,6 +205,7 @@ const Calendar = ({ onStreakUpdate }) => {
   };
   
   const currentMonthLabel = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+  const daysInMonth = getDaysInMonth();
 
   return (
     <div className="streak-calendar">
@@ -151,6 +213,8 @@ const Calendar = ({ onStreakUpdate }) => {
         <button 
           className="nav-button" 
           onClick={previousMonth}
+          disabled={loading}
+          style={{ opacity: loading ? 0.5 : 1 }}
           aria-label="Previous month"
         >
           ‹
@@ -159,8 +223,8 @@ const Calendar = ({ onStreakUpdate }) => {
         <button 
           className="nav-button" 
           onClick={nextMonth}
-          disabled={!canNavigateNext()}
-          style={{ opacity: canNavigateNext() ? 1 : 0.3 }}
+          disabled={loading || !canNavigateNext()}
+          style={{ opacity: loading ? 0.5 : canNavigateNext() ? 1 : 0.3 }}
           aria-label="Next month"
         >
           ›
@@ -178,32 +242,39 @@ const Calendar = ({ onStreakUpdate }) => {
       
       {/* Calendar grid */}
       <div className="calendar-grid">
-        {getDaysInMonth().map((day, index) => (
-          <div 
-            key={index} 
-            className="calendar-day-container"
-            onMouseEnter={(e) => handleDayHover(day, e)}
-            onMouseLeave={handleDayLeave}
-          >
-            {day === null ? (
-              <div className="calendar-day empty"></div>
-            ) : activityData[day]?.has_activity ? (
-              <div className="calendar-day active">
-                <img 
-                  src={StreakBadge} 
-                  alt="streak" 
-                  className="streak-fire-icon" 
-                />
-              </div>
-            ) : (
-              <div className="calendar-day inactive"></div>
-            )}
-          </div>
-        ))}
+        {daysInMonth.map((day, index) => {
+          const streakSegmentClass = loading ? '' : getStreakSegmentClass(day, index, daysInMonth);
+          const hasStreakProgress = !loading && !!day && !!activityData[day]?.meets_streak;
+
+          return (
+            <div 
+              key={index} 
+              className={`calendar-day-container${loading ? ' loading' : ''}${streakSegmentClass ? ` ${streakSegmentClass}` : ''}${hasStreakProgress ? ' has-streak-progress' : ''}`}
+              onMouseEnter={loading ? undefined : (e) => handleDayHover(day, e)}
+              onMouseLeave={loading ? undefined : handleDayLeave}
+            >
+              {day === null ? (
+                <div className="calendar-day empty"></div>
+              ) : loading ? (
+                <div className="calendar-day loading" aria-hidden="true"></div>
+              ) : activityData[day]?.has_activity ? (
+                <div className={`calendar-day active${activityData[day]?.meets_streak ? ' streak-day' : ''}`}>
+                  <img 
+                    src={StreakBadge} 
+                    alt="streak" 
+                    className="streak-fire-icon" 
+                  />
+                </div>
+              ) : (
+                <div className="calendar-day inactive"></div>
+              )}
+            </div>
+          );
+        })}
       </div>
       
       {/* Tooltip */}
-      {hoveredDay && activityData[hoveredDay] && (
+      {!loading && hoveredDay && activityData[hoveredDay] && (
         <div 
           className="day-tooltip"
           style={{
