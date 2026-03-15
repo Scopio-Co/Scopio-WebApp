@@ -12,6 +12,37 @@ function resolveApiBaseUrl() {
   return normalized.endsWith('/api') ? `${normalized}/` : `${normalized}/api/`;
 }
 
+function resolveBackendOrigin() {
+  const explicitBackendUrl = (import.meta.env?.VITE_BACKEND_URL || '').trim();
+  if (explicitBackendUrl) {
+    return explicitBackendUrl.replace(/\/+$/, '');
+  }
+
+  const rawApiUrl = (import.meta.env?.VITE_API_URL || '').trim();
+  if (rawApiUrl) {
+    try {
+      const parsed = new URL(rawApiUrl);
+      return `${parsed.protocol}//${parsed.host}`;
+    } catch (e) {
+      // Fall back to window heuristics below.
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' && window.location.port === '5173') {
+      return 'http://localhost:8000';
+    }
+
+    if (window.location.hostname === '127.0.0.1' && window.location.port === '5173') {
+      return 'http://127.0.0.1:8000';
+    }
+
+    return window.location.origin;
+  }
+
+  return 'http://localhost:8000';
+}
+
 export const API_BASE_URL = resolveApiBaseUrl();
 
 // Keep axios global defaults aligned for any direct axios usage.
@@ -268,8 +299,8 @@ export async function login(username, password) {
 
 export function getGoogleLoginStartUrl(frontendOrigin = window?.location?.origin || '') {
   const encodedOrigin = encodeURIComponent(frontendOrigin);
-  // glogin is not under /api path - it's at root level
-  return `/glogin/google/start/?frontend_origin=${encodedOrigin}`;
+  const backendOrigin = resolveBackendOrigin();
+  return `${backendOrigin}/glogin/google/start/?frontend_origin=${encodedOrigin}`;
 }
 
 export default api;

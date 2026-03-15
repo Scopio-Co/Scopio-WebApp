@@ -344,7 +344,7 @@ if FRONTEND_URL and FRONTEND_URL not in FRONTEND_ALLOWED_ORIGINS:
     FRONTEND_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
 # Always allow canonical production frontend origins.
-for _origin in ['https://scopio.in', 'https://scopio-webapp.pages.dev']:
+for _origin in ['https://scopio.in', 'https://www.scopio.in', 'https://scopio-webapp.pages.dev']:
     if _origin not in FRONTEND_ALLOWED_ORIGINS:
         FRONTEND_ALLOWED_ORIGINS.append(_origin)
 
@@ -399,15 +399,18 @@ if DEBUG:
     SESSION_COOKIE_DOMAIN = None
     SECURE_SSL_REDIRECT = False
 else:
-    # Production requires secure cross-site cookies for Vercel -> Django auth flows.
+    # Production cookie settings
     CSRF_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SECURE = True
+
     SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = True
+
     SECURE_SSL_REDIRECT = USE_HTTPS
-    CSRF_COOKIE_DOMAIN = None
-    # Don't set SESSION_COOKIE_DOMAIN - let browser handle it
-    SESSION_COOKIE_DOMAIN = None
+
+    # Allow cookies to work on scopio.in and subdomains
+    CSRF_COOKIE_DOMAIN = ".scopio.in"
+    SESSION_COOKIE_DOMAIN = ".scopio.in"
 
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 SESSION_COOKIE_HTTPONLY = True  # Security: Don't expose session to JS
@@ -422,7 +425,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',  # For social auth
 )
 
-LOGIN_REDIRECT_URL = '/home'  # Keep Django default login redirect at root.
+LOGIN_REDIRECT_URL = '/glogin/google/finalize/'  # OAuth fallback must mint JWTs before the SPA navigates.
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 ACCOUNT_SIGNUP_REDIRECT_URL = '/glogin/google/finalize/'
 ACCOUNT_LOGIN_REDIRECT_URL = '/glogin/google/finalize/'

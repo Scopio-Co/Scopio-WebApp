@@ -13,9 +13,30 @@ export default defineConfig({
       host: 'localhost',
       port: 5173
     },
-    // Proxy API requests to backend - prevents ad blocker blocking
+    // Proxy backend routes to Django during local development so OAuth flows
+    // and cookie-backed auth work the same way they do behind Nginx in prod.
     proxy: {
       '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/glogin': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/accounts': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/admin': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api-auth': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
