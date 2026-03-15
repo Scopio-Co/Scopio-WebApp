@@ -40,4 +40,3 @@ steps:
         sudo systemctl reload nginx
 
         echo "Deployment completed"
-```
