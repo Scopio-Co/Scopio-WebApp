@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.core.cache import cache
 from django.utils import timezone
 from django.db.models import Avg, Sum, Prefetch
@@ -11,6 +11,8 @@ from django.db.models.functions import Coalesce
 from io import BytesIO
 from datetime import date, timedelta
 import re
+from urllib.parse import urlparse
+import requests
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
@@ -257,6 +259,97 @@ class LessonViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(course_id=course_id)
         
         return queryset
+
+    @action(detail=True, methods=['get', 'head'])
+    def stream(self, request, pk=None):
+        """Proxy Azure Blob video with byte-range support so browsers can seek efficiently."""
+        lesson = self.get_object()
+        video_url = (lesson.video_url or '').strip()
+
+        if not video_url:
+            return Response({'error': 'Lesson has no video URL'}, status=status.HTTP_404_NOT_FOUND)
+
+        parsed = urlparse(video_url)
+        hostname = (parsed.hostname or '').lower()
+        if not hostname.endswith('.blob.core.windows.net'):
+            return Response({'error': 'Stream endpoint supports Azure Blob URLs only'}, status=status.HTTP_400_BAD_REQUEST)
+
+        incoming_range = request.headers.get('Range') or request.META.get('HTTP_RANGE')
+        range_value = incoming_range.strip() if incoming_range else None
+
+        # Handle HEAD requests – browsers send these to check if seeking is supported
+        if request.method == 'HEAD':
+            head_headers = {}
+            if range_value:
+                head_headers['Range'] = range_value
+                head_headers['x-ms-range'] = range_value
+            try:
+                upstream = requests.head(video_url, headers=head_headers, timeout=(5, 30), allow_redirects=True)
+            except requests.RequestException as exc:
+                return HttpResponse(status=502)
+            resp = HttpResponse(status=upstream.status_code,
+                                content_type=upstream.headers.get('Content-Type', 'video/mp4'))
+            for h in ['Content-Length', 'Accept-Ranges', 'ETag', 'Last-Modified']:
+                val = upstream.headers.get(h)
+                if val:
+                    resp[h] = val
+            resp['Accept-Ranges'] = upstream.headers.get('Accept-Ranges', 'bytes')
+            return resp
+
+        request_headers = {}
+        if range_value:
+            request_headers['Range'] = range_value
+            request_headers['x-ms-range'] = range_value
+
+        try:
+            upstream = requests.get(video_url, headers=request_headers, stream=True, timeout=(5, 120))
+        except requests.RequestException as exc:
+            return Response({'error': f'Unable to reach video source: {str(exc)}'}, status=status.HTTP_502_BAD_GATEWAY)
+
+        # Smaller chunks improve time-to-first-frame after long seek jumps.
+        stream_chunk_size = 64 * 1024
+
+        def _stream_chunks():
+            try:
+                for chunk in upstream.iter_content(chunk_size=stream_chunk_size):
+                    if chunk:
+                        yield chunk
+            finally:
+                upstream.close()
+
+        downstream_status = upstream.status_code
+        content_range = upstream.headers.get('Content-Range')
+
+        response = StreamingHttpResponse(
+            streaming_content=_stream_chunks(),
+            status=downstream_status,
+            content_type=upstream.headers.get('Content-Type', 'video/mp4'),
+        )
+
+        passthrough_headers = [
+            'Content-Length',
+            'Content-Range',
+            'Accept-Ranges',
+            'Cache-Control',
+            'ETag',
+            'Last-Modified',
+            'Content-Disposition',
+        ]
+
+        for header in passthrough_headers:
+            value = upstream.headers.get(header)
+            if value:
+                response[header] = value
+
+        if content_range:
+            response['Content-Range'] = content_range
+
+        # Always advertise byte-range support so browsers enable the seek bar
+        response['Accept-Ranges'] = upstream.headers.get('Accept-Ranges', 'bytes')
+        # Ask nginx not to buffer stream responses; buffering makes seeks feel delayed.
+        response['X-Accel-Buffering'] = 'no'
+
+        return response
     
     @action(detail=True, methods=['post'])
     def mark_complete(self, request, pk=None):
@@ -475,7 +568,8 @@ class LessonViewSet(viewsets.ModelViewSet):
         
         watch_percentage = request.data.get('watch_percentage', 0)
         video_duration = request.data.get('video_duration', 0)
-        print(f"Request data: watch_percentage={watch_percentage}, video_duration={video_duration}")
+        last_position = int(request.data.get('last_position', 0) or 0)
+        print(f"Request data: watch_percentage={watch_percentage}, video_duration={video_duration}, last_position={last_position}s")
         
         # Validate input
         if not isinstance(watch_percentage, (int, float)) or watch_percentage < 0 or watch_percentage > 100:
@@ -506,6 +600,8 @@ class LessonViewSet(viewsets.ModelViewSet):
             progress.watch_percentage = max(progress.watch_percentage, int(watch_percentage))
             if video_duration > 0:
                 progress.video_duration_seconds = video_duration
+            if last_position >= 0:
+                progress.last_position = last_position
             progress.save()
             print(f"✅ Progress saved: {old_val}% → {progress.watch_percentage}%")
             

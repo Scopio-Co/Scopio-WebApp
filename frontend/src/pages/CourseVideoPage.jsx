@@ -85,6 +85,7 @@ const CourseVideoPage = () => {
   const [certificateData, setCertificateData] = useState(null);
   const [hasShownCertificate, setHasShownCertificate] = useState(false);
   const [certificateUserName, setCertificateUserName] = useState('Student');
+  const [useStreamFallback, setUseStreamFallback] = useState(false);
   const directVideoRef = useRef(null);
   const directVideoAutoplayAttemptedRef = useRef(false);
   const directVideoTrackingRef = useRef({
@@ -379,10 +380,14 @@ const CourseVideoPage = () => {
           
           // Calculate watch percentage
           const watchPercentage = Math.min(Math.round((currentTime / duration) * 100), 100);
-          
-          // Send progress update to backend every 5 seconds
+          const activeLesson = courseData?.lessons?.[currentLessonIndex];
+
+          // Send progress update to backend and save position to localStorage every 5 s
           if (currentTime % 5 < 1) {
-            updateVideoProgressOnBackend(watchPercentage, Math.floor(duration));
+            if (activeLesson?.id) {
+              localStorage.setItem(`vpos-${activeLesson.id}`, newWatchedTime);
+            }
+            updateVideoProgressOnBackend(watchPercentage, Math.floor(duration), newWatchedTime);
           }
           
           // Log when video reaches important milestones
@@ -390,7 +395,6 @@ const CourseVideoPage = () => {
             console.log('🎯 Video 90% watched - ready for completion!');
           }
 
-          const activeLesson = courseData?.lessons?.[currentLessonIndex];
           if (
             watchPercentage >= 90 &&
             activeLesson?.id &&
@@ -411,7 +415,7 @@ const CourseVideoPage = () => {
   }, [youtubePlayer, playerReady, isVideoPlaying, courseData, currentLessonIndex, completedLessons, autoCompletingLessonId]);
   
   // Send video progress update to backend
-  const updateVideoProgressOnBackend = async (watchPercentage, videoDuration) => {
+  const updateVideoProgressOnBackend = async (watchPercentage, videoDuration, lastPosition = 0) => {
     const currentLesson = courseData?.lessons?.[currentLessonIndex];
     
     if (!currentLesson) {
@@ -425,12 +429,13 @@ const CourseVideoPage = () => {
       return;
     }
     
-    console.log(`📤 Updating progress: Lesson ${currentLesson.id} (${currentLesson.title}) - ${watchPercentage}%`);
+    console.log(`📤 Updating progress: Lesson ${currentLesson.id} (${currentLesson.title}) - ${watchPercentage}% @ ${lastPosition}s`);
     
     try {
       const response = await api.post(`/video/lessons/${currentLesson.id}/update_watch_percentage/`, {
         watch_percentage: watchPercentage,
-        video_duration: videoDuration
+        video_duration: videoDuration,
+        last_position: lastPosition
       });
       console.log(`✅ Backend progress update successful:`, response.data);
     } catch (err) {
@@ -448,6 +453,7 @@ const CourseVideoPage = () => {
     setVideoWatchedTime(0);
     setIsVideoPlaying(false);
     setPlayerReady(false);
+    setUseStreamFallback(false);
     directVideoAutoplayAttemptedRef.current = false;
     directVideoTrackingRef.current = { lastTrackedSecond: -1, lastTrackedPercentage: 0 };
     
@@ -513,6 +519,7 @@ const CourseVideoPage = () => {
                   setYoutubePlayer(event.target);
                   setPlayerReady(true);
                   setIsVideoPlaying(true);
+                  event.target.seekTo(0, true);
                   event.target.playVideo();
                 },
                 onStateChange: (event) => {
@@ -567,6 +574,107 @@ const CourseVideoPage = () => {
       startCurrentLessonPlayback();
     }
   };
+
+  const toggleCurrentPlayback = useCallback(async () => {
+    const activeVideoUrl = courseData?.lessons?.[currentLessonIndex]?.video_url;
+
+    if (isYouTubeVideo(activeVideoUrl) && youtubePlayer && window.YT?.PlayerState) {
+      const state = youtubePlayer.getPlayerState();
+      const isPlaying = state === window.YT.PlayerState.PLAYING || state === window.YT.PlayerState.BUFFERING;
+
+      if (isPlaying) {
+        youtubePlayer.pauseVideo();
+      } else {
+        youtubePlayer.playVideo();
+      }
+      return true;
+    }
+
+    const videoElement = directVideoRef.current;
+    if (!videoElement) return false;
+
+    try {
+      if (videoElement.paused || videoElement.ended) {
+        await videoElement.play();
+      } else {
+        videoElement.pause();
+      }
+      return true;
+    } catch (err) {
+      console.error('❌ Keyboard playback toggle failed:', err);
+      return false;
+    }
+  }, [courseData, currentLessonIndex, youtubePlayer]);
+
+  const seekCurrentPlayback = useCallback((deltaSeconds) => {
+    if (!Number.isFinite(deltaSeconds) || deltaSeconds === 0) return false;
+
+    const activeVideoUrl = courseData?.lessons?.[currentLessonIndex]?.video_url;
+
+    if (isYouTubeVideo(activeVideoUrl) && youtubePlayer) {
+      const duration = youtubePlayer.getDuration?.() || 0;
+      const currentTime = youtubePlayer.getCurrentTime?.() || 0;
+      const maxTime = duration > 0 ? duration : currentTime + Math.abs(deltaSeconds);
+      const targetTime = Math.max(0, Math.min(currentTime + deltaSeconds, maxTime));
+      youtubePlayer.seekTo(targetTime, true);
+      setVideoWatchedTime(Math.floor(targetTime));
+      return true;
+    }
+
+    const videoElement = directVideoRef.current;
+    if (!videoElement) return false;
+
+    const currentTime = videoElement.currentTime || 0;
+    const duration = Number.isFinite(videoElement.duration) ? videoElement.duration : currentTime + Math.abs(deltaSeconds);
+    const targetTime = Math.max(0, Math.min(currentTime + deltaSeconds, duration));
+    videoElement.currentTime = targetTime;
+    setVideoWatchedTime(Math.floor(targetTime));
+    return true;
+  }, [courseData, currentLessonIndex, youtubePlayer]);
+
+  useEffect(() => {
+    const isTypingTarget = (target) => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tagName = target.tagName;
+      return target.isContentEditable || tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT';
+    };
+
+    const handleVideoKeyboardShortcut = async (event) => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTypingTarget(event.target)) return;
+
+      const key = event.key.toLowerCase();
+
+      if (key === ' ' || key === 'spacebar' || key === 'k') {
+        event.preventDefault();
+
+        if (!isVideoPlaying) {
+          handlePlayClick();
+          return;
+        }
+
+        const didToggle = await toggleCurrentPlayback();
+        if (!didToggle && isEnrolled) {
+          startCurrentLessonPlayback();
+        }
+        return;
+      }
+
+      if (key === 'arrowleft' || key === 'j') {
+        event.preventDefault();
+        seekCurrentPlayback(-5);
+        return;
+      }
+
+      if (key === 'arrowright' || key === 'l') {
+        event.preventDefault();
+        seekCurrentPlayback(5);
+      }
+    };
+
+    window.addEventListener('keydown', handleVideoKeyboardShortcut);
+    return () => window.removeEventListener('keydown', handleVideoKeyboardShortcut);
+  }, [handlePlayClick, isEnrolled, isVideoPlaying, seekCurrentPlayback, startCurrentLessonPlayback, toggleCurrentPlayback]);
 
   // Enroll user in course
   const enrollInCourse = async () => {
@@ -769,7 +877,11 @@ const CourseVideoPage = () => {
         lastTrackedSecond: currentTime,
         lastTrackedPercentage: watchPercentage
       };
-      updateVideoProgressOnBackend(watchPercentage, duration);
+      // Save position to localStorage for same-session resume
+      if (currentLesson?.id) {
+        localStorage.setItem(`vpos-${currentLesson.id}`, currentTime);
+      }
+      updateVideoProgressOnBackend(watchPercentage, duration, currentTime);
     }
 
     if (
@@ -791,7 +903,11 @@ const CourseVideoPage = () => {
     const fallbackDuration = parseDurationToSeconds(currentLesson?.duration);
     const duration = Math.floor(metadataDuration > 0 ? metadataDuration : fallbackDuration);
 
-    updateVideoProgressOnBackend(100, duration);
+    updateVideoProgressOnBackend(100, duration, 0);
+    // Clear saved resume position when the video ends fully
+    if (currentLesson?.id) {
+      localStorage.removeItem(`vpos-${currentLesson.id}`);
+    }
     markLessonComplete();
   };
 
@@ -936,7 +1052,11 @@ const CourseVideoPage = () => {
   // Get current lesson's video URL
   const currentLesson = lessons[currentLessonIndex] || lessons[0];
   const currentVideoUrl = currentLesson?.video_url;
-  const videoEmbedUrl = getVideoEmbedUrl(currentVideoUrl);
+  const streamFallbackUrl = (currentLesson?.stream_url || '').trim();
+  const currentPlaybackUrl = useStreamFallback
+    ? (currentVideoUrl || streamFallbackUrl)
+    : (streamFallbackUrl || currentVideoUrl);
+  const videoEmbedUrl = getVideoEmbedUrl(currentPlaybackUrl);
 
   useEffect(() => {
     if (!currentLesson) return;
@@ -951,10 +1071,11 @@ const CourseVideoPage = () => {
       lessonTitle: currentLesson.title,
       provider,
       rawUrl: currentVideoUrl || null,
+      playbackUrl: currentPlaybackUrl || null,
       resolvedUrl: videoEmbedUrl || null
     };
     console.log(`🎬 Current lesson video source: ${JSON.stringify(sourceInfo)}`);
-  }, [currentLessonIndex, currentLesson, currentVideoUrl, videoEmbedUrl]);
+  }, [currentLessonIndex, currentLesson, currentVideoUrl, currentPlaybackUrl, videoEmbedUrl, useStreamFallback]);
 
   useEffect(() => {
     if (!courseData?.certificate_unlocked) return;
@@ -1008,7 +1129,7 @@ const CourseVideoPage = () => {
     };
 
     attemptPlay();
-  }, [isVideoPlaying, currentVideoUrl, videoEmbedUrl]);
+  }, [isVideoPlaying, currentVideoUrl, currentPlaybackUrl, videoEmbedUrl]);
 
   if (loading) {
     return <CourseVideoSkeleton />;
@@ -1131,10 +1252,12 @@ const CourseVideoPage = () => {
                     playsInline
                     preload="metadata"
                     onLoadedMetadata={(event) => {
+                      const vid = event.currentTarget;
                       console.log('✅ Video metadata loaded:', {
-                        src: event.currentTarget.currentSrc || videoEmbedUrl,
-                        duration: event.currentTarget.duration
+                        src: vid.currentSrc || videoEmbedUrl,
+                        duration: vid.duration
                       });
+                      vid.currentTime = 0;
                     }}
                     onCanPlay={(event) => {
                       console.log('▶️ Video can play:', {
@@ -1148,6 +1271,14 @@ const CourseVideoPage = () => {
                       handleDirectVideoEnded(event.currentTarget);
                     }}
                     onError={(event) => {
+                      if (!useStreamFallback && currentVideoUrl && streamFallbackUrl && streamFallbackUrl !== currentVideoUrl) {
+                        console.warn('⚠️ Stream playback failed; switching to direct source fallback URL');
+                        setUseStreamFallback(true);
+                        setToast({ visible: true, message: 'Retrying playback with direct source…', type: 'info' });
+                        setTimeout(() => setToast({ visible: false, message: '', type: 'info' }), 2000);
+                        return;
+                      }
+
                       const mediaError = event.currentTarget.error;
                       const errorCode = mediaError?.code;
                       const errorMap = {
@@ -1656,7 +1787,7 @@ const CourseVideoPage = () => {
       />
 
       <Footer />
-      {toast.visible && (
+      {toast.visible && toast.type === 'error' && (
         <div className={`toast ${toast.type || ''} ${toast.visible ? '' : 'hide'}`} role="status" aria-live="polite">
           {toast.type === 'error' && <span className="toast-icon">✕</span>}
           {toast.type !== 'error' && <span className="toast-icon">✓</span>}
