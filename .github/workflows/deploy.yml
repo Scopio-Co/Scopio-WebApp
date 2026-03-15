@@ -1,56 +1,44 @@
 name: Deploy Frontend to Azure VM
 
 on:
-  push:
-    branches:
-      - master
+push:
+branches:
+- master
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+deploy:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+```
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22
+  - name: Deploy on VM via SSH
+    uses: appleboy/ssh-action@v1.0.3
+    with:
+      host: ${{ secrets.VM_HOST }}
+      username: ${{ secrets.VM_USER }}
+      key: ${{ secrets.VM_SSH_KEY }}
+      script: |
+        echo "Starting deployment..."
 
-      - name: Install Dependencies
-        run: npm install
-        working-directory: frontend
-        
-      - name: Build Project
-        run: npm run build
-        working-directory: frontend
+        cd ~/Scopio-WebApp
 
-      # 🔴 DELETE OLD BUILD
-      - name: Clear old frontend build
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            rm -rf /home/azureuser/Scopio-WebApp/frontend/dist/*
+        echo "Pull latest code"
+        git pull origin master
 
-      # 🟢 UPLOAD NEW BUILD
-      - name: Upload build to Azure VM
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          source: "frontend/dist/*"
-          target: "/home/azureuser/Scopio-WebApp/frontend/dist"
+        echo "Go to frontend"
+        cd frontend
 
-      - name: Reload Nginx
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            sudo systemctl reload nginx
+        echo "Install dependencies"
+        npm install
+
+        echo "Build frontend"
+        npm run build
+
+        echo "Reload Nginx"
+        sudo systemctl reload nginx
+
+        echo "Deployment completed successfully"
+```
